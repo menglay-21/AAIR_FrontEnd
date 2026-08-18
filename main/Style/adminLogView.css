@@ -1,0 +1,29 @@
+/* Drawer Transition */
+#detail-drawer {
+    transition: transform 0.3s ease-in-out;
+    transform: translateX(100%);
+}
+
+#detail-drawer.open {
+    transform: translateX(0);
+}
+
+/* Custom Scrollbar for Table */
+.table-container::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}

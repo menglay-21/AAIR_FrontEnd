@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" data-stitch-anim-opacity="true" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>AAIR Lab | Applied AI Research Laboratory</title> <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+        
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script> 
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../Style/home.css">
+</head>
+
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden">
+    <nav class="fixed top-0 w-full z-50 transition-all duration-300 bg-transparent py-4" id="top-nav">
+        <div class="max-w-container-max mx-auto px-gutter py-4 flex justify-between items-center">
+            
+            <div class="flex items-center gap-sm"> 
+                <img alt="AAIR Lab Logo" class="h-8 w-auto object-contain"
+                    src="../../../resource/icon/logo_remove_BG.png"> 
+                <span class="font-headline-md text-headline-md font-bold text-on-surface">AAIR Lab</span> 
+            </div>
+
+            <div class="hidden md:flex items-center gap-xl"> <a
+                    class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
+                    href="#about">About</a> <a
+                    class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
+                    href="#features">Features</a>
+                <div class="flex items-center gap-md ml-lg"> <a
+                        class="px-lg py-sm rounded-lg font-label-md text-label-md bg-primary text-white shadow-sm hover:shadow-md transition-all"
+                        href="../../../main/HTML/Home/signIn.html">Get Started</a> 
+                </div>
+            </div> 
+            <button class="md:hidden text-on-surface"> <span class="material-symbols-outlined">menu</span> </button>
+        </div>
+    </nav>
+    
+    <main> <!-- Hero Section -->
+        <section class="relative min-h-screen flex items-center pt-24 overflow-hidden bg-surface-bright">
+            <div class="max-w-container-max mx-auto px-gutter grid grid-cols-1 lg:grid-cols-12 gap-xl items-center">
+                <div class="lg:col-span-6 z-10 reveal active"> <span
+                        class="inline-block px-4 py-1 rounded-full bg-primary-fixed text-on-primary-fixed font-label-md text-label-md mb-md">Advanced
+                        AI Systems</span>
+                    <h1 class="font-display-lg text-display-lg mb-md leading-tight text-on-surface"> Applied AI Research
+                        Laboratory </h1>
+                    <h2 class="font-headline-md text-headline-md text-primary mb-lg"> Transforming Domain Knowledge into
+                        Intelligent Solutions </h2>
+                    <p class="font-body-lg text-body-lg text-on-surface-variant mb-xl max-w-xl"> An intelligent
+                        annotation platform that combines domain expertise with artificial intelligence to accelerate
+                        data annotation, improve accuracy, and continuously enhance AI model performance. </p>
+                    <div class="flex flex-wrap gap-md"> </div>
+                </div>
+                <div class="lg:col-span-6 relative reveal active" style="transition-delay: 200ms;">
+                    <div class="relative w-full aspect-square flex items-center justify-center"> <img
+                            alt="AI Research Illustration" class="w-full h-full object-contain drop-shadow-2xl"
+                            src="/resource/icon/logo_remove_BG.png">
+                    </div>
+                    <div class="absolute -top-10 -right-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl -z-10"></div>
+                    <div class="absolute -bottom-10 -left-10 w-64 h-64 bg-secondary/10 rounded-full blur-3xl -z-10">
+                    </div>
+                </div>
+            </div>
+        </section> <!-- About Section -->
+        <section class="py-3xl bg-surface" id="about">
+            <div class="max-w-container-max mx-auto px-gutter">
+                <div class="text-center mb-3xl reveal active">
+                    <h2 class="font-headline-lg text-headline-lg text-on-surface mb-sm">About AAIR</h2>
+                    <p class="font-body-md text-body-md text-on-surface-variant">The future of domain-specific
+                        intelligence starts here.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+                    <div
+                        class="p-xl bg-white rounded-xl shadow-sm border border-outline-variant hover:shadow-md hover:-translate-y-1 transition-all reveal active">
+                        <div
+                            class="w-12 h-12 bg-primary/10 text-primary rounded-lg flex items-center justify-center mb-lg">
+                            <span class="material-symbols-outlined">rocket_launch</span>
+                        </div>
+                        <h3 class="font-headline-md text-headline-md mb-md">Mission</h3>
+                        <p class="font-body-md text-body-md text-on-surface-variant">To bridge the gap between human
+                            domain expertise and artificial intelligence through seamless annotation workflows and
+                            adaptive learning systems.</p>
+                    </div>
+                    <div class="p-xl bg-white rounded-xl shadow-sm border border-outline-variant hover:shadow-md hover:-translate-y-1 transition-all reveal active"
+                        style="transition-delay: 100ms;">
+                        <div
+                            class="w-12 h-12 bg-secondary/10 text-secondary rounded-lg flex items-center justify-center mb-lg">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </div>
+                        <h3 class="font-headline-md text-headline-md mb-md">Vision</h3>
+                        <p class="font-body-md text-body-md text-on-surface-variant">Empowering researchers and
+                            engineers to build the next generation of highly accurate, specialized AI models for complex
+                            industries.</p>
+                    </div>
+                    <div class="p-xl bg-white rounded-xl shadow-sm border border-outline-variant hover:shadow-md hover:-translate-y-1 transition-all reveal active"
+                        style="transition-delay: 200ms;">
+                        <div
+                            class="w-12 h-12 bg-tertiary/10 text-tertiary rounded-lg flex items-center justify-center mb-lg">
+                            <span class="material-symbols-outlined">hub</span>
+                        </div>
+                        <h3 class="font-headline-md text-headline-md mb-md">Overview</h3>
+                        <p class="font-body-md text-body-md text-on-surface-variant">AAIR Laboratory serves as a hub for
+                            innovation, providing a unified platform for large-scale data processing and research-grade
+                            AI orchestration.</p>
+                    </div>
+                </div>
+            </div>
+        </section> <!-- Core Features -->
+        <section class="py-3xl" id="features">
+            <div class="max-w-container-max mx-auto px-gutter">
+                <div class="text-center mb-3xl reveal active">
+                    <h2 class="font-headline-lg text-headline-lg text-on-surface mb-sm">Core Features</h2>
+                    <p class="font-body-md text-body-md text-on-surface-variant">Experience a comprehensive suite of
+                        tools designed for high-precision AI research.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+                    <div
+                        class="glass-card p-xl rounded-xl group hover:bg-primary/5 hover:shadow-xl hover:-translate-y-2 transition-all reveal active">
+                        <div class="flex items-start gap-lg">
+                            <div class="group-hover:scale-110 transition-transform shrink-0"><img
+                                    src="../../../resource/icon/8-removebg-preview.png" alt="Manual Annotation Icon"
+                                    class="w-12 h-12 object-contain"></div>
+                            <div>
+                                <h3 class="font-headline-md text-headline-md mb-sm">Manual Annotation</h3>
+                                <p class="font-body-md text-body-md text-on-surface-variant">High-precision tools for
+                                    manual data tagging with multi-user concurrency and version control for expert
+                                    review.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card p-xl rounded-xl group hover:bg-secondary/5 hover:shadow-xl hover:-translate-y-2 transition-all reveal active"
+                        style="transition-delay: 100ms;">
+                        <div class="flex items-start gap-lg"> <img src="../../../resource/icon/9-removebg-preview.png"
+                                alt="AI Annotation Icon"
+                                class="w-12 h-12 object-contain group-hover:scale-110 transition-transform shrink-0">
+                            <div>
+                                <h3 class="font-headline-md text-headline-md mb-sm">AI Annotation</h3>
+                                <p class="font-body-md text-body-md text-on-surface-variant">Automated pre-labeling
+                                    engines that leverage state-of-the-art models to reduce manual workload by up to
+                                    80%.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card p-xl rounded-xl group hover:bg-tertiary/5 hover:shadow-xl hover:-translate-y-2 transition-all reveal active"
+                        style="transition-delay: 200ms;">
+                        <div class="flex items-start gap-lg"> <img src="../../../resource/icon/7-removebg-preview.png"
+                                alt="Terminology Management Icon"
+                                class="w-12 h-12 object-contain group-hover:scale-110 transition-transform">
+                            <div>
+                                <h3 class="font-headline-md text-headline-md mb-sm">Terminology Management</h3>
+                                <p class="font-body-md text-body-md text-on-surface-variant">Centralized taxonomy and
+                                    ontology control to ensure consistency across massive datasets and multiple teams.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card p-xl rounded-xl group hover:bg-error/5 hover:shadow-xl hover:-translate-y-2 transition-all reveal active"
+                        style="transition-delay: 300ms;">
+                        <div class="flex items-start gap-lg"> <img src="../../../resource/icon/12-removebg-preview.png"
+                                alt="Result Analysis Icon"
+                                class="w-16 h-16 object-contain group-hover:scale-110 transition-transform shrink-0">
+                            <div>
+                                <h3 class="font-headline-md text-headline-md mb-sm">Result Analysis</h3>
+                                <p class="font-body-md text-body-md text-on-surface-variant">Comprehensive dashboarding
+                                    for data distribution, model performance metrics, and annotation quality audits.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-surface-dim pt-3xl pb-xl border-t border-outline-variant">
+        <div class="max-w-container-max mx-auto px-gutter">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2xl mb-2xl">
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-sm mb-lg"> 
+                        <img alt="AAIR Lab" class="h-8"
+                            src="../../../resource/icon/logo_remove_BG.png"> <span
+                            class="font-headline-md text-headline-md font-bold text-on-surface">AAIR Lab</span> </div>
+                    
+                            <p class="font-body-md text-body-md text-on-surface-variant max-w-sm mb-lg">Defining the future of
+                            specialized intelligent systems through expert-in-the-loop innovation. Scaling domain expertise
+                            with AI.</p>
+
+                    <div class="flex gap-md"> 
+                        <a class="w-10 h-10 rounded-full bg-white border border-outline-variant flex items-center justify-center text-on-surface hover:text-primary transition-all hover:shadow-sm"
+                            href="#"><span class="material-symbols-outlined">share</span></a> 
+                        <a class="w-10 h-10 rounded-full bg-white border border-outline-variant flex items-center justify-center text-on-surface hover:text-primary transition-all hover:shadow-sm"
+                            href="#"><span class="material-symbols-outlined">alternate_email</span></a> 
+                        <a class="w-10 h-10 rounded-full bg-white border border-outline-variant flex items-center justify-center text-on-surface hover:text-primary transition-all hover:shadow-sm"
+                            href="#"><span class="material-symbols-outlined">language</span></a> 
+                    </div>
+                </div>
+
+                <!-- <div>
+                    <h4 class="font-label-md text-label-md font-bold mb-lg text-on-surface">Navigation</h4>
+                    <ul class="space-y-sm">
+                        <li class=""><a class="text-on-surface-variant hover:text-primary transition-colors"
+                                href="#about">About AAIR</a></li>
+                        <li class=""><a class="text-on-surface-variant hover:text-primary transition-colors"
+                                href="#features">Core Features</a></li>
+                    </ul>
+                </div> -->
+                <div class="ml-auto">
+                    <h4 class="font-label-md text-label-md font-bold mb-lg text-on-surface">Company</h4>
+                    <ul class="space-y-sm">
+                        <li class=""><a class="text-on-surface-variant hover:text-primary transition-colors"
+                                href="#">Research Papers</a></li>
+                        <li class=""><a class="text-on-surface-variant hover:text-primary transition-colors"
+                                href="#">Privacy Policy</a></li>
+                        <li class=""><a class="text-on-surface-variant hover:text-primary transition-colors"
+                                href="#">Terms of Service</a></li>
+                        <li class=""><a class="text-on-surface-variant hover:text-primary transition-colors"
+                                href="#">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div
+                class="pt-xl border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-md">
+                <p class="font-body-sm text-body-sm text-on-surface-variant">© 2024 Applied AI Research Laboratory (AAIR
+                    Lab). All rights reserved.</p>
+                <div class="flex gap-md text-on-surface-variant items-center"> 
+                    <span class="material-symbols-outlined text-sm">language</span> 
+                    <span class="font-body-sm text-body-sm">English (Global)</span> 
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- JavaScript -->
+    <script src="../../JavaScript/home.js"></script>
+    <script src="../../JavaScript/tailwind.js"></script>
+    
+</body>
+
+</html>

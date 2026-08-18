@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>View All Session</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap">
+
+    <!-- Material Symbols -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <script src="../../../JavaScript/tailwind.js"></script>
+
+    <link href="../../../Style/basic.css" rel="stylesheet" />
+
+</head>
+
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+
+    <!-- Fixed Header -->
+    <header
+        class="fixed top-0 left-0 right-0 h-[50px] bg-normal border-b border-outline-variant flex items-center px-2 z-50">
+
+        <!-- AAIR Logo -->
+        <div class="flex items-center gap-2 mr-6">
+            <img src="/resource/icon/logo_remove_BG.png" alt="AAIR Lab Logo" class="h-8 w-auto">
+
+            <h1 class="font-headline-sm text-[14px] font-bold text-primary">
+                AAIR Lab
+            </h1>
+        </div>
+
+        <div class="h-12 w-[1px] bg-outline-variant ms-2"></div>
+
+        <!-- Navigation -->
+        <nav class="flex items-center h-full">
+
+            <a class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200" href="../../User/ResultAnalysis/Dashboard.html"">
+                <span class=" material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                <span class="font-body-md text-[12px]">Dashboard</span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a class="flex items-center gap-2 px-4 h-full
+                   text-text-active
+                   bg-button-active
+                   transition-colors duration-200" href="../../User/ResultAnalysis/ViewAll.html">
+                <span class="material-symbols-outlined">list_alt </span>
+                <span class="font-body-md text-[12px]">View ALL</span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200" href="../../User/ResultAnalysis/Task.html">
+                <span class="material-symbols-outlined">analytics</span>
+                <span class="font-body-md text-[12px]">analysis</span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+        </nav>
+
+        <!-- User Profile -->
+        <div class="ml-auto flex items-center gap-3">
+
+            <div class="w-7 h-7 rounded-full
+                   bg-primary-container/10
+                   flex items-center justify-center
+                   text-primary font-bold">
+                D
+            </div>
+
+            <div class="hidden md:block">
+                <p class="text-[12px] font-bold text-on-surface">
+                    NV. D
+                </p>
+                <p class="text-[8px] text-on-surface-variant uppercase tracking-wider">
+                    Analysis
+                </p>
+            </div>
+
+        </div>
+
+    </header>
+
+    <!-- TopNavBar -->
+    <header class="w-full h-12
+           flex items-center gap-2 px-lg
+           bg-text-active border-b border-outline-variant
+           shadow-sm sticky top-[50px] z-30 mb-6">
+
+        <!-- Search Box - Left -->
+        <div class="relative w-[280px]">
+
+            <span class="material-symbols-outlined
+                     absolute left-3 top-1/2
+                     -translate-y-1/2
+                     text-slate-400 text-[20px]">
+                search
+            </span>
+
+            <input type="text" placeholder="Search ..." class="w-full h-8
+                   pl-10 pr-4
+                   rounded-lg
+                   border border-slate-300
+                   bg-white
+                   text-sm
+                   outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100">
+        </div>
+
+        <!-- Buttons -->
+        <div class="ml-auto flex items-center gap-2">
+
+            <div class="flex items-center gap-2">
+                <label class="text-label-md text-on-surface-variant">Session:</label>
+                <select
+                    class="w-[80px] bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-body-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary">
+                    <option>All</option>
+                    <option>001</option>
+                    <option>002</option>
+                </select>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <label class="text-label-md text-on-surface-variant">Status:</label>
+                <select
+                    class="bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-body-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary">
+                    <option>All</option>
+                    <option>Active</option>
+                    <option>Disabled</option>
+                </select>
+            </div>
+
+        </div>
+
+    </header>
+
+    <!-- =========================================================
+     MAIN CONTENT — VIEW ALL DOCUMENTS
+========================================================= -->
+
+    <main class="w-full min-h-[calc(100vh-98px)] overflow-y-auto overflow-x-hidden pt-4">
+
+        <!-- ===================================================== -->
+        <!-- PAGE CONTENT -->
+        <!-- ===================================================== -->
+
+        <section class="p-8">
+
+            <!-- ================================================= -->
+            <!-- DOCUMENT TABLE -->
+            <!-- ================================================= -->
+
+            <div class="bg-white
+                    border border-slate-200
+                    rounded-xl
+                    overflow-hidden">
+
+                <!-- Table -->
+                <div class="overflow-x-auto">
+
+                    <table class="w-full text-sm">
+
+                        <!-- ================================================= -->
+                        <!-- TABLE HEADER -->
+                        <!-- ================================================= -->
+
+                        <thead class="bg-text-active
+                                  border-b border-slate-200">
+
+                            <tr>
+
+                                <th class="px-6 py-3
+                                       text-left
+                                       font-semibold
+                                       text-slate-600">
+                                    Document
+                                </th>
+
+                                <th class="px-6 py-3
+                                       text-left
+                                       font-semibold
+                                       text-slate-600">
+                                    Session
+                                </th>
+
+                                <th class="px-6 py-3
+                                       text-left
+                                       font-semibold
+                                       text-slate-600">
+                                    Annotator
+                                </th>
+
+                                <th class="px-6 py-3
+                                       text-right
+                                       font-semibold
+                                       text-slate-600">
+                                    Labels
+                                </th>
+
+                                <th class="px-6 py-3
+                                       text-left
+                                       font-semibold
+                                       text-slate-600">
+                                    Status
+                                </th>
+
+                                <th class="px-6 py-3
+                                       text-left
+                                       font-semibold
+                                       text-slate-600">
+                                    Updated
+                                </th>
+
+                                <th class="px-6 py-3
+                                       text-right
+                                       font-semibold
+                                       text-slate-600">
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <!-- ================================================= -->
+                        <!-- TABLE BODY -->
+                        <!-- ================================================= -->
+
+                        <tbody class="divide-y divide-slate-100">
+
+
+                            <!-- ============================================= -->
+                            <!-- DOCUMENT 1 -->
+                            <!-- ============================================= -->
+
+                            <tr class="hover:bg-slate-50 transition">
+
+                                <!-- Document -->
+                                <td class="px-6 py-3">
+
+                                    <div class="flex items-center gap-3">
+
+                                        <span class="material-symbols-outlined
+                                                 text-secondary
+                                                 text-[20px]">
+                                            description
+                                        </span>
+
+                                        <div>
+
+                                            <p class="font-semibold text-slate-900">
+                                                Annual_Report_2025.pdf
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- Session -->
+                                <td class="px-6 py-3 text-slate-600">
+                                    001
+                                </td>
+
+
+                                <!-- Annotator -->
+                                <td class="px-6 py-3 text-slate-600">
+                                    John Doe
+                                </td>
+
+
+                                <!-- Labels -->
+                                <td class="px-6 py-3
+                                       text-right
+                                       font-medium
+                                       text-slate-700">
+                                    18
+                                </td>
+
+
+                                <!-- Status -->
+                                <td class="px-6 py-3">
+
+                                    <span class="inline-flex
+                                             items-center
+                                             gap-1.5
+                                             px-2.5 py-1
+                                             rounded-full
+                                             text-xs
+                                             font-medium
+                                             bg-emerald-50
+                                             text-emerald-700">
+
+                                        <span class="material-symbols-outlined text-[14px]">
+                                            check_circle
+                                        </span>
+
+                                        Labeled
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- Updated -->
+                                <td class="px-6 py-3 text-slate-500">
+                                    2 hours ago
+                                </td>
+
+
+                                <!-- Action -->
+                                <td class="px-6 py-3 text-right">
+
+                                    <button class="inline-flex
+                                               items-center
+                                               gap-1
+                                               px-3 py-2
+                                               rounded-lg
+                                               text-sm
+                                               font-medium
+                                               text-blue-600
+                                               hover:bg-blue-50
+                                               transition">
+
+                                        <span class="material-symbols-outlined text-[18px]">
+                                            visibility
+                                        </span>
+
+                                        View
+
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+
+                            <!-- ============================================= -->
+                            <!-- DOCUMENT 2 -->
+                            <!-- ============================================= -->
+
+                            <tr class="hover:bg-slate-50 transition">
+
+                                <td class="px-6 py-3">
+
+                                    <div class="flex items-center gap-3">
+
+                                        <span class="material-symbols-outlined
+                                                 text-secondary
+                                                 text-[20px]">
+                                            description
+                                        </span>
+
+                                        <p class="font-semibold text-slate-900">
+                                            Financial_Statement_Q2.pdf
+                                        </p>
+
+                                    </div>
+
+                                </td>
+
+
+                                <td class="px-6 py-3 text-slate-600">
+                                    001
+                                </td>
+
+
+                                <td class="px-6 py-3 text-slate-600">
+                                    Jane Smith
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-right
+                                       font-medium
+                                       text-slate-700">
+                                    24
+                                </td>
+
+
+                                <td class="px-6 py-3">
+
+                                    <span class="inline-flex
+                                             items-center
+                                             gap-1.5
+                                             px-2.5 py-1
+                                             rounded-full
+                                             text-xs
+                                             font-medium
+                                             bg-blue-50
+                                             text-blue-700">
+
+                                        <span class="material-symbols-outlined text-[14px]">
+                                            verified
+                                        </span>
+
+                                        Reviewed
+
+                                    </span>
+
+                                </td>
+
+
+                                <td class="px-6 py-3 text-slate-500">
+                                    Yesterday
+                                </td>
+
+
+                                <td class="px-6 py-3 text-right">
+
+                                    <button class="inline-flex
+                                               items-center
+                                               gap-1
+                                               px-3 py-2
+                                               rounded-lg
+                                               text-sm
+                                               font-medium
+                                               text-blue-600
+                                               hover:bg-blue-50
+                                               transition">
+
+                                        <span class="material-symbols-outlined text-[18px]">
+                                            visibility
+                                        </span>
+
+                                        View
+
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+
+                            <!-- ============================================= -->
+                            <!-- DOCUMENT 3 -->
+                            <!-- ============================================= -->
+
+                            <tr class="hover:bg-slate-50 transition">
+
+                                <td class="px-6 py-3">
+
+                                    <div class="flex items-center gap-3">
+
+                                        <span class="material-symbols-outlined
+                                                 text-secondary
+                                                 text-[20px]">
+                                            description
+                                        </span>
+
+                                        <p class="font-semibold text-slate-900">
+                                            Vietnam_Economic_Outlook.pdf
+                                        </p>
+
+                                    </div>
+
+                                </td>
+
+
+                                <td class="px-6 py-3 text-slate-600">
+                                    002
+                                </td>
+
+
+                                <td class="px-6 py-3 text-slate-600">
+                                    John Doe
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-right
+                                       font-medium
+                                       text-slate-700">
+                                    15
+                                </td>
+
+
+                                <td class="px-6 py-3">
+
+                                    <span class="inline-flex
+                                             items-center
+                                             gap-1.5
+                                             px-2.5 py-1
+                                             rounded-full
+                                             text-xs
+                                             font-medium
+                                             bg-emerald-50
+                                             text-emerald-700">
+
+                                        <span class="material-symbols-outlined text-[14px]">
+                                            check_circle
+                                        </span>
+
+                                        Labeled
+
+                                    </span>
+
+                                </td>
+
+
+                                <td class="px-6 py-3 text-slate-500">
+                                    Oct 24
+                                </td>
+
+
+                                <td class="px-6 py-3 text-right">
+
+                                    <button class="inline-flex
+                                               items-center
+                                               gap-1
+                                               px-3 py-2
+                                               rounded-lg
+                                               text-sm
+                                               font-medium
+                                               text-blue-600
+                                               hover:bg-blue-50
+                                               transition">
+
+                                        <span class="material-symbols-outlined text-[18px]">
+                                            visibility
+                                        </span>
+
+                                        View
+
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+
+                            <!-- ============================================= -->
+                            <!-- DOCUMENT 4 -->
+                            <!-- ============================================= -->
+
+                            <tr class="hover:bg-slate-50 transition">
+
+                                <td class="px-6 py-3">
+
+                                    <div class="flex items-center gap-3">
+
+                                        <span class="material-symbols-outlined
+                                                 text-secondary
+                                                 text-[20px]">
+                                            description
+                                        </span>
+
+                                        <p class="font-semibold text-slate-900">
+                                            GDP_Indicators_2025.pdf
+                                        </p>
+
+                                    </div>
+
+                                </td>
+
+
+                                <td class="px-6 py-3 text-slate-600">
+                                    002
+                                </td>
+
+
+                                <td class="px-6 py-3 text-slate-600">
+                                    Alex Brown
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-right
+                                       font-medium
+                                       text-slate-700">
+                                    21
+                                </td>
+
+
+                                <td class="px-6 py-3">
+
+                                    <span class="inline-flex
+                                             items-center
+                                             gap-1.5
+                                             px-2.5 py-1
+                                             rounded-full
+                                             text-xs
+                                             font-medium
+                                             bg-amber-50
+                                             text-amber-700">
+
+                                        <span class="material-symbols-outlined text-[14px]">
+                                            pending_actions
+                                        </span>
+
+                                        Pending Review
+
+                                    </span>
+
+                                </td>
+
+
+                                <td class="px-6 py-3 text-slate-500">
+                                    Oct 20
+                                </td>
+
+
+                                <td class="px-6 py-3 text-right">
+
+                                    <button class="inline-flex
+                                               items-center
+                                               gap-1
+                                               px-3 py-2
+                                               rounded-lg
+                                               text-sm
+                                               font-medium
+                                               text-blue-600
+                                               hover:bg-blue-50
+                                               transition">
+
+                                        <span class="material-symbols-outlined text-[18px]">
+                                            visibility
+                                        </span>
+
+                                        View
+
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+
+                            <!-- ============================================= -->
+                            <!-- DOCUMENT 5 -->
+                            <!-- ============================================= -->
+
+                            <tr class="hover:bg-slate-50 transition">
+
+                                <td class="px-6 py-3">
+
+                                    <div class="flex items-center gap-3">
+
+                                        <span class="material-symbols-outlined
+                                                 text-secondary
+                                                 text-[20px]">
+                                            description
+                                        </span>
+
+                                        <p class="font-semibold text-slate-900">
+                                            Vietnam_Financial_Report.pdf
+                                        </p>
+
+                                    </div>
+
+                                </td>
+
+
+                                <td class="px-6 py-3 text-slate-600">
+                                    003
+                                </td>
+
+
+                                <td class="px-6 py-3 text-slate-600">
+                                    Sarah Lee
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-right
+                                       font-medium
+                                       text-slate-700">
+                                    32
+                                </td>
+
+
+                                <td class="px-6 py-3">
+
+                                    <span class="inline-flex
+                                             items-center
+                                             gap-1.5
+                                             px-2.5 py-1
+                                             rounded-full
+                                             text-xs
+                                             font-medium
+                                             bg-blue-50
+                                             text-blue-700">
+
+                                        <span class="material-symbols-outlined text-[14px]">
+                                            verified
+                                        </span>
+
+                                        Reviewed
+
+                                    </span>
+
+                                </td>
+
+
+                                <td class="px-6 py-3 text-slate-500">
+                                    Oct 18
+                                </td>
+
+
+                                <td class="px-6 py-3 text-right">
+
+                                    <button class="inline-flex
+                                               items-center
+                                               gap-1
+                                               px-3 py-2
+                                               rounded-lg
+                                               text-sm
+                                               font-medium
+                                               text-blue-600
+                                               hover:bg-blue-50
+                                               transition">
+
+                                        <span class="material-symbols-outlined text-[18px]">
+                                            visibility
+                                        </span>
+
+                                        View
+
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- PAGINATION -->
+                <!-- ================================================= -->
+
+                <div class="px-6 py-4
+                        bg-text-active
+                        border-t border-slate-200
+                        flex items-center
+                        justify-center">
+
+
+                    <!-- Pagination -->
+                    <div class="flex items-center gap-6">
+
+                        <!-- Previous -->
+                        <button class="w-9 h-9
+                                    flex items-center justify-center
+                                    rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+
+                            <span class="material-symbols-outlined text-[20px]">
+                                chevron_left
+                            </span>
+
+                        </button>
+
+
+                        <!-- Page 1 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                   bg-button-active
+                                   text-text-active
+                                   text-sm
+                                   font-medium">
+                            1
+                        </button>
+
+
+                        <!-- Page 2 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            2
+                        </button>
+
+
+                        <!-- Page 3 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            3
+                        </button>
+
+
+                        <!-- Page 4 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            4
+                        </button>
+
+
+                        <!-- Page 5 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            5
+                        </button>
+
+
+                        <!-- Page 6 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            6
+                        </button>
+
+
+                        <!-- Next -->
+                        <button class="w-9 h-9
+                                    flex items-center justify-center
+                                    rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+
+                            <span class="material-symbols-outlined text-[20px]">
+                                chevron_right
+                            </span>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+</body>
+
+</html>

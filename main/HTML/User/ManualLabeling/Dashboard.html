@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap">
+
+    <!-- Material Symbols -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <script src="../../../JavaScript/tailwind.js"></script>
+
+    <link href="../../../Style/basic.css" rel="stylesheet" />
+
+</head>
+
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+
+    <!-- Fixed Header -->
+    <header class="fixed top-0 left-0 right-0 h-[50px] bg-normal border-b border-outline-variant flex items-center px-2 z-50">
+
+        <!-- AAIR Logo -->
+        <div class="flex items-center gap-2 mr-6">
+            <img src="/resource/icon/logo_remove_BG.png" alt="AAIR Lab Logo" class="h-8 w-auto">
+
+            <h1 class="font-headline-sm text-[14px] font-bold text-primary">
+                AAIR Lab
+            </h1>
+        </div>
+
+        <div class="h-12 w-[1px] bg-outline-variant ms-2"></div>
+
+        <!-- Navigation -->
+        <nav class="flex items-center h-full">
+
+            <a class="flex items-center gap-2 px-4 h-full
+                   text-text-active
+                   bg-button-active
+                   transition-colors duration-200" href="../../User/ManualLabeling/Dashboard.html">
+                <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                <span class="font-body-md text-[12px]">Dashboard</span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200" href="../../User/ManualLabeling/ViewAll.html">
+                <span class="material-symbols-outlined">list_alt </span>
+                <span class="font-body-md text-[12px]">View ALL</span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200" href="../../User/ManualLabeling/Task.html">
+                <span class="material-symbols-outlined">edit_note</span>
+                <span class="font-body-md text-[12px]">Session</span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+        </nav>
+
+        <!-- User Profile -->
+        <div class="ml-auto flex items-center gap-3">
+
+            <div class="w-7 h-7 rounded-full
+                   bg-primary-container/10
+                   flex items-center justify-center
+                   text-primary font-bold">
+                B
+            </div>
+
+            <div class="hidden md:block">
+                <p class="text-[12px] font-bold text-on-surface">
+                    NV. B
+                </p>
+                <p class="text-[8px] text-on-surface-variant uppercase tracking-wider">
+                    Manual labeling
+                </p>
+            </div>
+
+        </div>
+
+    </header>
+
+    <!-- TopNavBar -->
+    <header class="w-full h-12
+           flex items-center px-lg
+           bg-text-active border-b border-outline-variant
+           shadow-sm sticky top-[50px] z-30 mb-6">
+
+        <div class="flex items-center">
+            <h2 class="text-lg font-bold text-on-surface">
+                Good Morning,
+            </h2>
+        </div>
+        <!-- Buttons -->
+        <div class="ml-auto flex items-center gap-2">
+            <button class="px-4 py-2
+                       rounded-lg
+                       text-[12px]
+                       bg-button-active
+                       text-text-active
+                       hover:opacity-85
+                       transition-opacity
+                       flex items-center gap-2 shadow-sm">
+
+                <span class="material-symbols-outlined text-[12px]">play_circle</span>
+                Continue Last Session
+            </button>
+
+            <button type="butotn"
+                    class="px-4 py-2
+                       rounded-lg
+                       text-[12px]
+                       bg-button-active
+                       text-text-active
+                       hover:opacity-85
+                       transition-opacity
+                       flex items-center gap-2 shadow-sm"
+                    onclick="location.reload()">
+
+                <span class="material-symbols-outlined text-[12px]">
+                    refresh
+                </span>
+
+                Refresh
+            
+        </div>
+
+    </header>
+
+    <!-- Main Content Wrapper -->
+    <div class="w-full min-h-[calc(100vh-98px)] bg-surface pt-6">
+
+        <!-- Main Dashboard Area -->
+        <main class="p-lg space-y-xl">
+            <!-- Section 1: KPI Overview -->
+            <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg">
+                <!-- Assigned Sessions -->
+                <div
+                    class="bg-white p-lg rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-all duration-200 cursor-default group">
+                    <div class="flex justify-between items-start mb-md">
+                        <div
+                            class="p-sm bg-surface-container-low rounded-lg text-primary group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined">folder</span>
+                        </div>
+                        <span class="text-xs font-semibold text-tertiary">+2 this week</span>
+                    </div>
+                    <div class="space-y-xs">
+                        <h3 class="text-3xl font-bold">12</h3>
+                        <p class="text-on-surface-variant font-label-sm text-label-sm">Assigned Sessions</p>
+                        <p class="text-xs text-outline italic">Current active sessions</p>
+                    </div>
+                </div>
+                <!-- Pending Tasks -->
+                <div
+                    class="bg-white p-lg rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-all duration-200 cursor-default group">
+                    <div class="flex justify-between items-start mb-md">
+                        <div
+                            class="p-sm bg-surface-container-low rounded-lg text-primary group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined">schedule</span>
+                        </div>
+                        <span class="text-xs font-semibold text-secondary">-15% load</span>
+                    </div>
+                    <div class="space-y-xs">
+                        <h3 class="text-3xl font-bold">142</h3>
+                        <p class="text-on-surface-variant font-label-sm text-label-sm">Pending Tasks</p>
+                        <p class="text-xs text-outline italic">Tasks requiring labeling</p>
+                    </div>
+                </div>
+                <!-- Completed Tasks -->
+                <div
+                    class="bg-white p-lg rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-all duration-200 cursor-default group">
+                    <div class="flex justify-between items-start mb-md">
+                        <div
+                            class="p-sm bg-surface-container-low rounded-lg text-primary group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined">check_circle</span>
+                        </div>
+                        <span class="text-xs font-semibold text-tertiary">+124 total</span>
+                    </div>
+                    <div class="space-y-xs">
+                        <h3 class="text-3xl font-bold">856</h3>
+                        <p class="text-on-surface-variant font-label-sm text-label-sm">Completed Tasks</p>
+                        <p class="text-xs text-outline italic">Total tasks finished</p>
+                    </div>
+                </div>
+                <!-- Overall Progress -->
+                <div
+                    class="bg-white p-lg rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-all duration-200 cursor-default group">
+                    <div class="flex items-center gap-lg">
+                        <div class="relative w-20 h-20 flex items-center justify-center">
+                            <div class="circular-progress w-full h-full rounded-full flex items-center justify-center">
+                                <span class="text-lg font-bold text-on-surface">68%</span>
+                            </div>
+                        </div>
+                        <div class="space-y-xs">
+                            <p class="text-on-surface-variant font-label-sm text-label-sm">Overall Progress</p>
+                            <p class="text-xs text-outline italic leading-tight">Current weekly progress tracking</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <!-- Background Decoration -->
+    <div class="fixed inset-0 pointer-events-none z-[-1] opacity-50 overflow-hidden">
+        <div class="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-primary-container blur-[150px] opacity-10"></div>
+        <div class="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-secondary-container blur-[150px] opacity-10">
+        </div>
+    </div>
+    <script > </script>
+
+</body>
+
+</html>

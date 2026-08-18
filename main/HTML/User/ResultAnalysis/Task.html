@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Analysis</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap">
+
+    <!-- Material Symbols -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <script src="../../../JavaScript/tailwind.js"></script>
+
+    <link href="../../../Style/basic.css" rel="stylesheet" />
+
+</head>
+
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+
+    <!-- Fixed Header -->
+    <header
+        class="fixed top-0 left-0 right-0 h-[50px] bg-normal border-b border-outline-variant flex items-center px-2 z-50">
+
+        <!-- AAIR Logo -->
+        <div class="flex items-center gap-2 mr-6">
+            <img src="/resource/icon/logo_remove_BG.png" alt="AAIR Lab Logo" class="h-8 w-auto">
+
+            <h1 class="font-headline-sm text-[14px] font-bold text-primary">
+                AAIR Lab
+            </h1>
+        </div>
+
+        <div class="h-12 w-[1px] bg-outline-variant ms-2"></div>
+
+        <!-- Navigation -->
+        <nav class="flex items-center h-full">
+
+            <a class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200" href="../../User/ResultAnalysis/Dashboard.html"">
+                <span class=" material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                <span class="font-body-md text-[12px]">Dashboard</span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200" href="../../User/ResultAnalysis/ViewAll.html">
+                <span class="material-symbols-outlined">list_alt </span>
+                <span class="font-body-md text-[12px]">View ALL</span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a class="flex items-center gap-2 px-4 h-full
+                  text-text-active
+                   bg-button-active
+                   transition-colors duration-200" href="../../User/ResultAnalysis/Task.html">
+                <span class="material-symbols-outlined">analytics</span>
+                <span class="font-body-md text-[12px]">analysis</span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+        </nav>
+
+        <!-- User Profile -->
+        <div class="ml-auto flex items-center gap-3">
+
+            <div class="w-7 h-7 rounded-full
+                   bg-primary-container/10
+                   flex items-center justify-center
+                   text-primary font-bold">
+                D
+            </div>
+
+            <div class="hidden md:block">
+                <p class="text-[12px] font-bold text-on-surface">
+                    NV. D
+                </p>
+                <p class="text-[8px] text-on-surface-variant uppercase tracking-wider">
+                    Analysis
+                </p>
+            </div>
+
+        </div>
+
+    </header>
+
+    <!-- TopNavBar -->
+    <header class="ml-[157px] w-[calc(100%-157px)] h-12
+           flex items-center px-lg
+           bg-text-active border-b border-outline-variant
+           shadow-sm sticky top-[50px] z-30 gap-4 mb-12">
+
+        <div class="flex flex-col min-w-0 leading-tight">
+
+            <span class="text-[10px] font-bold uppercase text-on-surface-variant">
+                Session
+            </span>
+            <span class="truncate font-title-md font-bold text-primary">
+                Q4 Performance Audit
+            </span>
+        </div>
+
+        <div class="flex flex-col min-w-0 leading-tight">
+
+            <span class="text-[10px] font-bold uppercase text-on-surface-variant">
+                Type
+            </span>
+            <span class="truncate font-title-md font-bold">
+                Financial Statements
+            </span>
+        </div>
+
+
+        <!-- Buttons -->
+        <div class="ml-auto flex items-center gap-2">
+
+            <div class="flex items-center gap-2">
+                <label class="text-label-md text-on-surface-variant">Model:</label>
+                <select
+                    class="w-[130px] bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-body-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary">
+                    <option>Choose AI</option>
+                    <option>GPT 1.0</option>
+                    <option>Germini 1.0</option>
+                </select>
+            </div>
+
+            <button class="px-4 py-2
+                       rounded-lg
+                       text-[12px]
+                       bg-button-active
+                       text-text-active
+                       hover:opacity-85
+                       transition-opacity
+                       flex items-center gap-2 shadow-sm">
+                <span>
+                    Analyze
+                </span>
+
+            </button>
+
+        </div>
+
+    </header>
+
+    <!-- Fixed Sidebar -->
+    <aside class="fixed left-0 top-[50px] h-[calc(100vh-50px)] w-[157px]
+           bg-text-active border-r border-outline-variant
+           flex flex-col z-40 items-center">
+
+        <div class="py-3">
+
+            <!-- Company Report -->
+            <button type="button" data-pdf="/resource/document/CT_CoPhan281/2021/AG1_2021_CN.pdf"
+                data-title="Company Report" class="document-item items-center gap-2 px-3 py-1.5
+                                            text-sm text-on-surface-variant
+                                            rounded-md
+                                            hover:bg-surface-container
+                                            hover:text-primary
+                                            transition-colors">
+
+                <span class="material-symbols-outlined text-[18px]">
+                    description
+                </span>
+
+                <span class="truncate">
+                    CT_CoPhan281_2021
+                </span>
+            </button>
+
+        </div>
+
+    </aside>
+
+    <!-- =========================================================
+         MAIN WORKSPACE
+    ========================================================== -->
+    <main class="ml-[157px] w-[calc(100%-157px)]
+            h-[calc(100vh-98px)]
+            flex  overflow-hidden">
+
+        <!-- ============================= -->
+        <!-- LEFT: PDF VIEWER 50% -->
+        <!-- ============================= -->
+
+        <section class="w-1/2 shrink-0 h-full flex flex-col
+                    border-r border-outline-variant
+                    bg-surface-container">
+
+            <div class="flex-1 p-4 bg-surface-container">
+
+                <iframe id="pdfViewer" src="" class="w-full h-full
+                       border-0
+                       rounded-lg
+                       bg-white
+                       shadow-sm">
+                </iframe>
+
+            </div>
+
+        </section>
+
+        <!-- ============================= -->
+        <!-- MIDDLE: DOCUMENT DETAILS 20% -->
+        <!-- ============================= -->
+
+        <section class="w-1/4 shrink-0 h-full
+                    flex flex-col
+                    overflow-hidden
+                    bg-white">
+
+            <!-- Panel Header -->
+            <div class="h-12 shrink-0
+                    px-5
+                    flex items-center justify-between
+                    bg-text-active
+                    border-b border-outline-variant">
+
+                <div class="flex items-center gap-2">
+
+                    <span class="material-symbols-outlined
+                             text-primary text-[20px]">
+
+                        article
+
+                    </span>
+
+
+                    <div>
+
+                        <h2 class="text-sm font-semibold
+                               text-on-surface">
+
+                            Document Details
+
+                        </h2>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Content -->
+            <div class="flex-1 min-h-0
+                    overflow-y-auto
+                    overflow-x-hidden
+                    p-5 space-y-5">
+
+
+                <!-- ============================= -->
+                <!-- DOCUMENT INFORMATION -->
+                <!-- ============================= -->
+
+                <div>
+
+                    <h3 class="text-sm font-semibold text-on-surface mb-3">
+                        Document Information
+                    </h3>
+
+                    <div class="space-y-3">
+
+                        <!-- Title -->
+                        <div>
+                            <label class="block text-xs font-medium
+                                  text-on-surface-variant mb-1">
+                                Document Title
+                            </label>
+
+                            <div class="px-3 py-2
+                                bg-surface-container
+                                border border-outline-variant
+                                rounded-md
+                                text-sm text-on-surface">
+
+                                CT_CoPhan281_2021
+
+                            </div>
+                        </div>
+
+
+                        <!-- Company -->
+                        <div>
+                            <label class="block text-xs font-medium
+                                  text-on-surface-variant mb-1">
+                                Company
+                            </label>
+
+                            <div class="px-3 py-2
+                                bg-surface-container
+                                border border-outline-variant
+                                rounded-md
+                                text-sm text-on-surface">
+
+                                CT Co Phan 281
+
+                            </div>
+                        </div>
+
+
+                        <!-- Report Type -->
+                        <div>
+                            <label class="block text-xs font-medium
+                                  text-on-surface-variant mb-1">
+                                Report Type
+                            </label>
+
+                            <div class="px-3 py-2
+                                bg-surface-container
+                                border border-outline-variant
+                                rounded-md
+                                text-sm text-on-surface">
+
+                                Annual Report
+
+                            </div>
+                        </div>
+
+
+                        <!-- Reporting Period -->
+                        <div>
+                            <label class="block text-xs font-medium
+                                  text-on-surface-variant mb-1">
+                                Reporting Period
+                            </label>
+
+                            <div class="px-3 py-2
+                                bg-surface-container
+                                border border-outline-variant
+                                rounded-md
+                                text-sm text-on-surface">
+
+                                2021
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Divider -->
+                <div class="border-t border-outline-variant"></div>
+
+
+                <!-- ============================= -->
+                <!-- EXTRACTED INFORMATION -->
+                <!-- ============================= -->
+
+                <div>
+
+                    <div class="flex items-center justify-between mb-3">
+
+                        <h3 class="text-sm font-semibold text-on-surface">
+                            Extracted Information
+                        </h3>
+
+                    </div>
+
+
+                    <!-- Extracted Item -->
+                    <div class="p-3 mb-3
+                        border border-outline-variant
+                        rounded-lg
+                        bg-surface">
+
+                        <label class="block text-xs font-medium
+                              text-on-surface-variant mb-1">
+
+                            Term
+
+                        </label>
+
+                        <div class="text-sm font-semibold text-on-surface mb-2">
+
+                            Revenue
+
+                        </div>
+
+
+                        <label class="block text-xs font-medium
+                              text-on-surface-variant mb-1">
+
+                            Definition
+
+                        </label>
+
+                        <p class="text-sm text-on-surface">
+
+                            Total income generated by the company during
+                            the reporting period.
+
+                        </p>
+
+                    </div>
+
+
+                    <!-- Extracted Item -->
+                    <div class="p-3 mb-3
+                        border border-outline-variant
+                        rounded-lg
+                        bg-surface">
+
+                        <label class="block text-xs font-medium
+                              text-on-surface-variant mb-1">
+
+                            Term
+
+                        </label>
+
+                        <div class="text-sm font-semibold text-on-surface mb-2">
+
+                            Net Profit
+
+                        </div>
+
+
+                        <label class="block text-xs font-medium
+                              text-on-surface-variant mb-1">
+
+                            Definition
+
+                        </label>
+
+                        <p class="text-sm text-on-surface">
+
+                            Profit remaining after all expenses and taxes
+                            have been deducted.
+
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+            <!-- ============================= -->
+            <!-- ACTIONS -->
+            <!-- ============================= -->
+
+            <div class="shrink-0
+                    p-4
+                    bg-text-active
+                    border-t border-outline-variant">
+
+                <div class="flex gap-2">
+
+
+                    <!-- Validate -->
+
+                    <button class="flex-1 h-10
+                       rounded-md
+                       text-[12px]
+                       bg-button-active
+                       text-text-active
+                       hover:opacity-85
+                       transition-opacity
+                       transition">
+
+                        Validate
+
+                    </button>
+
+
+                    <!-- Edit -->
+
+                    <button class="h-10 px-4
+                               rounded-md
+                               border border-outline-variant
+                               text-sm font-medium
+                               text-on-surface
+                               hover:bg-surface-container
+                               transition
+                               flex items-center
+                               justify-center gap-2">
+
+                        Edit
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- RIGHT: AI EXTRACTION — 25% -->
+        <!-- ===================================================== -->
+
+        <section class="w-1/4 shrink-0 h-full
+                    flex flex-col
+                    overflow-hidden
+                    bg-white">
+
+
+            <!-- ================================================= -->
+            <!-- AI HEADER -->
+            <!-- ================================================= -->
+
+            <div class="h-12 shrink-0
+                    px-5
+                    flex items-center justify-between
+                    bg-text-active
+                    border-b border-outline-variant">
+
+                <div class="flex items-center gap-2">
+
+                    <span class="material-symbols-outlined
+                             text-primary text-[20px]">
+
+                        article
+
+                    </span>
+
+
+                    <div>
+
+                        <h2 class="text-sm font-semibold
+                               text-on-surface">
+
+                            AI Extraction
+
+                        </h2>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ================================================= -->
+            <!-- AI SCROLLABLE CONTENT -->
+            <!-- ================================================= -->
+
+            <div class="flex-1 min-h-0
+                    overflow-y-auto
+                    overflow-x-hidden
+                    p-5 space-y-5">
+
+
+                <!-- ================================================= -->
+                <!-- EXTRACTION SUMMARY -->
+                <!-- ================================================= -->
+
+                <div>
+
+                    <div class="flex items-center
+                            justify-between mb-3">
+
+                        <h3 class="text-sm font-semibold
+                               text-on-surface">
+
+                            Extraction Status
+
+                        </h3>
+
+                    </div>
+
+
+                    <div class="p-3
+                            rounded-lg
+                            bg-surface-container
+                            border border-outline-variant">
+
+
+                        <div class="space-y-2">
+
+
+                            <!-- Pages -->
+
+                            <div class="flex items-center
+                                    justify-between">
+
+                                <span class="text-xs
+                                         text-on-surface-variant">
+
+                                    Pages analyzed
+
+                                </span>
+
+                                <span class="text-xs font-semibold
+                                         text-on-surface">
+
+                                    24
+
+                                </span>
+
+                            </div>
+
+
+                            <!-- Terms -->
+
+                            <div class="flex items-center
+                                    justify-between">
+
+                                <span class="text-xs
+                                         text-on-surface-variant">
+
+                                    Terms extracted
+
+                                </span>
+
+                                <span class="text-xs font-semibold
+                                         text-on-surface">
+
+                                    12
+
+                                </span>
+
+                            </div>
+
+
+                            <!-- Confidence -->
+
+                            <div class="flex items-center
+                                    justify-between">
+
+                                <span class="text-xs
+                                         text-on-surface-variant">
+
+                                    High confidence
+
+                                </span>
+
+                                <span class="text-xs font-semibold
+                                         text-primary">
+
+                                    10 / 12
+
+                                </span>
+
+                            </div>
+
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- ================================================= -->
+                <!-- EXTRACTED INFORMATION -->
+                <!-- ================================================= -->
+
+                <div>
+
+
+                    <div class="flex items-center
+                            justify-between mb-3">
+
+                        <h3 class="text-sm font-semibold
+                               text-on-surface">
+
+                            Extracted Information
+
+                        </h3>
+
+                    </div>
+
+
+
+                    <!-- ============================================= -->
+                    <!-- AI RESULT: REVENUE -->
+                    <!-- ============================================= -->
+
+                    <div class="p-3 mb-3
+                            border border-outline-variant
+                            rounded-lg
+                            bg-surface
+                            space-y-3">
+
+
+                        <!-- Term -->
+
+                        <div>
+
+                            <label class="block text-[11px]
+                                      font-medium
+                                      text-on-surface-variant mb-1">
+
+                                Term
+
+                            </label>
+
+                            <div class="text-sm font-semibold
+                                    text-on-surface">
+
+                                Revenue
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Definition -->
+
+                        <div>
+
+                            <label class="block text-[11px]
+                                      font-medium
+                                      text-on-surface-variant mb-1">
+
+                                Definition
+
+                            </label>
+
+                            <p class="text-xs
+                                  leading-relaxed
+                                  text-on-surface">
+
+                                Total income generated by the
+                                company during the reporting period.
+
+                            </p>
+
+                        </div>
+
+
+                        <!-- Confidence -->
+
+                        <div class="pt-2
+                                border-t border-outline-variant
+                                flex items-center
+                                justify-between">
+
+                            <span class="text-[10px]
+                                     text-on-surface-variant">
+
+                                Confidence
+
+                            </span>
+
+                            <span class="text-xs font-semibold
+                                     text-primary">
+
+                                96%
+
+                            </span>
+
+                        </div>
+
+
+                        <!-- Source -->
+
+                        <button class="flex items-center gap-1
+                                   text-[10px]
+                                   text-on-surface-variant
+                                   hover:text-primary
+                                   transition">
+
+                            <span class="material-symbols-outlined
+                                     text-[14px]">
+
+                                description
+
+                            </span>
+
+                            Source: Page 12
+
+                        </button>
+
+                    </div>
+
+
+
+                    <!-- ============================================= -->
+                    <!-- AI RESULT: NET PROFIT -->
+                    <!-- ============================================= -->
+
+                    <div class="p-3 mb-3
+                            border border-outline-variant
+                            rounded-lg
+                            bg-surface
+                            space-y-3">
+
+
+                        <!-- Term -->
+
+                        <div>
+
+                            <label class="block text-[11px]
+                                      font-medium
+                                      text-on-surface-variant mb-1">
+
+                                Term
+
+                            </label>
+
+                            <div class="text-sm font-semibold
+                                    text-on-surface">
+
+                                Net Profit
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Definition -->
+
+                        <div>
+
+                            <label class="block text-[11px]
+                                      font-medium
+                                      text-on-surface-variant mb-1">
+
+                                Definition
+
+                            </label>
+
+                            <p class="text-xs
+                                  leading-relaxed
+                                  text-on-surface">
+
+                                Profit remaining after all expenses
+                                and taxes have been deducted.
+
+                            </p>
+
+                        </div>
+
+
+                        <!-- Confidence -->
+
+                        <div class="pt-2
+                                border-t border-outline-variant
+                                flex items-center
+                                justify-between">
+
+                            <span class="text-[10px]
+                                     text-on-surface-variant">
+
+                                Confidence
+
+                            </span>
+
+                            <span class="text-xs font-semibold
+                                     text-primary">
+
+                                91%
+
+                            </span>
+
+                        </div>
+
+
+                        <!-- Source -->
+
+                        <button class="flex items-center gap-1
+                                   text-[10px]
+                                   text-on-surface-variant
+                                   hover:text-primary
+                                   transition">
+
+                            <span class="material-symbols-outlined
+                                     text-[14px]">
+
+                                description
+
+                            </span>
+
+                            Source: Page 15
+
+                        </button>
+
+                    </div>
+
+
+
+                    <!-- ============================================= -->
+                    <!-- AI RESULT: CURRENT ASSETS -->
+                    <!-- ============================================= -->
+
+                    <div class="p-3 mb-3
+                            border border-outline-variant
+                            rounded-lg
+                            bg-surface
+                            space-y-3">
+
+
+                        <div>
+
+                            <label class="block text-[11px]
+                                      font-medium
+                                      text-on-surface-variant mb-1">
+
+                                Term
+
+                            </label>
+
+                            <div class="text-sm font-semibold
+                                    text-on-surface">
+
+                                Current Assets
+
+                            </div>
+
+                        </div>
+
+
+                        <div>
+
+                            <label class="block text-[11px]
+                                      font-medium
+                                      text-on-surface-variant mb-1">
+
+                                Definition
+
+                            </label>
+
+                            <p class="text-xs
+                                  leading-relaxed
+                                  text-on-surface">
+
+                                Assets expected to be converted
+                                into cash within one year.
+
+                            </p>
+
+                        </div>
+
+
+                        <!-- Review Warning -->
+
+                        <div class="pt-2
+                                border-t border-outline-variant
+                                flex items-center
+                                justify-between">
+
+                            <span class="text-[10px]
+                                     text-on-surface-variant">
+
+                                Confidence
+
+                            </span>
+
+                            <span class="text-xs font-semibold
+                                     text-on-surface">
+
+                                63%
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="flex items-center gap-1
+                                text-[10px]
+                                text-on-surface-variant">
+
+                            <span class="material-symbols-outlined
+                                     text-[14px]">
+
+                                warning
+
+                            </span>
+
+                            Requires Review
+
+                        </div>
+
+
+                        <button class="flex items-center gap-1
+                                   text-[10px]
+                                   text-on-surface-variant
+                                   hover:text-primary
+                                   transition">
+
+                            <span class="material-symbols-outlined
+                                     text-[14px]">
+
+                                description
+
+                            </span>
+
+                            Source: Page 18
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- VALIDATION PROGRESS -->
+                <!-- ================================================= -->
+
+                <div class="pt-2">
+
+
+                    <div class="flex items-center
+                            justify-between mb-2">
+
+                        <span class="text-xs
+                                 text-on-surface-variant">
+
+                            Validation Progress
+
+                        </span>
+
+                        <span class="text-xs font-semibold
+                                 text-on-surface">
+
+                            10 / 12
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- Progress Bar -->
+
+                    <div class="w-full h-1.5
+                            rounded-full
+                            bg-surface-container">
+
+                        <div class="h-full w-[83%]
+                                rounded-full
+                                bg-primary">
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- ================================================= -->
+            <!-- BOTTOM ACTION BAR -->
+            <!-- ================================================= -->
+
+            <div class="shrink-0
+                    p-4
+                    bg-text-active
+                    border-t border-outline-variant">
+
+                <div class="flex gap-2">
+
+
+                    <!-- Validate -->
+
+                    <button class="flex-1 h-10
+                       rounded-md
+                       text-[12px]
+                       bg-button-active
+                       text-text-active
+                       hover:opacity-85
+                       transition-opacity
+                       transition">
+
+                        Validate
+
+                    </button>
+
+
+                    <!-- Edit -->
+
+                    <button class="h-10 px-4
+                               rounded-md
+                               border border-outline-variant
+                               text-sm font-medium
+                               text-on-surface
+                               hover:bg-surface-container
+                               transition
+                               flex items-center
+                               justify-center gap-2">
+
+                        Edit
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="../../../JavaScript/PDF_View.js"></script>
+
+</body>
+
+</html>

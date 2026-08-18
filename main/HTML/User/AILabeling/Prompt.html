@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Prompt Management</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap">
+
+    <!-- Material Symbols -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <script src="../../../JavaScript/tailwind.js"></script>
+
+    <link href="../../../Style/UserCreation.css" rel="stylesheet" />
+
+    <link href="../../../Style/basic.css" rel="stylesheet" />
+
+</head>
+
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+
+    <!-- Fixed Header -->
+    <header
+        class="fixed top-0 left-0 right-0 h-[50px] bg-normal border-b border-outline-variant flex items-center px-2 z-50">
+
+        <!-- AAIR Logo -->
+        <div class="flex items-center gap-2 mr-6">
+            <img src="/resource/icon/logo_remove_BG.png" alt="AAIR Lab Logo" class="h-8 w-auto">
+
+            <h1 class="font-headline-sm text-[14px] font-bold text-primary">
+                AAIR Lab
+            </h1>
+        </div>
+
+        <div class="h-12 w-[1px] bg-outline-variant ms-2"></div>
+
+        <!-- Navigation -->
+        <nav class="flex items-center h-full">
+
+            <a class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200" href="../../User/AILabeling/Dashboard.html">
+                <span class=" material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                <span class="font-body-md text-[12px]">Dashboard</span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200" href="../../User/AILabeling/ViewAll.html">
+                <span class="material-symbols-outlined">list_alt </span>
+                <span class="font-body-md text-[12px]">View ALL</span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200" href="../../User/AILabeling/Task.html">
+                <span class="material-symbols-outlined">play_circle</span>
+                <span class="font-body-md text-[12px]">Session</span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a class="flex items-center gap-2 px-4 h-full
+                   text-text-active
+                   bg-button-active
+                   transition-colors duration-200" href="../../User/AILabeling/Prompt.html">
+                <span class="material-symbols-outlined">description</span>
+                <span class="font-body-md text-[12px]">Prompt</span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+        </nav>
+
+        <!-- User Profile -->
+        <div class="ml-auto flex items-center gap-3">
+
+            <div class="w-7 h-7 rounded-full
+                   bg-primary-container/10
+                   flex items-center justify-center
+                   text-primary font-bold">
+                E
+            </div>
+
+            <div class="hidden md:block">
+                <p class="text-[12px] font-bold text-on-surface">
+                    NV. E
+                </p>
+                <p class="text-[8px] text-on-surface-variant uppercase tracking-wider">
+                    AI Labeling
+                </p>
+            </div>
+
+        </div>
+
+    </header>
+
+    <!-- TopNavBar -->
+    <header class="w-full h-12
+           flex items-center px-lg
+           bg-text-active border-b border-outline-variant
+           shadow-sm sticky top-[50px] z-30 mb-6">
+
+        <!-- Search Box - Left -->
+        <div class="relative w-[280px]">
+
+            <span class="material-symbols-outlined
+                     absolute left-3 top-1/2
+                     -translate-y-1/2
+                     text-slate-400 text-[20px]">
+                search
+            </span>
+
+            <input type="text" placeholder="Search ..." class="w-full h-8
+                   pl-10 pr-4
+                   rounded-lg
+                   border border-slate-300
+                   bg-white
+                   text-sm
+                   outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100">
+        </div>
+
+        <!-- Buttons -->
+        <div class="ml-auto flex items-center gap-2">
+
+            <div class="flex items-center gap-2">
+                <label class="text-label-md text-on-surface-variant">Model:</label>
+                <select
+                    class="w-[130px] bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-body-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary">
+                    <option>Choose AI</option>
+                    <option>GPT 1.0</option>
+                    <option>Germini 1.0</option>
+                </select>
+            </div>
+
+            <button type="button" 
+                    class="px-4 py-2
+                       rounded-lg
+                       text-[12px]
+                       bg-button-active
+                       text-text-active
+                       hover:opacity-85
+                       transition-opacity
+                       flex items-center gap-2 shadow-sm" 
+                    onclick="toggleModal()">
+                <span class="material-symbols-outlined text-[20px]">
+                    add
+                </span>
+
+                New Prompt
+            </button>
+
+        </div>
+
+    </header>
+
+    <!-- =========================================================
+     MAIN CONTENT — VIEW ALL DOCUMENTS
+    ========================================================= -->
+
+    <main class="w-full min-h-[calc(100vh-98px)] overflow-y-auto overflow-x-hidden pt-4">
+
+        <!-- ===================================================== -->
+        <!-- PAGE CONTENT -->
+        <!-- ===================================================== -->
+
+        <section class="p-8">
+
+
+            <!-- ================================================= -->
+            <!-- PROMPT TABLE -->
+            <!-- ================================================= -->
+
+            <div class="bg-white
+                    border border-slate-200
+                    rounded-xl
+                    overflow-hidden">
+
+                <!-- ================================================= -->
+                <!-- TABLE -->
+                <!-- ================================================= -->
+
+                <div class="overflow-x-auto">
+
+                    <table class="w-full text-sm">
+
+                        <!-- ================================================= -->
+                        <!-- TABLE HEADER -->
+                        <!-- ================================================= -->
+
+                        <thead class="bg-text-active
+                               border-b border-slate-200">
+
+                            <tr>
+
+                                <!-- Prompt -->
+                                <th class="px-6 py-3
+                                       text-left
+                                       font-semibold
+                                       text-slate-600">
+
+                                    Prompt
+
+                                </th>
+
+
+                                <!-- Purpose -->
+                                <th class="px-6 py-3
+                                       text-left
+                                       font-semibold
+                                       text-slate-600">
+
+                                    Purpose
+
+                                </th>
+
+
+                                <!-- Model -->
+                                <th class="px-6 py-3
+                                       text-left
+                                       font-semibold
+                                       text-slate-600">
+
+                                    Model
+
+                                </th>
+
+
+                                <!-- Version -->
+                                <th class="px-6 py-3
+                                       text-left
+                                       font-semibold
+                                       text-slate-600">
+
+                                    Version
+
+                                </th>
+
+
+                                <!-- Status -->
+                                <th class="px-6 py-3
+                                       text-left
+                                       font-semibold
+                                       text-slate-600">
+
+                                    Status
+
+                                </th>
+
+
+                                <!-- Updated -->
+                                <th class="px-6 py-3
+                                       text-left
+                                       font-semibold
+                                       text-slate-600">
+
+                                    Updated
+
+                                </th>
+
+
+                                <!-- Action -->
+                                <th class="px-6 py-3
+                                       text-right
+                                       font-semibold
+                                       text-slate-600">
+
+                                    Action
+
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <!-- ================================================= -->
+                        <!-- TABLE BODY -->
+                        <!-- ================================================= -->
+
+                        <tbody class="divide-y divide-slate-100">
+
+
+                            <!-- ================================================= -->
+                            <!-- PROMPT 1 -->
+                            <!-- ================================================= -->
+
+                            <tr class="hover:bg-slate-50 transition">
+
+                                <!-- Prompt -->
+
+                                <td class="px-6 py-3">
+
+                                    <div class="flex items-center gap-3">
+
+                                        <span class="material-symbols-outlined
+                                               text-blue-600
+                                               text-[20px]">
+
+                                            auto_awesome
+
+                                        </span>
+
+                                        <div>
+
+                                            <p class="font-semibold
+                                                   text-slate-900">
+
+                                                Financial Document Extraction
+
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- Purpose -->
+
+                                <td class="px-6 py-3
+                                       text-slate-600">
+
+                                    Extract financial information
+
+                                </td>
+
+
+                                <!-- Model -->
+
+                                <td class="px-6 py-3
+                                       text-slate-600">
+
+                                    GPT-4o
+
+                                </td>
+
+
+                                <!-- Version -->
+
+                                <td class="px-6 py-3
+                                       text-slate-700
+                                       font-medium">
+
+                                    v1.4
+
+                                </td>
+
+
+                                <!-- Status -->
+
+                                <td class="px-6 py-3">
+
+                                    <span class="inline-flex
+                                           items-center
+                                           gap-1.5
+                                           px-2.5 py-1
+                                           rounded-full
+                                           text-xs
+                                           font-medium
+                                           bg-emerald-50
+                                           text-emerald-700">
+
+                                        <span class="material-symbols-outlined
+                                               text-[14px]">
+
+                                            check_circle
+
+                                        </span>
+
+                                        Active
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- Updated -->
+
+                                <td class="px-6 py-3
+                                       text-slate-500">
+
+                                    2 hours ago
+
+                                </td>
+
+
+                                <!-- Action -->
+
+                                <td class="px-6 py-3
+                                       text-right">
+
+                                    <div class="flex
+                                           justify-end
+                                           items-center
+                                           gap-1">
+
+                                        <!-- View -->
+
+                                        <button title="View" class="p-2
+                                               rounded-lg
+                                               text-slate-500
+                                               hover:bg-slate-100
+                                               hover:text-blue-600
+                                               transition">
+
+                                            <span class="material-symbols-outlined
+                                                   text-[19px]">
+
+                                                visibility
+
+                                            </span>
+
+                                        </button>
+
+
+                                        <!-- Edit -->
+
+                                        <button title="Edit" class="p-2
+                                               rounded-lg
+                                               text-slate-500
+                                               hover:bg-blue-50
+                                               hover:text-blue-600
+                                               transition">
+
+                                            <span class="material-symbols-outlined
+                                                   text-[19px]">
+
+                                                edit
+
+                                            </span>
+
+                                        </button>
+
+
+                                        <!-- Test -->
+
+                                        <button title="Test Prompt" class="p-2
+                                               rounded-lg
+                                               text-slate-500
+                                               hover:bg-emerald-50
+                                               hover:text-emerald-600
+                                               transition">
+
+                                            <span class="material-symbols-outlined
+                                                   text-[19px]">
+
+                                                play_arrow
+
+                                            </span>
+
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+
+                            <!-- ================================================= -->
+                            <!-- PROMPT 2 -->
+                            <!-- ================================================= -->
+
+                            <tr class="hover:bg-slate-50 transition">
+
+                                <td class="px-6 py-3">
+
+                                    <div class="flex items-center gap-3">
+
+                                        <span class="material-symbols-outlined
+                                               text-blue-600
+                                               text-[20px]">
+
+                                            auto_awesome
+
+                                        </span>
+
+                                        <div>
+
+                                            <p class="font-semibold
+                                                   text-slate-900">
+
+                                                Economic Terminology Extraction
+
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-slate-600">
+
+                                    Identify economic terms
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-slate-600">
+
+                                    GPT-5
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-slate-700
+                                       font-medium">
+
+                                    v2.1
+
+                                </td>
+
+
+                                <td class="px-6 py-3">
+
+                                    <span class="inline-flex
+                                           items-center
+                                           gap-1.5
+                                           px-2.5 py-1
+                                           rounded-full
+                                           text-xs
+                                           font-medium
+                                           bg-emerald-50
+                                           text-emerald-700">
+
+                                        <span class="material-symbols-outlined
+                                               text-[14px]">
+
+                                            check_circle
+
+                                        </span>
+
+                                        Active
+
+                                    </span>
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-slate-500">
+
+                                    Yesterday
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-right">
+
+                                    <div class="flex
+                                           justify-end
+                                           items-center
+                                           gap-1">
+
+                                        <button title="View" class="p-2
+                                               rounded-lg
+                                               text-slate-500
+                                               hover:bg-slate-100
+                                               hover:text-blue-600">
+
+                                            <span class="material-symbols-outlined
+                                                   text-[19px]">
+
+                                                visibility
+
+                                            </span>
+
+                                        </button>
+
+                                        <button title="Edit" class="p-2
+                                               rounded-lg
+                                               text-slate-500
+                                               hover:bg-blue-50
+                                               hover:text-blue-600">
+
+                                            <span class="material-symbols-outlined
+                                                   text-[19px]">
+
+                                                edit
+
+                                            </span>
+
+                                        </button>
+
+                                        <button title="Test Prompt" class="p-2
+                                               rounded-lg
+                                               text-slate-500
+                                               hover:bg-emerald-50
+                                               hover:text-emerald-600">
+
+                                            <span class="material-symbols-outlined
+                                                   text-[19px]">
+
+                                                play_arrow
+
+                                            </span>
+
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+
+                            <!-- ================================================= -->
+                            <!-- PROMPT 3 -->
+                            <!-- ================================================= -->
+
+                            <tr class="hover:bg-slate-50 transition">
+
+                                <td class="px-6 py-3">
+
+                                    <div class="flex items-center gap-3">
+
+                                        <span class="material-symbols-outlined
+                                               text-blue-600
+                                               text-[20px]">
+
+                                            auto_awesome
+
+                                        </span>
+
+                                        <div>
+
+                                            <p class="font-semibold
+                                                   text-slate-900">
+
+                                                Company Information Extraction
+
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-slate-600">
+
+                                    Extract company information
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-slate-600">
+
+                                    GPT-4o
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-slate-700
+                                       font-medium">
+
+                                    v1.2
+
+                                </td>
+
+
+                                <td class="px-6 py-3">
+
+                                    <span class="inline-flex
+                                           items-center
+                                           gap-1.5
+                                           px-2.5 py-1
+                                           rounded-full
+                                           text-xs
+                                           font-medium
+                                           bg-slate-100
+                                           text-slate-600">
+
+                                        <span class="material-symbols-outlined
+                                               text-[14px]">
+
+                                            edit_note
+
+                                        </span>
+
+                                        Draft
+
+                                    </span>
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-slate-500">
+
+                                    Oct 24
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-right">
+
+                                    <div class="flex
+                                           justify-end
+                                           items-center
+                                           gap-1">
+
+                                        <button title="View" class="p-2
+                                               rounded-lg
+                                               text-slate-500
+                                               hover:bg-slate-100
+                                               hover:text-blue-600">
+
+                                            <span class="material-symbols-outlined
+                                                   text-[19px]">
+
+                                                visibility
+
+                                            </span>
+
+                                        </button>
+
+                                        <button title="Edit" class="p-2
+                                               rounded-lg
+                                               text-slate-500
+                                               hover:bg-blue-50
+                                               hover:text-blue-600">
+
+                                            <span class="material-symbols-outlined
+                                                   text-[19px]">
+
+                                                edit
+
+                                            </span>
+
+                                        </button>
+
+                                        <button title="Test Prompt" class="p-2
+                                               rounded-lg
+                                               text-slate-500
+                                               hover:bg-emerald-50
+                                               hover:text-emerald-600">
+
+                                            <span class="material-symbols-outlined
+                                                   text-[19px]">
+
+                                                play_arrow
+
+                                            </span>
+
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+
+                            <!-- ================================================= -->
+                            <!-- PROMPT 4 -->
+                            <!-- ================================================= -->
+
+                            <tr class="hover:bg-slate-50 transition">
+
+                                <td class="px-6 py-3">
+
+                                    <div class="flex items-center gap-3">
+
+                                        <span class="material-symbols-outlined
+                                               text-blue-600
+                                               text-[20px]">
+
+                                            auto_awesome
+
+                                        </span>
+
+                                        <div>
+
+                                            <p class="font-semibold
+                                                   text-slate-900">
+
+                                                Financial Ratio Analysis
+
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-slate-600">
+
+                                    Analyze financial ratios
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-slate-600">
+
+                                    GPT-5
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-slate-700
+                                       font-medium">
+
+                                    v3.0
+
+                                </td>
+
+
+                                <td class="px-6 py-3">
+
+                                    <span class="inline-flex
+                                           items-center
+                                           gap-1.5
+                                           px-2.5 py-1
+                                           rounded-full
+                                           text-xs
+                                           font-medium
+                                           bg-amber-50
+                                           text-amber-700">
+
+                                        <span class="material-symbols-outlined
+                                               text-[14px]">
+
+                                            pending_actions
+
+                                        </span>
+
+                                        Draft
+
+                                    </span>
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-slate-500">
+
+                                    Oct 20
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-right">
+
+                                    <div class="flex
+                                           justify-end
+                                           items-center
+                                           gap-1">
+
+                                        <button title="View" class="p-2
+                                               rounded-lg
+                                               text-slate-500
+                                               hover:bg-slate-100
+                                               hover:text-blue-600">
+
+                                            <span class="material-symbols-outlined
+                                                   text-[19px]">
+
+                                                visibility
+
+                                            </span>
+
+                                        </button>
+
+                                        <button title="Edit" class="p-2
+                                               rounded-lg
+                                               text-slate-500
+                                               hover:bg-blue-50
+                                               hover:text-blue-600">
+
+                                            <span class="material-symbols-outlined
+                                                   text-[19px]">
+
+                                                edit
+
+                                            </span>
+
+                                        </button>
+
+                                        <button title="Test Prompt" class="p-2
+                                               rounded-lg
+                                               text-slate-500
+                                               hover:bg-emerald-50
+                                               hover:text-emerald-600">
+
+                                            <span class="material-symbols-outlined
+                                                   text-[19px]">
+
+                                                play_arrow
+
+                                            </span>
+
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+
+                            <!-- ================================================= -->
+                            <!-- PROMPT 5 -->
+                            <!-- ================================================= -->
+
+                            <tr class="hover:bg-slate-50 transition">
+
+                                <td class="px-6 py-3">
+
+                                    <div class="flex items-center gap-3">
+
+                                        <span class="material-symbols-outlined
+                                               text-blue-600
+                                               text-[20px]">
+
+                                            auto_awesome
+
+                                        </span>
+
+                                        <div>
+
+                                            <p class="font-semibold
+                                                   text-slate-900">
+
+                                                Document Classification
+
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-slate-600">
+
+                                    Classify financial documents
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-slate-600">
+
+                                    GPT-4o
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-slate-700
+                                       font-medium">
+
+                                    v2.0
+
+                                </td>
+
+
+                                <td class="px-6 py-3">
+
+                                    <span class="inline-flex
+                                           items-center
+                                           gap-1.5
+                                           px-2.5 py-1
+                                           rounded-full
+                                           text-xs
+                                           font-medium
+                                           bg-slate-100
+                                           text-slate-600">
+
+                                        <span class="material-symbols-outlined
+                                               text-[14px]">
+
+                                            archive
+
+                                        </span>
+
+                                        Archived
+
+                                    </span>
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-slate-500">
+
+                                    Oct 18
+
+                                </td>
+
+
+                                <td class="px-6 py-3
+                                       text-right">
+
+                                    <div class="flex
+                                           justify-end
+                                           items-center
+                                           gap-1">
+
+                                        <button title="View" class="p-2
+                                               rounded-lg
+                                               text-slate-500
+                                               hover:bg-slate-100
+                                               hover:text-blue-600">
+
+                                            <span class="material-symbols-outlined
+                                                   text-[19px]">
+
+                                                visibility
+
+                                            </span>
+
+                                        </button>
+
+                                        <button title="Edit" class="p-2
+                                               rounded-lg
+                                               text-slate-500
+                                               hover:bg-blue-50
+                                               hover:text-blue-600">
+
+                                            <span class="material-symbols-outlined
+                                                   text-[19px]">
+
+                                                edit
+
+                                            </span>
+
+                                        </button>
+
+                                        <button title="Test Prompt" class="p-2
+                                               rounded-lg
+                                               text-slate-500
+                                               hover:bg-emerald-50
+                                               hover:text-emerald-600">
+
+                                            <span class="material-symbols-outlined
+                                                   text-[19px]">
+
+                                                play_arrow
+
+                                            </span>
+
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- PAGINATION -->
+                <!-- ================================================= -->
+
+                <div class="px-6 py-4
+                        bg-text-active
+                        border-t border-slate-200
+                        flex items-center
+                        justify-center">
+
+
+                    <!-- Pagination -->
+                    <div class="flex items-center gap-6">
+
+                        <!-- Previous -->
+                        <button class="w-9 h-9
+                                    flex items-center justify-center
+                                    rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+
+                            <span class="material-symbols-outlined text-[20px]">
+                                chevron_left
+                            </span>
+
+                        </button>
+
+
+                        <!-- Page 1 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                   bg-button-active
+                                   text-text-active
+                                   text-sm
+                                   font-medium">
+                            1
+                        </button>
+
+
+                        <!-- Page 2 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            2
+                        </button>
+
+
+                        <!-- Page 3 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            3
+                        </button>
+
+
+                        <!-- Page 4 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            4
+                        </button>
+
+
+                        <!-- Page 5 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            5
+                        </button>
+
+
+                        <!-- Page 6 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            6
+                        </button>
+
+
+                        <!-- Next -->
+                        <button class="w-9 h-9
+                                    flex items-center justify-center
+                                    rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+
+                            <span class="material-symbols-outlined text-[20px]">
+                                chevron_right
+                            </span>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Create New Prompt Modal -->
+    <div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm z-[100] flex items-center justify-center transition-opacity duration-300 opacity-0 hidden"
+        id="modalOverlay">
+
+        <div class="glass-modal w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-transform duration-300 scale-95"
+            id="modalContent">
+
+            <!-- Modal Header -->
+            <div class="px-8 py-6 border-b border-outline-variant flex justify-between items-center bg-white/50">
+
+                <div>
+                    <h3 class="font-headline-sm text-headline-sm text-on-surface">
+                        Create New Prompt
+                    </h3>
+
+                    <p class="text-body-sm text-on-surface-variant mt-1">
+                        Configure a new AI prompt for labeling.
+                    </p>
+                </div>
+
+                <button
+                    class="p-2 hover:bg-surface-container-low rounded-full transition-colors text-on-surface-variant"
+                    onclick="toggleModal()">
+
+                    <span class="material-symbols-outlined">
+                        close
+                    </span>
+
+                </button>
+            </div>
+
+
+            <!-- Modal Body -->
+            <div class="flex-1 min-h-0 px-8 py-6 space-y-6 overflow-y-auto custom-scrollbar">
+
+
+                <!-- Prompt Name -->
+                <div class="space-y-1.5">
+
+                    <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
+                        Prompt Name
+                    </label>
+
+                    <input
+                        class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-body-md"
+                        placeholder="e.g. Financial Document Extraction" type="text">
+
+                </div>
+
+
+                <!-- Description -->
+                <div class="space-y-1.5">
+
+                    <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
+                        Purpose
+                    </label>
+
+                    <textarea rows="3"
+                        class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-body-md resize-none"
+                        placeholder="Describe what this prompt is used for..."></textarea>
+
+                </div>
+
+
+                <!-- Prompt -->
+                <div class="space-y-1.5">
+
+                    <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
+                        Prompt
+                    </label>
+
+                    <textarea rows="7"
+                        class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-body-md font-code resize-none"
+                        placeholder="Enter your AI prompt..."></textarea>
+
+                </div>
+
+
+                <!-- Prompt Configuration -->
+                <div class="grid grid-cols-2 gap-6">
+
+                    <!-- Prompt Type -->
+                    <div class="space-y-1.5">
+
+                        <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
+                            Category
+                        </label>
+
+                        <select
+                            class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-body-md appearance-none">
+
+                            <option>Select Type</option>
+                            <option>Document Extraction</option>
+                            <option>Classification</option>
+                            <option>Terminology Extraction</option>
+                            <option>Entity Recognition</option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- AI Model -->
+                    <div class="space-y-1.5">
+
+                        <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
+                            AI Model
+                        </label>
+
+                        <select
+                            class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-body-md appearance-none">
+
+                            <option>Select Model</option>
+                            <option>GPT Model</option>
+                            <option>Gemini Model</option>
+                            <option>Custom AI Model</option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Prompt Configuration Section -->
+                <div class="p-4 bg-surface-container-low border border-outline-variant rounded-xl space-y-4">
+
+                    <div>
+                        <p class="font-bold text-body-md text-on-surface">
+                            Prompt Configuration
+                        </p>
+
+                        <p class="text-body-sm text-on-surface-variant">
+                            Configure the parameters used when running this prompt.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Modal Footer -->
+            <div class="px-8 py-6 border-t border-outline-variant flex justify-end gap-3 bg-white/50">
+
+                <button
+                    class="px-6 py-2.5 border border-outline-variant rounded-lg text-body-md font-bold text-on-surface-variant hover:bg-surface-container-low transition-all"
+                    onclick="toggleModal()">
+
+                    Cancel
+
+                </button>
+
+
+                <button
+                    class="gradient-btn px-8 py-2.5 rounded-lg text-white font-bold text-body-md shadow-lg hover:opacity-90 active:scale-95 transition-all">
+
+                    Create Prompt
+
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- javascript-->
+    <script src="../../../JavaScript/UserCreation.js"> </script>
+
+</body>
+
+</html>

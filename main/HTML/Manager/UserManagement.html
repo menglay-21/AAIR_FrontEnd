@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>User Management</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap">
+
+  <!-- Material Symbols -->
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
+
+  <!-- AAIR Tailwind Configuration -->
+  <script src="../../JavaScript/tailwind.js"></script>
+
+  <!-- Custom CSS -->
+  <link href="../../Style/UserCreation.css" rel="stylesheet">
+
+  <link href="../../Style/basic.css" rel="stylesheet" />
+
+</head>
+
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+
+  <!-- Fixed Header -->
+  <header
+    class="fixed top-0 left-0 right-0 h-[50px] bg-normal border-b border-outline-variant flex items-center px-2 z-50">
+
+    <!-- AAIR Logo -->
+    <div class="flex items-center gap-2 mr-6">
+      <img src="/resource/icon/logo_remove_BG.png" alt="AAIR Lab Logo" class="h-8 w-auto">
+
+      <h1 class="font-headline-sm text-[14px] font-bold text-primary">
+        AAIR Lab
+      </h1>
+    </div>
+
+    <div class="h-12 w-[1px] bg-outline-variant ms-2"></div>
+
+    <nav class="flex items-center h-full">
+
+      <a href="../../HTML/Manager/Dashboard.html" class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200">
+
+        <span class="material-symbols-outlined">
+          dashboard
+        </span>
+
+        <span class="font-body-md text-[12px]">
+          Dashboard
+        </span>
+      </a>
+
+      <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+      <a href="../../HTML/Manager/UserManagement.html" class="flex items-center gap-2 px-4 h-full
+                   text-text-active
+                   bg-button-active
+                   transition-colors duration-200">
+
+        <span class="material-symbols-outlined">
+          group
+        </span>
+
+        <span class="font-body-md  text-[12px]">
+          User
+        </span>
+      </a>
+
+      <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+      <a href="../../HTML/Manager/DocumentManagement.html" class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200">
+
+        <span class="material-symbols-outlined">
+          description
+        </span>
+
+        <span class="font-body-md  text-[12px]">
+          Document
+        </span>
+      </a>
+
+      <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+      <a href="../../HTML/Manager/Session.html" class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200">
+
+        <span class="material-symbols-outlined">
+          smart_toy
+        </span>
+
+        <span class="font-body-md  text-[12px]">
+          Session
+        </span>
+      </a>
+
+      <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+      <a href="../../HTML/Manager/Statistics.html" class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200">
+
+        <span class="material-symbols-outlined">
+          monitoring
+        </span>
+
+        <span class="font-body-md  text-[12px]">
+          Statistics
+        </span>
+      </a>
+
+      <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+    </nav>
+
+    <!-- User Profile -->
+    <div class="ml-auto flex items-center gap-3">
+
+      <div class="w-7 h-7 rounded-full
+                   bg-primary-container/10
+                   flex items-center justify-center
+                   text-primary font-bold">
+        A
+      </div>
+
+      <div class="hidden md:block">
+        <p class="text-[12px] font-bold text-on-surface">
+          NV. A
+        </p>
+        <p class="text-[8px] text-on-surface-variant uppercase tracking-wider">
+          Manager
+        </p>
+      </div>
+
+    </div>
+
+  </header>
+
+  <!-- TopNavBar -->
+  <header class="w-full h-12
+           flex items-center gap-2 px-lg
+           bg-text-active border-b border-outline-variant
+           shadow-sm sticky top-[50px] z-30 mb-6">
+
+    <div class="relative flex-1 min-w-[240px] ">
+      <span
+        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">filter_list</span>
+      <input class="w-[300px] bg-white border border-outline-variant/60 rounded-lg
+                          py-2 pl-10 pr-4 text-body-sm
+                          focus:outline-none focus:ring-0 
+                          focus:border-outline-variant/60
+                          transition-colors" placeholder="Search.." type="text">
+    </div>
+
+    <!-- Buttons -->
+    <div class="ml-auto flex items-center gap-2">
+
+      <div class="flex items-center gap-2">
+        <label class="text-label-md text-on-surface-variant">Role:</label>
+
+        <select
+          class="w-[155px] bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-body-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary">
+          <option>All</option>
+          <option>Terminology</option>
+          <option>Manual Labeling</option>
+          <option>AI Labeling</option>
+          <option>Result Analysis</option>
+          <option>Manual Review</option>
+        </select>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <label class="text-label-md text-on-surface-variant">Status:</label>
+        <select
+          class="bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-body-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary">
+          <option>All</option>
+          <option>Active</option>
+          <option>Disabled</option>
+        </select>
+      </div>
+
+      <button class="px-4 py-2
+                       rounded-lg
+                       text-[12px]
+                       bg-button-active
+                       text-text-active
+                       hover:opacity-85
+                       transition-opacity
+                       flex items-center gap-2 shadow-sm" onclick="toggleModal()">
+        <span class="material-symbols-outlined text-[20px]">add</span>
+        <span class="">New User</span>
+      </button>
+
+    </div>
+
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="w-full min-h-[calc(100vh-98px)] bg-surface pt-6">
+
+    <!-- Canvas -->
+    <div class="w-full px-6 py-6">
+
+      <!-- Data Table Container -->
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+
+            <thead class="bg-text-active border-b border-outline-variant/30">
+              <tr>
+                <th class="px-lg py-4 font-label-md text-on-surface-variant uppercase text-[11px] tracking-wider">
+                  No.
+                </th>
+                <th class="px-lg py-4 font-label-md text-on-surface-variant uppercase text-[11px] tracking-wider">
+                  Profile
+                </th>
+                <th class="px-lg py-4 font-label-md text-on-surface-variant uppercase text-[11px] tracking-wider">
+                  Name
+                </th>
+                <th class="px-lg py-4 font-label-md text-on-surface-variant uppercase text-[11px] tracking-wider">
+                  Email
+                </th>
+                <th class="px-lg py-4 font-label-md text-on-surface-variant uppercase text-[11px] tracking-wider">
+                  Role
+                </th>
+                <th class="px-lg py-4 font-label-md text-on-surface-variant uppercase text-[11px] tracking-wider">
+                  Team
+                </th>
+                <th class="px-lg py-4 font-label-md text-on-surface-variant uppercase text-[11px] tracking-wider">
+                  Created
+                </th>
+                <th class="px-lg py-4 font-label-md text-on-surface-variant uppercase text-[11px] tracking-wider">
+                  Status
+                </th>
+                <th
+                  class="px-lg py-4 font-label-md text-on-surface-variant uppercase text-[11px] tracking-wider text-right">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+
+            <tbody class="divide-y divide-outline-variant/10">
+              <tr class="hover:bg-surface-container-low/50 transition-colors group"
+                style="transform: translateY(0px); box-shadow: none;">
+                <td class="px-lg py-4 text-body-sm">1</td>
+                <td class="px-lg py-4">
+                  <div
+                    class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+                    JD</div>
+                </td>
+                <td class="px-lg py-4 font-label-md text-on-surface">John Doe</td>
+                <td class="px-lg py-4 text-body-sm text-on-surface-variant">john.doe@aair.edu</td>
+                <td class="px-lg py-4"><span
+                    class="px-2 py-0.5 bg-primary/10 text-primary text-[12px] font-semibold rounded">Terminology</span>
+                </td>
+                <td class="px-lg py-4"><span
+                    class="px-2 py-0.5 bg-primary/10 text-primary text-[12px] font-semibold rounded"> </span>
+                </td>
+                <td class="px-6 py-4 text-body-sm text-on-surface-variant font-code">2023-11-14 08:30</td>
+                <td class="px-lg py-4"><span class="status-pill status-active">🟢 Active</span></td>
+                <td class="px-lg py-4 text-right">
+                  <div class="flex justify-end gap-xs opacity-0 group-hover:opacity-100 transition-opacity"><button
+                      class="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
+                      title="View">👁</button><button
+                      class="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
+                      title="Edit">✏</button><button
+                      class="p-1.5 hover:bg-error-container/20 rounded-full text-error transition-colors"
+                      title="Disable">🔒</button></div>
+                </td>
+              </tr>
+
+              <tr class="hover:bg-surface-container-low/50 transition-colors group"
+                style="transform: translateY(0px); box-shadow: none;">
+                <td class="px-lg py-4 text-body-sm">1</td>
+                <td class="px-lg py-4">
+                  <div
+                    class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+                    JD</div>
+                </td>
+                <td class="px-lg py-4 font-label-md text-on-surface">John Doe</td>
+                <td class="px-lg py-4 text-body-sm text-on-surface-variant">john.doe@aair.edu</td>
+                <td class="px-lg py-4"><span
+                    class="px-2 py-0.5 bg-primary/10 text-primary text-[12px] font-semibold rounded">Terminology</span>
+                </td>
+                <td class="px-lg py-4"><span
+                    class="px-2 py-0.5 bg-primary/10 text-primary text-[12px] font-semibold rounded"> </span>
+                </td>
+                <td class="px-6 py-4 text-body-sm text-on-surface-variant font-code">2023-11-14 08:30</td>
+                <td class="px-lg py-4"><span class="status-pill status-active">🟢 Active</span></td>
+                <td class="px-lg py-4 text-right">
+                  <div class="flex justify-end gap-xs opacity-0 group-hover:opacity-100 transition-opacity"><button
+                      class="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
+                      title="View">👁</button><button
+                      class="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
+                      title="Edit">✏</button><button
+                      class="p-1.5 hover:bg-error-container/20 rounded-full text-error transition-colors"
+                      title="Disable">🔒</button></div>
+                </td>
+              </tr>
+
+              <tr class="hover:bg-surface-container-low/50 transition-colors group"
+                style="transform: translateY(0px); box-shadow: none;">
+                <td class="px-lg py-4 text-body-sm">1</td>
+                <td class="px-lg py-4">
+                  <div
+                    class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+                    JD</div>
+                </td>
+                <td class="px-lg py-4 font-label-md text-on-surface">John Doe</td>
+                <td class="px-lg py-4 text-body-sm text-on-surface-variant">john.doe@aair.edu</td>
+                <td class="px-lg py-4"><span
+                    class="px-2 py-0.5 bg-primary/10 text-primary text-[12px] font-semibold rounded">Terminology</span>
+                </td>
+                <td class="px-lg py-4"><span
+                    class="px-2 py-0.5 bg-primary/10 text-primary text-[12px] font-semibold rounded"> </span>
+                </td>
+                <td class="px-6 py-4 text-body-sm text-on-surface-variant font-code">2023-11-14 08:30</td>
+                <td class="px-lg py-4"><span class="status-pill status-active">🟢 Active</span></td>
+                <td class="px-lg py-4 text-right">
+                  <div class="flex justify-end gap-xs opacity-0 group-hover:opacity-100 transition-opacity"><button
+                      class="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
+                      title="View">👁</button><button
+                      class="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
+                      title="Edit">✏</button><button
+                      class="p-1.5 hover:bg-error-container/20 rounded-full text-error transition-colors"
+                      title="Disable">🔒</button></div>
+                </td>
+              </tr>
+
+              <tr class="hover:bg-surface-container-low/50 transition-colors group"
+                style="transform: translateY(0px); box-shadow: none;">
+                <td class="px-lg py-4 text-body-sm">1</td>
+                <td class="px-lg py-4">
+                  <div
+                    class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+                    JD</div>
+                </td>
+                <td class="px-lg py-4 font-label-md text-on-surface">John Doe</td>
+                <td class="px-lg py-4 text-body-sm text-on-surface-variant">john.doe@aair.edu</td>
+                <td class="px-lg py-4"><span
+                    class="px-2 py-0.5 bg-primary/10 text-primary text-[12px] font-semibold rounded">Terminology</span>
+                </td>
+                <td class="px-lg py-4"><span
+                    class="px-2 py-0.5 bg-primary/10 text-primary text-[12px] font-semibold rounded"> </span>
+                </td>
+                <td class="px-6 py-4 text-body-sm text-on-surface-variant font-code">2023-11-14 08:30</td>
+                <td class="px-lg py-4"><span class="status-pill status-active">🟢 Active</span></td>
+                <td class="px-lg py-4 text-right">
+                  <div class="flex justify-end gap-xs opacity-0 group-hover:opacity-100 transition-opacity"><button
+                      class="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
+                      title="View">👁</button><button
+                      class="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
+                      title="Edit">✏</button><button
+                      class="p-1.5 hover:bg-error-container/20 rounded-full text-error transition-colors"
+                      title="Disable">🔒</button></div>
+                </td>
+              </tr>
+
+              <tr class="hover:bg-surface-container-low/50 transition-colors group"
+                style="transform: translateY(0px); box-shadow: none;">
+                <td class="px-lg py-4 text-body-sm">1</td>
+                <td class="px-lg py-4">
+                  <div
+                    class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+                    JD</div>
+                </td>
+                <td class="px-lg py-4 font-label-md text-on-surface">John Doe</td>
+                <td class="px-lg py-4 text-body-sm text-on-surface-variant">john.doe@aair.edu</td>
+                <td class="px-lg py-4"><span
+                    class="px-2 py-0.5 bg-primary/10 text-primary text-[12px] font-semibold rounded">Terminology</span>
+                </td>
+                <td class="px-lg py-4"><span
+                    class="px-2 py-0.5 bg-primary/10 text-primary text-[12px] font-semibold rounded"> </span>
+                </td>
+                <td class="px-6 py-4 text-body-sm text-on-surface-variant font-code">2023-11-14 08:30</td>
+                <td class="px-lg py-4"><span class="status-pill status-active">🟢 Active</span></td>
+                <td class="px-lg py-4 text-right">
+                  <div class="flex justify-end gap-xs opacity-0 group-hover:opacity-100 transition-opacity"><button
+                      class="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
+                      title="View">👁</button><button
+                      class="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
+                      title="Edit">✏</button><button
+                      class="p-1.5 hover:bg-error-container/20 rounded-full text-error transition-colors"
+                      title="Disable">🔒</button></div>
+                </td>
+              </tr>
+
+              <tr class="hover:bg-surface-container-low/50 transition-colors group"
+                style="transform: translateY(0px); box-shadow: none;">
+                <td class="px-lg py-4 text-body-sm">1</td>
+                <td class="px-lg py-4">
+                  <div
+                    class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+                    JD</div>
+                </td>
+                <td class="px-lg py-4 font-label-md text-on-surface">John Doe</td>
+                <td class="px-lg py-4 text-body-sm text-on-surface-variant">john.doe@aair.edu</td>
+                <td class="px-lg py-4"><span
+                    class="px-2 py-0.5 bg-primary/10 text-primary text-[12px] font-semibold rounded">Terminology</span>
+                </td>
+                <td class="px-lg py-4"><span
+                    class="px-2 py-0.5 bg-primary/10 text-primary text-[12px] font-semibold rounded"> </span>
+                </td>
+                <td class="px-6 py-4 text-body-sm text-on-surface-variant font-code">2023-11-14 08:30</td>
+                <td class="px-lg py-4"><span class="status-pill status-active">🟢 Active</span></td>
+                <td class="px-lg py-4 text-right">
+                  <div class="flex justify-end gap-xs opacity-0 group-hover:opacity-100 transition-opacity"><button
+                      class="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
+                      title="View">👁</button><button
+                      class="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
+                      title="Edit">✏</button><button
+                      class="p-1.5 hover:bg-error-container/20 rounded-full text-error transition-colors"
+                      title="Disable">🔒</button></div>
+                </td>
+              </tr>
+
+              <tr class="hover:bg-surface-container-low/50 transition-colors group"
+                style="transform: translateY(0px); box-shadow: none;">
+                <td class="px-lg py-4 text-body-sm">1</td>
+                <td class="px-lg py-4">
+                  <div
+                    class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+                    JD</div>
+                </td>
+                <td class="px-lg py-4 font-label-md text-on-surface">John Doe</td>
+                <td class="px-lg py-4 text-body-sm text-on-surface-variant">john.doe@aair.edu</td>
+                <td class="px-lg py-4"><span
+                    class="px-2 py-0.5 bg-primary/10 text-primary text-[12px] font-semibold rounded">Terminology</span>
+                </td>
+                <td class="px-lg py-4"><span
+                    class="px-2 py-0.5 bg-primary/10 text-primary text-[12px] font-semibold rounded"> </span>
+                </td>
+                <td class="px-6 py-4 text-body-sm text-on-surface-variant font-code">2023-11-14 08:30</td>
+                <td class="px-lg py-4"><span class="status-pill status-active">🟢 Active</span></td>
+                <td class="px-lg py-4 text-right">
+                  <div class="flex justify-end gap-xs opacity-0 group-hover:opacity-100 transition-opacity"><button
+                      class="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
+                      title="View">👁</button><button
+                      class="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
+                      title="Edit">✏</button><button
+                      class="p-1.5 hover:bg-error-container/20 rounded-full text-error transition-colors"
+                      title="Disable">🔒</button></div>
+                </td>
+              </tr>
+
+              <tr class="hover:bg-surface-container-low/50 transition-colors group"
+                style="transform: translateY(0px); box-shadow: none;">
+                <td class="px-lg py-4 text-body-sm">2</td>
+                <td class="px-lg py-4">
+                  <div
+                    class="w-10 h-10 rounded-full bg-secondary-container/20 text-on-secondary-container flex items-center justify-center font-bold text-sm">
+                    AS</div>
+                </td>
+                <td class="px-lg py-4 font-label-md text-on-surface">Alice Smith</td>
+                <td class="px-lg py-4 text-body-sm text-on-surface-variant">alice.smith@aair.edu</td>
+                <td class="px-lg py-4"><span
+                    class="px-2 py-0.5 bg-secondary-container/20 text-on-secondary-container text-[12px] font-semibold rounded">Terminology</span>
+                </td>
+                <td class="px-lg py-4"><span
+                    class="px-2 py-0.5 bg-primary/10 text-primary text-[12px] font-semibold rounded"> </span>
+                </td>
+                <td class="px-6 py-4 text-body-sm text-on-surface-variant font-code">2023-11-14 08:30</td>
+                <td class="px-lg py-4"><span class="status-pill status-active">🟢 Active</span></td>
+                <td class="px-lg py-4 text-right">
+                  <div class="flex justify-end gap-xs opacity-0 group-hover:opacity-100 transition-opacity"><button
+                      class="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
+                      title="View">👁</button><button
+                      class="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
+                      title="Edit">✏</button><button
+                      class="p-1.5 hover:bg-error-container/20 rounded-full text-error transition-colors"
+                      title="Disable">🔒</button></div>
+                </td>
+              </tr>
+              <tr class="hover:bg-surface-container-low/50 transition-colors group">
+                <td class="px-lg py-4 text-body-sm">3</td>
+                <td class="px-lg py-4">
+                  <div
+                    class="w-10 h-10 rounded-full bg-tertiary-container/10 text-tertiary flex items-center justify-center font-bold text-sm">
+                    TN</div>
+                </td>
+                <td class="px-lg py-4 font-label-md text-on-surface">Tom Nguyen</td>
+                <td class="px-lg py-4 text-body-sm text-on-surface-variant">tom.nguyen@aair.edu</td>
+                <td class="px-lg py-4"><span
+                    class="px-2 py-0.5 bg-tertiary-container/10 text-tertiary text-[12px] font-semibold rounded">Manual
+                    Review</span>
+                </td>
+                <td class="px-lg py-4"><span
+                    class="px-2 py-0.5 bg-primary/10 text-primary text-[12px] font-semibold rounded"> </span>
+                </td>
+                <td class="px-6 py-4 text-body-sm text-on-surface-variant font-code">2023-11-14 08:30</td>
+                <td class="px-lg py-4"><span class="status-pill status-inactive">⚪ Inactive</span></td>
+                <td class="px-lg py-4 text-right">
+                  <div class="flex justify-end gap-xs opacity-0 group-hover:opacity-100 transition-opacity"><button
+                      class="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
+                      title="View">👁</button><button
+                      class="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
+                      title="Edit">✏</button><button
+                      class="p-1.5 hover:bg-primary-container/20 rounded-full text-primary transition-colors"
+                      title="Enable">✅</button></div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="px-6 py-4
+                        bg-text-active
+                        border-t border-slate-200
+                        flex items-center
+                        justify-center">
+
+
+          <!-- Pagination -->
+          <div class="flex items-center gap-6">
+
+            <!-- Previous -->
+            <button class="w-9 h-9
+                                    flex items-center justify-center
+                                    rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+
+              <span class="material-symbols-outlined text-[20px]">
+                chevron_left
+              </span>
+
+            </button>
+
+
+            <!-- Page 1 -->
+            <button class="w-9 h-9
+                                   rounded-lg
+                                   bg-button-active
+                                   text-text-active
+                                   text-sm
+                                   font-medium">
+              1
+            </button>
+
+
+            <!-- Page 2 -->
+            <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+              2
+            </button>
+
+
+            <!-- Page 3 -->
+            <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+              3
+            </button>
+
+
+            <!-- Page 4 -->
+            <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+              4
+            </button>
+
+
+            <!-- Page 5 -->
+            <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+              5
+            </button>
+
+
+            <!-- Page 6 -->
+            <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+              6
+            </button>
+
+
+            <!-- Next -->
+            <button class="w-9 h-9
+                                    flex items-center justify-center
+                                    rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+
+              <span class="material-symbols-outlined text-[20px]">
+                chevron_right
+              </span>
+
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Create  -->
+  <div
+    class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm z-[100] flex items-center justify-center transition-opacity duration-300 opacity-0 hidden"
+    id="modalOverlay">
+    <div
+      class="glass-modal w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-transform duration-300 scale-95"
+      id="modalContent">
+
+      <!-- Modal Header -->
+      <div class="px-8 py-6 border-b border-outline-variant flex justify-between items-center bg-white/50">
+        <div>
+          <h3 class="font-headline-sm text-headline-sm text-on-surface">Create New User</h3>
+        </div>
+        <button class="p-2 hover:bg-surface-container-low rounded-full transition-colors text-on-surface-variant"
+          onclick="toggleModal()">
+          <span class="material-symbols-outlined" data-icon="close">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="flex-1 min-h-0 px-8 py-6 space-y-6 overflow-y-auto custom-scrollbar">
+
+        <div class="flex justify-center py-md">
+          <div class="relative group cursor-pointer">
+            <div class="w-24 h-24 rounded-full bg-surface-container-high
+                   border-2 border-dashed border-outline
+                   flex items-center justify-center
+                   text-outline
+                   group-hover:border-primary
+                   group-hover:text-primary
+                   transition-all">
+
+              <span class="material-symbols-outlined text-[32px]">
+                add_a_photo
+              </span>
+            </div>
+
+            <div class="absolute bottom-1 right-1
+                   bg-primary text-white
+                   w-7 h-7 rounded-full
+                   flex items-center justify-center
+                   border-2 border-white">
+
+              <span class="material-symbols-outlined text-[16px]">
+                edit
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+          <div class="space-y-1.5">
+            <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
+              First Name</label>
+            <input
+              class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-body-md"
+              placeholder="e.g. John" type="text">
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
+              Last Name</label>
+            <input
+              class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-body-md"
+              placeholder="e.g. Doe" type="text">
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
+            Email Address
+          </label>
+          <input
+            class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-body-md"
+            placeholder="john.doe@aair.lab" type="email">
+        </div>
+
+        <!-- Assignment Section -->
+        <div class="grid grid-cols-2 gap-6">
+
+          <div class="space-y-1.5">
+            <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">Role</label>
+            <select
+              class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-body-md appearance-none">
+              <option>Select Role</option>
+              <option>Terminology</option>
+              <option>Manual Labeling</option>
+              <option>AI Labeling</option>
+              <option>Result Analysis</option>
+              <option>Manual Review</option>
+            </select>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">Team</label>
+            <select
+              class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-body-md appearance-none">
+              <option>Select Team</option>
+              <option>Security Ops</option>
+              <option>Infrastructure</option>
+              <option>Data Ethics</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Security Section -->
+        <div class="p-4 bg-surface-container-low border border-outline-variant rounded-xl space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="font-bold text-body-md text-on-surface">Security Credentials</p>
+              <p class="text-body-sm text-on-surface-variant">Generated passwords are sent to the user's
+                email.</p>
+            </div>
+            <button class="text-primary font-bold text-body-sm hover:underline flex items-center gap-1">
+              <span class="material-symbols-outlined text-[16px]" data-icon="refresh">refresh</span>
+              Regenerate
+            </button>
+          </div>
+          <div class="flex gap-3">
+            <input
+              class="flex-1 px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-code text-body-md text-on-surface-variant"
+              readonly="" type="text" value="AAIR-992-KXL-551">
+            <button
+              class="px-4 py-2 bg-outline-variant/20 hover:bg-outline-variant/30 text-on-surface rounded-lg transition-colors">
+              <span class="material-symbols-outlined text-body-lg" data-icon="content_copy">content_copy</span>
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <input class="rounded border-outline-variant text-primary focus:ring-primary" id="resetCheck"
+              type="checkbox">
+            <label class="text-body-sm text-on-surface-variant" for="resetCheck">Force password reset on
+              first login</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-8 py-6 border-t border-outline-variant flex justify-end gap-3 bg-white/50">
+        <button
+          class="px-6 py-2.5 border border-outline-variant rounded-lg text-body-md font-bold text-on-surface-variant hover:bg-surface-container-low transition-all"
+          onclick="toggleModal()">
+          Cancel
+        </button>
+        <button
+          class="gradient-btn px-8 py-2.5 rounded-lg text-white font-bold text-body-md shadow-lg hover:opacity-90 active:scale-95 transition-all">
+          Create
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!--Script -->
+  <script src="../../JavaScript/UserCreation.js"></script>
+
+</body>
+
+</html>

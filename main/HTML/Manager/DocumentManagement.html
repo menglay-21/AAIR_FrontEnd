@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Document Management</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap">
+
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
+
+    <!-- Material Symbols -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
+
+    <!-- AAIR Tailwind Configuration -->
+    <script src="../../JavaScript/tailwind.js"></script>
+
+    <!-- Custom CSS -->
+    <link href="../../Style/basic.css" rel="stylesheet" />
+</head>
+
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+
+    <!-- Fixed Header -->
+    <header
+        class="fixed top-0 left-0 right-0 h-[50px] bg-normal border-b border-outline-variant flex items-center px-2 z-50">
+
+        <!-- AAIR Logo -->
+        <div class="flex items-center gap-2 mr-6">
+            <img src="/resource/icon/logo_remove_BG.png" alt="AAIR Lab Logo" class="h-8 w-auto">
+
+            <h1 class="font-headline-sm text-[14px] font-bold text-primary">
+                AAIR Lab
+            </h1>
+        </div>
+
+        <div class="h-12 w-[1px] bg-outline-variant ms-2"></div>
+
+        <nav class="flex items-center h-full">
+
+            <a href="../../HTML/Manager/Dashboard.html" class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    dashboard
+                </span>
+
+                <span class="font-body-md text-[12px]">
+                    Dashboard
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a href="../../HTML/Manager/UserManagement.html" class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    group
+                </span>
+
+                <span class="font-body-md  text-[12px]">
+                    User
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a href="../../HTML/Manager/DocumentManagement.html" class="flex items-center gap-2 px-4 h-full
+                   text-text-active
+                   bg-button-active
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    description
+                </span>
+
+                <span class="font-body-md  text-[12px]">
+                    Document
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a href="../../HTML/Manager/Session.html" class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    smart_toy
+                </span>
+
+                <span class="font-body-md  text-[12px]">
+                    Session
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a href="../../HTML/Manager/Statistics.html" class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    monitoring
+                </span>
+
+                <span class="font-body-md  text-[12px]">
+                    Statistics
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+        </nav>
+
+        <!-- User Profile -->
+        <div class="ml-auto flex items-center gap-3">
+
+            <div class="w-7 h-7 rounded-full
+                   bg-primary-container/10
+                   flex items-center justify-center
+                   text-primary font-bold">
+                A
+            </div>
+
+            <div class="hidden md:block">
+                <p class="text-[12px] font-bold text-on-surface">
+                    NV. A
+                </p>
+                <p class="text-[8px] text-on-surface-variant uppercase tracking-wider">
+                    Manager
+                </p>
+            </div>
+
+        </div>
+
+    </header>
+
+    <!-- TopNavBar -->
+    <header class="w-full h-12
+           flex items-center gap-3 px-lg
+           bg-text-active border-b border-outline-variant
+           shadow-sm sticky top-[50px] z-30 mb-6">
+
+        <div class="relative flex-1 min-w-[240px] ">
+            <span
+                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">filter_list</span>
+            <input class="w-[500px] bg-white border border-outline-variant/60 rounded-lg
+                          py-2 pl-10 pr-4 text-body-sm
+                          focus:outline-none focus:ring-0 
+                          focus:border-outline-variant/60
+                          transition-colors" placeholder="Search.." type="text">
+        </div>
+
+        <!-- Buttons -->
+        <div class="ml-auto flex items-center gap-2">
+
+            <div class="flex items-center gap-2">
+                <label class="text-label-md text-on-surface-variant">Status:</label>
+                <select
+                    class="bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-body-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary">
+                    <option>All</option>
+                    <option>Active</option>
+                    <option>Disabled</option>
+                </select>
+            </div>
+
+            <input type="file" id="documentInput" class="hidden" accept=".pdf,.doc,.docx,.txt,.xlsx,.csv">
+
+            <button type="button" 
+                    onclick="document.getElementById('documentInput').click()" 
+                    class="px-4 py-2
+                       rounded-lg
+                       text-[12px]
+                       bg-button-active
+                       text-text-active
+                       hover:opacity-85
+                       transition-opacity
+                       flex items-center gap-2 shadow-sm">
+
+                <span class="material-symbols-outlined text-[20px]">
+                    upload_file
+                </span>
+
+                Choose Document
+            </button>
+
+        </div>
+
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="w-full min-h-[calc(100vh-98px)] bg-surface pt-6">
+        <!-- Top Header & Search Bar Area -->
+
+        <div class="w-full px-6 py-6">
+
+            <!-- Folder Cards Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div
+                    class="folder-card bg-white p-5 rounded-2xl border border-outline-variant/60 transition-all cursor-pointer">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                            <span class="material-symbols-outlined">database</span>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm">Datasets</h3>
+                            <p class="text-[10px] text-on-surface-variant font-medium">124 Files</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <div class="text-xs text-on-surface-variant">842 GB</div>
+                        <div class="text-[10px] text-on-surface-variant/60 italic">Modified: 2h ago</div>
+                    </div>
+                </div>
+                <div
+                    class="folder-card bg-white p-5 rounded-2xl border border-outline-variant/60 transition-all cursor-pointer">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
+                            <span class="material-symbols-outlined">data_object</span>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm">JSON</h3>
+                            <p class="text-[10px] text-on-surface-variant font-medium">45 Files</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <div class="text-xs text-on-surface-variant">12.5 MB</div>
+                        <div class="text-[10px] text-on-surface-variant/60 italic">Modified: Oct 12</div>
+                    </div>
+                </div>
+                <div
+                    class="folder-card bg-white p-5 rounded-2xl border border-outline-variant/60 transition-all cursor-pointer">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
+                            <span class="material-symbols-outlined">article</span>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm">Reports</h3>
+                            <p class="text-[10px] text-on-surface-variant font-medium">312 Files</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <div class="text-xs text-on-surface-variant">325.4 GB</div>
+                        <div class="text-[10px] text-on-surface-variant/60 italic">Modified: Oct 10</div>
+                    </div>
+                </div>
+                <div
+                    class="folder-card bg-white p-5 rounded-2xl border border-outline-variant/60 transition-all cursor-pointer">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                            <span class="material-symbols-outlined">stylus</span>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm">Annotations</h3>
+                            <p class="text-[10px] text-on-surface-variant font-medium">18 Files</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <div class="text-xs text-on-surface-variant">4.2 GB</div>
+                        <div class="text-[10px] text-on-surface-variant/60 italic">Modified: Yesterday</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Document Table -->
+            <div class="rounded-2xl border border-outline-variant/50 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto custom-scrollbar max-h-[600px]">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-text-active sticky-header">
+                            <tr class="border-b border-outline-variant/50">
+
+                                <th
+                                    class="px-4 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                                    No.</th>
+                                <th
+                                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                                    File Name</th>
+                                <th
+                                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                                    Company</th>
+                                <th
+                                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                                    Report Year</th>
+
+                                <th
+                                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                                    Uploaded By</th>
+                                <th
+                                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                                    Upload Date</th>
+                                <th
+                                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                                    Linked Session</th>
+                                <th
+                                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                                    Status</th>
+                                <th
+                                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right">
+                                    Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-outline-variant/30">
+                            <!-- Row 1: Active -->
+                            <tr class="hover:bg-slate-50/80 transition-colors group">
+
+                                <td class="px-4 py-4 text-sm text-on-surface-variant">1</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <span class="material-symbols-outlined text-red-500">picture_as_pdf</span>
+                                        <span
+                                            class="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors cursor-pointer">Apple_Annual_2024.pdf</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-on-surface font-medium">Apple Inc.</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">2024</td>
+
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">Dr. Aris Thorne</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">Oct 12, 2023</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant italic">Sess_9928_RT</td>
+                                <td class="px-6 py-4">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">ACTIVE</span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <button
+                                            class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-md transition-all"
+                                            title="Preview">
+                                            <span class="material-symbols-outlined text-lg">visibility</span>
+                                        </button>
+                                        <button
+                                            class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-md transition-all"
+                                            title="Rename">
+                                            <span class="material-symbols-outlined text-lg">edit</span>
+                                        </button>
+                                        <button
+                                            class="p-1.5 text-on-surface-variant hover:text-red-600 hover:bg-red-50 rounded-md transition-all"
+                                            title="Delete">
+                                            <span class="material-symbols-outlined text-lg">delete</span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Row 2: Processing -->
+                            <tr class="hover:bg-slate-50/80 transition-colors group">
+
+                                <td class="px-4 py-4 text-sm text-on-surface-variant">2</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <span class="material-symbols-outlined text-blue-500">description</span>
+                                        <span
+                                            class="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors cursor-pointer">Microsoft_ESG_2025.docx</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-on-surface font-medium">Microsoft Corp.</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">2025</td>
+
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">Marcus Wu</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">Oct 14, 2023</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant italic">—</td>
+                                <td class="px-6 py-4">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">PROCESSING</span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <button
+                                            class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-md transition-all">
+                                            <span class="material-symbols-outlined text-lg">visibility</span>
+                                        </button>
+                                        <button
+                                            class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-md transition-all">
+                                            <span class="material-symbols-outlined text-lg">edit</span>
+                                        </button>
+                                        <button
+                                            class="p-1.5 text-on-surface-variant hover:text-red-600 hover:bg-red-50 rounded-md transition-all">
+                                            <span class="material-symbols-outlined text-lg">delete</span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Row 3: Linked -->
+                            <tr class="hover:bg-slate-50/80 transition-colors group">
+
+                                <td class="px-4 py-4 text-sm text-on-surface-variant">3</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <span class="material-symbols-outlined text-red-500">picture_as_pdf</span>
+                                        <span
+                                            class="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors cursor-pointer">Tesla_Q2_2024.pdf</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-on-surface font-medium">Tesla Inc.</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">2024</td>
+
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">Sarah Jenkins</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">Oct 11, 2023</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant italic">Sess_8841_VAL</td>
+                                <td class="px-6 py-4">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">LINKED</span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <button
+                                            class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-md transition-all">
+                                            <span class="material-symbols-outlined text-lg">visibility</span>
+                                        </button>
+                                        <button
+                                            class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-md transition-all">
+                                            <span class="material-symbols-outlined text-lg">edit</span>
+                                        </button>
+                                        <button
+                                            class="p-1.5 text-on-surface-variant hover:text-red-600 hover:bg-red-50 rounded-md transition-all">
+                                            <span class="material-symbols-outlined text-lg">delete</span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Row 4: Archived -->
+                            <tr class="hover:bg-slate-50/80 transition-colors group">
+
+                                <td class="px-4 py-4 text-sm text-on-surface-variant">4</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <span class="material-symbols-outlined text-amber-600">table_chart</span>
+                                        <span
+                                            class="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors cursor-pointer">Amazon_Marketplace_Dynamics.csv</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-on-surface font-medium">Amazon.com</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">2023</td>
+
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">Marcus Wu</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">Oct 09, 2023</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant italic">Sess_1012_DB</td>
+                                <td class="px-6 py-4">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-600">ARCHIVED</span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <button
+                                            class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-md transition-all">
+                                            <span class="material-symbols-outlined text-lg">visibility</span>
+                                        </button>
+                                        <button
+                                            class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-md transition-all">
+                                            <span class="material-symbols-outlined text-lg">edit</span>
+                                        </button>
+                                        <button
+                                            class="p-1.5 text-on-surface-variant hover:text-red-600 hover:bg-red-50 rounded-md transition-all">
+                                            <span class="material-symbols-outlined text-lg">delete</span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Row 5: Error -->
+                            <tr class="hover:bg-slate-50/80 transition-colors group">
+
+                                <td class="px-4 py-4 text-sm text-on-surface-variant">5</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <span class="material-symbols-outlined text-orange-600">data_object</span>
+                                        <span
+                                            class="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors cursor-pointer">Meta_Deep_Insights.json</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-on-surface font-medium">Meta Platforms</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">2024</td>
+
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">Dr. Aris Thorne</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">Oct 15, 2023</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant italic">—</td>
+                                <td class="px-6 py-4">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-800">ERROR</span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <button
+                                            class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-md transition-all">
+                                            <span class="material-symbols-outlined text-lg">visibility</span>
+                                        </button>
+                                        <button
+                                            class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-md transition-all">
+                                            <span class="material-symbols-outlined text-lg">edit</span>
+                                        </button>
+                                        <button
+                                            class="p-1.5 text-on-surface-variant hover:text-red-600 hover:bg-red-50 rounded-md transition-all">
+                                            <span class="material-symbols-outlined text-lg">delete</span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="px-6 py-4
+                        bg-text-active
+                        border-t border-slate-200
+                        flex items-center
+                        justify-center">
+
+
+                    <!-- Pagination -->
+                    <div class="flex items-center gap-6">
+
+                        <!-- Previous -->
+                        <button class="w-9 h-9
+                                    flex items-center justify-center
+                                    rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+
+                            <span class="material-symbols-outlined text-[20px]">
+                                chevron_left
+                            </span>
+
+                        </button>
+
+
+                        <!-- Page 1 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                   bg-button-active
+                                   text-text-active
+                                   text-sm
+                                   font-medium">
+                            1
+                        </button>
+
+
+                        <!-- Page 2 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            2
+                        </button>
+
+
+                        <!-- Page 3 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            3
+                        </button>
+
+
+                        <!-- Page 4 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            4
+                        </button>
+
+
+                        <!-- Page 5 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            5
+                        </button>
+
+
+                        <!-- Page 6 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            6
+                        </button>
+
+
+                        <!-- Next -->
+                        <button class="w-9 h-9
+                                    flex items-center justify-center
+                                    rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+
+                            <span class="material-symbols-outlined text-[20px]">
+                                chevron_right
+                            </span>
+
+                        </button>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script src="../../JavaScript/managerDocumentManagement.js">  </script>
+
+</body>
+
+</html>

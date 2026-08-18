@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Base Management</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap">
+
+    <!-- Material Symbols -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <script src="../../../JavaScript/tailwind.js"></script>
+
+    <link href="../../../Style/basic.css" rel="stylesheet" />
+
+</head>
+
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+
+    <!-- Fixed Header -->
+    <header
+        class="fixed top-0 left-0 right-0 h-[50px] bg-normal border-b border-outline-variant flex items-center px-2 z-50">
+
+        <!-- AAIR Logo -->
+        <div class="flex items-center gap-2 mr-6">
+            <img src="/resource/icon/logo_remove_BG.png" alt="AAIR Lab Logo" class="h-8 w-auto">
+
+            <h1 class="font-headline-sm text-[14px] font-bold text-primary">
+                AAIR Lab
+            </h1>
+        </div>
+
+        <div class="h-12 w-[1px] bg-outline-variant ms-2"></div>
+
+        <!-- Navigation -->
+        <nav class="flex items-center h-full">
+
+            <!-- Dashboard -->
+            <a href="../../User/Terminology/Dashboard.html" class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    dashboard
+                </span>
+
+                <span class="font-body-md text-[12px]">
+                    Dashboard
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <!-- Terminology Base -->
+            <a href="../../User/Terminology/BaseManagement.html" class="flex items-center gap-2 px-4 h-full
+                   text-text-active
+                   bg-button-active
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    dictionary
+                </span>
+
+                <span class="font-body-md  text-[12px]">
+                    Terminology Base
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+        </nav>
+
+        <!-- User Profile -->
+        <div class="ml-auto flex items-center gap-3">
+
+            <div class="w-7 h-7 rounded-full
+                   bg-primary-container/10
+                   flex items-center justify-center
+                   text-primary font-bold">
+                A
+            </div>
+
+            <div class="hidden md:block">
+                <p class="text-[12px] font-bold text-on-surface">
+                    NV. A
+                </p>
+                <p class="text-[8px] text-on-surface-variant uppercase tracking-wider">
+                    Terminology
+                </p>
+            </div>
+
+        </div>
+
+    </header>
+
+    <!-- TopNavBar -->
+    <header class="w-full h-12
+           flex items-center gap-2 px-lg
+           bg-text-active border-b border-outline-variant
+           shadow-sm sticky top-[50px] z-50 mb-4">
+
+        <div class="relative flex-1 min-w-[240px] ">
+            <span
+                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">filter_list</span>
+            <input class="w-full bg-white border border-outline-variant/60 rounded-lg
+                          py-2 pl-10 pr-4 text-body-sm
+                          focus:outline-none focus:ring-0 
+                          focus:border-outline-variant/60
+                          transition-colors" placeholder="Search.." type="text">
+        </div>
+
+        <div class="flex items-center gap-2">
+            <label class="text-label-md text-on-surface-variant">Category:</label>
+            <select
+                class="bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-body-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary">
+                <option class="bg-white text-on-surface">All</option>
+                <option class="bg-white text-on-surface">Financial Statements</option>
+                <option class="bg-white text-on-surface">Accounting</option>
+                <option class="bg-white text-on-surface">Investment</option>
+                <option class="bg-white text-on-surface">Equity Research</option>
+            </select>
+
+            <div class="flex items-center gap-2">
+                <label class="text-label-md text-on-surface-variant">Status:</label>
+                <select
+                    class="bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-body-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary">
+                    <option>All</option>
+                    <option>Active</option>
+                    <option>Disabled</option>
+                </select>
+            </div>
+
+            <!-- Buttons -->
+            <div class="ml-auto flex items-center gap-2">
+
+                <!-- Hidden CSV File Input -->
+                <input type="file" id="csvFileInput" accept=".csv,text/csv" class="hidden">
+
+                <!-- Import CSV Button -->
+                <button type="button" onclick="document.getElementById('csvFileInput').click()" class="px-4 py-2
+                            rounded-lg
+                            text-[12px]
+                            bg-button-active
+                            text-text-active
+                            hover:opacity-85
+                            transition-opacity
+                            flex items-center gap-2
+                            shadow-sm">
+
+                    <span class="material-symbols-outlined text-[14px]">
+                        upload_file
+                    </span>
+
+                    Import CSV
+                </button>
+
+            </div>
+
+    </header>
+
+    <!-- Main Dashboard -->
+    <main class="w-full min-h-[calc(100vh-98px)] bg-surface pt-4">
+        <div class="grid grid-cols-[70%_30%] w-full">
+
+            <div class="pt-6 border-r border-outline-variant">
+
+                <!-- Terminology Table Section -->
+                <div class="max-w-7xl mx-auto px-8 pb-xxl">
+                    <div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto custom-scrollbar">
+                            <table class="w-full text-left border-collapse min-w-full">
+                                <thead class="bg-text-active">
+                                    <tr class="border-b border-outline-variant/40">
+                                        <th
+                                            class="py-4 font-label-md text-label-md font-bold text-outline-variant uppercase px-4">
+                                            Financial Term</th>
+                                        <th
+                                            class="py-4 font-label-md text-label-md font-bold text-outline-variant uppercase px-4">
+                                            Definition</th>
+                                        <th
+                                            class="py-4 font-label-md text-label-md font-bold text-outline-variant uppercase px-4">
+                                            Category</th>
+                                        <th
+                                            class="py-4 font-label-md text-label-md font-bold text-outline-variant uppercase px-4">
+                                            Synonyms</th>
+
+                                        <th
+                                            class="py-4 font-label-md text-label-md font-bold text-outline-variant uppercase px-4">
+                                            Last Updated</th>
+                                        <th
+                                            class="py-4 font-label-md text-label-md font-bold text-outline-variant uppercase text-right px-4">
+                                            Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-outline-variant/20">
+
+                                    <!-- Row 1 -->
+                                    <tr class="hover:bg-surface-container/30 transition-colors group"
+                                        style="box-shadow: none;">
+                                        <td class="py-4 whitespace-nowrap px-4">
+                                            <span class="font-bold text-primary text-body-md">Operating Income</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <p class="text-body-sm text-on-surface-variant truncate max-w-[100px]">
+                                                Income
+                                                generated from core operations, calculated as gross income minus
+                                                operating
+                                                expenses.</p>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span
+                                                class="px-2 py-1 bg-surface-container-high text-on-surface rounded text-[11px] font-bold">Accounting</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex flex-wrap gap-1">
+                                                <span
+                                                    class="px-2 py-0.5 border border-outline-variant text-[10px] rounded-full text-outline font-medium bg-surface">Operating
+                                                    Profit</span>
+                                                <span
+                                                    class="px-2 py-0.5 border border-outline-variant text-[10px] rounded-full text-outline font-medium bg-surface">EBIT</span>
+                                            </div>
+                                        </td>
+
+                                        <td class="py-4 whitespace-nowrap px-4">
+                                            <div class="text-label-md">
+                                                <p class="font-bold">Oct 23, 2023</p>
+                                                <p class="text-outline text-[10px]">by A. Durand</p>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 text-right px-4">
+                                            <button class="p-1 hover:text-primary transition-colors">
+                                                <span class="material-symbols-outlined text-[20px]">edit_note</span>
+                                            </button>
+                                            <button class="p-1 hover:text-error transition-colors">
+                                                <span class="material-symbols-outlined text-[20px]">delete</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Row 1 -->
+                                    <tr class="hover:bg-surface-container/30 transition-colors group"
+                                        style="box-shadow: none;">
+                                        <td class="py-4 whitespace-nowrap px-4">
+                                            <span class="font-bold text-primary text-body-md">Operating Income</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <p class="text-body-sm text-on-surface-variant truncate max-w-[100px]">
+                                                Income
+                                                generated from core operations, calculated as gross income minus
+                                                operating
+                                                expenses.</p>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span
+                                                class="px-2 py-1 bg-surface-container-high text-on-surface rounded text-[11px] font-bold">Accounting</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex flex-wrap gap-1">
+                                                <span
+                                                    class="px-2 py-0.5 border border-outline-variant text-[10px] rounded-full text-outline font-medium bg-surface">Operating
+                                                    Profit</span>
+                                                <span
+                                                    class="px-2 py-0.5 border border-outline-variant text-[10px] rounded-full text-outline font-medium bg-surface">EBIT</span>
+                                            </div>
+                                        </td>
+
+                                        <td class="py-4 whitespace-nowrap px-4">
+                                            <div class="text-label-md">
+                                                <p class="font-bold">Oct 23, 2023</p>
+                                                <p class="text-outline text-[10px]">by A. Durand</p>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 text-right px-4">
+                                            <button class="p-1 hover:text-primary transition-colors">
+                                                <span class="material-symbols-outlined text-[20px]">edit_note</span>
+                                            </button>
+                                            <button class="p-1 hover:text-error transition-colors">
+                                                <span class="material-symbols-outlined text-[20px]">delete</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="hover:bg-surface-container/30 transition-colors group"
+                                        style="box-shadow: none;">
+                                        <td class="py-4 whitespace-nowrap px-4">
+                                            <span class="font-bold text-primary text-body-md">Operating Income</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <p class="text-body-sm text-on-surface-variant truncate max-w-[100px]">
+                                                Income
+                                                generated from core operations, calculated as gross income minus
+                                                operating
+                                                expenses.</p>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span
+                                                class="px-2 py-1 bg-surface-container-high text-on-surface rounded text-[11px] font-bold">Accounting</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex flex-wrap gap-1">
+                                                <span
+                                                    class="px-2 py-0.5 border border-outline-variant text-[10px] rounded-full text-outline font-medium bg-surface">Operating
+                                                    Profit</span>
+                                                <span
+                                                    class="px-2 py-0.5 border border-outline-variant text-[10px] rounded-full text-outline font-medium bg-surface">EBIT</span>
+                                            </div>
+                                        </td>
+
+                                        <td class="py-4 whitespace-nowrap px-4">
+                                            <div class="text-label-md">
+                                                <p class="font-bold">Oct 23, 2023</p>
+                                                <p class="text-outline text-[10px]">by A. Durand</p>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 text-right px-4">
+                                            <button class="p-1 hover:text-primary transition-colors">
+                                                <span class="material-symbols-outlined text-[20px]">edit_note</span>
+                                            </button>
+                                            <button class="p-1 hover:text-error transition-colors">
+                                                <span class="material-symbols-outlined text-[20px]">delete</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Row 2 -->
+                                    <tr class="hover:bg-surface-container/30 transition-colors group"
+                                        style="box-shadow: none;">
+                                        <td class="py-4 whitespace-nowrap px-4">
+                                            <span class="font-bold text-primary text-body-md">Amortization</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <p class="text-body-sm text-on-surface-variant truncate max-w-[100px]">The
+                                                process of
+                                                gradually writing off the initial cost of an asset over a specific
+                                                period of
+                                                time.</p>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span
+                                                class="px-2 py-1 bg-surface-container-high text-on-surface rounded text-[11px] font-bold">Financial
+                                                Statements</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex flex-wrap gap-1">
+                                                <span
+                                                    class="px-2 py-0.5 border border-outline-variant text-[10px] rounded-full text-outline font-medium bg-surface">Depreciation</span>
+                                            </div>
+                                        </td>
+
+                                        <td class="py-4 whitespace-nowrap px-4">
+                                            <div class="text-label-md">
+                                                <p class="font-bold">Oct 22, 2023</p>
+                                                <p class="text-outline text-[10px]">by M. Smith</p>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 text-right px-4">
+                                            <button class="p-1 hover:text-primary transition-colors">
+                                                <span class="material-symbols-outlined text-[20px]">edit_note</span>
+                                            </button>
+                                            <button class="p-1 hover:text-error transition-colors">
+                                                <span class="material-symbols-outlined text-[20px]">delete</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <!-- Row 3 -->
+                                    <tr class="hover:bg-surface-container/30 transition-colors group"
+                                        style="box-shadow: none;">
+                                        <td class="py-4 whitespace-nowrap px-4">
+                                            <span class="font-bold text-primary text-body-md">Lợi nhuận gộp</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <p class="text-body-sm text-on-surface-variant truncate max-w-[100px]">Gross
+                                                profit
+                                                in Vietnamese; the profit a company makes after deducting the costs
+                                                associated with making and selling its products.</p>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span
+                                                class="px-2 py-1 bg-surface-container-high text-on-surface rounded text-[11px] font-bold">Accounting</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex flex-wrap gap-1">
+                                                <span
+                                                    class="px-2 py-0.5 border border-outline-variant text-[10px] rounded-full text-outline font-medium bg-surface">Gross
+                                                    Margin</span>
+                                            </div>
+                                        </td>
+
+                                        <td class="py-4 whitespace-nowrap px-4">
+                                            <div class="text-label-md">
+                                                <p class="font-bold">Oct 21, 2023</p>
+                                                <p class="text-outline text-[10px]">by J. Karlof</p>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 text-right px-4">
+                                            <button class="p-1 hover:text-primary transition-colors">
+                                                <span class="material-symbols-outlined text-[20px]">edit_note</span>
+                                            </button>
+                                            <button class="p-1 hover:text-error transition-colors">
+                                                <span class="material-symbols-outlined text-[20px]">delete</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <!-- Dummy Repeat for Density -->
+                                    <tr class="hover:bg-surface-container/30 transition-colors"
+                                        style="box-shadow: none;">
+                                        <td class="py-4 whitespace-nowrap font-bold text-primary text-body-md px-4">
+                                            Accounts
+                                            Receivable</td>
+                                        <td class="py-4 px-4">
+                                            <p class="text-body-sm text-on-surface-variant truncate max-w-[100px]">Money
+                                                owed
+                                                to
+                                                a company by its debtors.</p>
+                                        </td>
+                                        <td class="py-4 px-4"><span
+                                                class="px-2 py-1 bg-surface-container-high text-on-surface rounded text-[11px] font-bold">Accounting</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex flex-wrap gap-1"><span
+                                                    class="px-2 py-0.5 border border-outline-variant text-[10px] rounded-full text-outline font-medium bg-surface">Debtors</span>
+                                            </div>
+                                        </td>
+
+                                        <td class="py-4 whitespace-nowrap px-4">
+                                            <div class="text-label-md">
+                                                <p class="font-bold">Oct 21, 2023</p>
+                                                <p class="text-outline text-[10px]">by J. Karlof</p>
+                                            </div>
+                                        </td>
+
+                                        <td class="py-4 text-right px-4">
+                                            <button class="p-1"><span
+                                                    class="material-symbols-outlined text-[20px]">edit_note</span></button>
+                                            <button class="p-1 hover:text-error transition-colors">
+                                                <span class="material-symbols-outlined text-[20px]">delete</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="hover:bg-surface-container/30 transition-colors group"
+                                        style="box-shadow: none;">
+                                        <td class="py-4 whitespace-nowrap px-4">
+                                            <span class="font-bold text-primary text-body-md">Lợi nhuận gộp</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <p class="text-body-sm text-on-surface-variant truncate max-w-[100px]">Gross
+                                                profit
+                                                in Vietnamese; the profit a company makes after deducting the costs
+                                                associated with making and selling its products.</p>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span
+                                                class="px-2 py-1 bg-surface-container-high text-on-surface rounded text-[11px] font-bold">Accounting</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex flex-wrap gap-1">
+                                                <span
+                                                    class="px-2 py-0.5 border border-outline-variant text-[10px] rounded-full text-outline font-medium bg-surface">Gross
+                                                    Margin</span>
+                                            </div>
+                                        </td>
+
+                                        <td class="py-4 whitespace-nowrap px-4">
+                                            <div class="text-label-md">
+                                                <p class="font-bold">Oct 21, 2023</p>
+                                                <p class="text-outline text-[10px]">by J. Karlof</p>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 text-right px-4">
+                                            <button class="p-1 hover:text-primary transition-colors">
+                                                <span class="material-symbols-outlined text-[20px]">edit_note</span>
+                                            </button>
+                                            <button class="p-1 hover:text-error transition-colors">
+                                                <span class="material-symbols-outlined text-[20px]">delete</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="hover:bg-surface-container/30 transition-colors"
+                                        style="box-shadow: none;">
+                                        <td class="py-4 whitespace-nowrap font-bold text-primary text-body-md px-4">
+                                            Accounts
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <p class="text-body-sm text-on-surface-variant truncate max-w-[100px]">Money
+                                                owed
+                                                to
+                                                a company by its debtors.</p>
+                                        </td>
+                                        <td class="py-4 px-4"><span
+                                                class="px-2 py-1 bg-surface-container-high text-on-surface rounded text-[11px] font-bold">Accounting</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <div class="flex flex-wrap gap-1"><span
+                                                    class="px-2 py-0.5 border border-outline-variant text-[10px] rounded-full text-outline font-medium bg-surface">Debtors</span>
+                                            </div>
+                                        </td>
+
+                                        <td class="py-4 whitespace-nowrap px-4">
+                                            <div class="text-label-md">
+                                                <p class="font-bold">Oct 21, 2023</p>
+                                                <p class="text-outline text-[10px]">by J. Karlof</p>
+                                            </div>
+                                        </td>
+
+                                        <td class="py-4 text-right px-4">
+                                            <button class="p-1"><span
+                                                    class="material-symbols-outlined text-[20px]">edit_note</span></button>
+                                            <button class="p-1 hover:text-error transition-colors">
+                                                <span class="material-symbols-outlined text-[20px]">delete</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="px-6 py-4
+                        bg-text-active
+                        border-t border-slate-200
+                        flex items-center
+                        justify-center">
+
+
+                            <!-- Pagination -->
+                            <div class="flex items-center gap-6">
+
+                                <!-- Previous -->
+                                <button class="w-9 h-9
+                                    flex items-center justify-center
+                                    rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+
+                                    <span class="material-symbols-outlined text-[20px]">
+                                        chevron_left
+                                    </span>
+
+                                </button>
+
+
+                                <!-- Page 1 -->
+                                <button class="w-9 h-9
+                                   rounded-lg
+                                   bg-button-active
+                                   text-text-active
+                                   text-sm
+                                   font-medium">
+                                    1
+                                </button>
+
+
+                                <!-- Page 2 -->
+                                <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                                    2
+                                </button>
+
+
+                                <!-- Page 3 -->
+                                <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                                    3
+                                </button>
+
+
+                                <!-- Page 4 -->
+                                <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                                    4
+                                </button>
+
+
+                                <!-- Page 5 -->
+                                <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                                    5
+                                </button>
+
+
+                                <!-- Page 6 -->
+                                <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                                    6
+                                </button>
+
+
+                                <!-- Next -->
+                                <button class="w-9 h-9
+                                    flex items-center justify-center
+                                    rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+
+                                    <span class="material-symbols-outlined text-[20px]">
+                                        chevron_right
+                                    </span>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="min-w-0 p-4 sticky top-[98px] h-[calc(100vh-98px)]">
+
+                <div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden">
+
+                    <!-- Panel Header -->
+                    <div class="px-5 py-4 border-t border-outline-variant/30 bg-text-active">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-body-lg font-bold text-on-surface">
+                                    Term Details
+                                </h2>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form -->
+                    <div class="p-5 space-y-4">
+
+                        <!-- Financial Term -->
+                        <div>
+                            <label class="block text-label-md font-bold text-on-surface mb-2">
+                                Financial Term
+                            </label>
+
+                            <input type="text" placeholder="e.g. Operating Income" class="w-full bg-white border border-outline-variant/60 rounded-lg
+                           px-3 py-2.5 text-body-sm
+                           focus:outline-none focus:ring-2 focus:ring-primary/20
+                           focus:border-primary">
+                        </div>
+
+                        <!-- Definition -->
+                        <div>
+                            <label class="block text-label-md font-bold text-on-surface mb-2">
+                                Definition
+                            </label>
+
+                            <textarea rows="4" placeholder="Enter term definition..." class="w-full bg-white border border-outline-variant/60 rounded-lg
+                           px-3 py-2.5 text-body-sm resize-none
+                           focus:outline-none focus:ring-2 focus:ring-primary/20
+                           focus:border-primary"></textarea>
+                        </div>
+
+                        <!-- Category -->
+                        <div>
+                            <label class="block text-label-md font-bold text-on-surface mb-2">
+                                Category
+                            </label>
+
+                            <select class="w-full bg-white border border-outline-variant/60 rounded-lg
+                           px-3 py-2.5 text-body-sm
+                           focus:outline-none focus:ring-2 focus:ring-primary/20
+                           focus:border-primary">
+
+                                <option>Select category</option>
+                                <option>Financial Statements</option>
+                                <option>Accounting</option>
+                                <option>Investment</option>
+                                <option>Equity Research</option>
+                            </select>
+                        </div>
+
+                        <!-- Synonyms -->
+                        <div>
+                            <label class="block text-label-md font-bold text-on-surface mb-2">
+                                Synonyms
+                            </label>
+
+                            <input type="text" placeholder="e.g. EBIT, Operating Profit" class="w-full bg-white border border-outline-variant/60 rounded-lg
+                           px-3 py-2.5 text-body-sm
+                           focus:outline-none focus:ring-2 focus:ring-primary/20
+                           focus:border-primary">
+                        </div>
+
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="px-5 py-4 border-t border-outline-variant/30 bg-text-active
+                    flex items-center justify-end gap-2">
+
+                        <button class="px-4 py-2 rounded-lg border border-outline-variant
+                       text-label-md font-semibold
+                       hover:bg-surface-container-high transition-colors">
+                            Cancel
+                        </button>
+
+                        <button class="px-4 py-2
+                                    rounded-lg
+                                    text-[12px]
+                                    bg-button-active
+                                    text-text-active
+                                    hover:opacity-85
+                                    transition-opacity
+                                    flex items-center gap-2 shadow-sm">
+                            Save Term
+                        </button>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- javascript -->
+    <script ></script>
+</body>
+
+</html>

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap">
+
+    <!-- Material Symbols -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <script src="../../../JavaScript/tailwind.js"></script>
+
+
+    <link href="../../../Style/basic.css" rel="stylesheet" />
+
+</head>
+
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+
+
+    <!-- Fixed Header -->
+    <header class="fixed top-0 left-0 right-0 h-[50px] bg-normal border-b border-outline-variant flex items-center px-2 z-50">
+
+        <!-- AAIR Logo -->
+        <div class="flex items-center gap-2 mr-6">
+            <img src="/resource/icon/logo_remove_BG.png" alt="AAIR Lab Logo" class="h-8 w-auto">
+
+            <h1 class="font-headline-sm text-[14px] font-bold text-primary">
+                AAIR Lab
+            </h1>
+        </div>
+
+        <div class="h-12 w-[1px] bg-outline-variant ms-2"></div>
+
+        <!-- Navigation -->
+        <nav class="flex items-center h-full">
+
+            <a class="flex items-center gap-2 px-4 h-full
+                   text-text-active
+                   bg-button-active
+                   transition-colors duration-200" href="../../User/AILabeling/Dashboard.html">
+                <span class=" material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                <span class="font-body-md text-[12px]">Dashboard</span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200" href="../../User/AILabeling/ViewAll.html">
+                <span class="material-symbols-outlined">list_alt </span>
+                <span class="font-body-md text-[12px]">View ALL</span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200" href="../../User/AILabeling/Task.html">
+                <span class="material-symbols-outlined">play_circle</span>
+                <span class="font-body-md text-[12px]">Session</span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200" href="../../User/AILabeling/Prompt.html">
+                <span class="material-symbols-outlined">description</span>
+                <span class="font-body-md text-[12px]">Prompt</span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+        </nav>
+
+        <!-- User Profile -->
+        <div class="ml-auto flex items-center gap-3">
+
+            <div class="w-7 h-7 rounded-full
+                   bg-primary-container/10
+                   flex items-center justify-center
+                   text-primary font-bold">
+                E
+            </div>
+
+            <div class="hidden md:block">
+                <p class="text-[12px] font-bold text-on-surface">
+                    NV. E
+                </p>
+                <p class="text-[8px] text-on-surface-variant uppercase tracking-wider">
+                    AI Labeling
+                </p>
+            </div>
+
+        </div>
+
+    </header>
+
+    <!-- TopNavBar -->
+    <header class="w-full h-12
+           flex items-center px-lg
+           bg-text-active border-b border-outline-variant
+           shadow-sm sticky top-[50px] z-30 mb-6">
+
+        <div class="flex items-center">
+            <h2 class="text-lg font-bold text-on-surface">
+                Good Morning,
+            </h2>
+        </div>
+        <!-- Buttons -->
+        <div class="ml-auto flex items-center gap-2">
+
+            <button class="px-4 py-2
+                       rounded-lg
+                       text-[12px]
+                       bg-button-active
+                       text-text-active
+                       hover:opacity-85
+                       transition-opacity
+                       flex items-center gap-2 shadow-sm">
+
+                <span class="material-symbols-outlined text-[12px]">
+                    calendar_today
+                </span>
+
+                Last 30 Days
+            </button>
+
+            <button type="butotn"
+                    class="px-4 py-2
+                       rounded-lg
+                       text-[12px]
+                       bg-button-active
+                       text-text-active
+                       hover:opacity-85
+                       transition-opacity
+                       flex items-center gap-2 shadow-sm"
+                    onclick="location.reload()">
+
+                <span class="material-symbols-outlined text-[12px]">
+                    refresh
+                </span>
+
+                Refresh
+            </button>
+
+        </div>
+
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="w-full min-h-[calc(100vh-98px)] bg-surface pt-6">
+
+        <!-- Header & KPI Section -->
+        <div class="p-lg space-y-xl">
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter mb-6">
+                <div
+                    class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/30 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="p-2 bg-primary-fixed/20 text-primary rounded-lg">
+                            <span class="material-symbols-outlined">assignment</span>
+                        </span>
+                        <span class="text-xs font-bold text-on-surface-variant">DAILY</span>
+                    </div>
+                    <div>
+                        <h3 class="text-on-surface-variant font-label-caps text-label-caps">Assigned AI Sessions</h3>
+                        <p class="text-3xl font-extrabold text-on-surface mt-1">24</p>
+                    </div>
+                </div>
+                <div
+                    class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/30 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="p-2 bg-secondary-fixed/20 text-secondary rounded-lg">
+                            <span class="material-symbols-outlined">task_alt</span>
+                        </span>
+                        <span class="text-xs font-bold text-on-surface-variant">TOTAL</span>
+                    </div>
+                    <div>
+                        <h3 class="text-on-surface-variant font-label-caps text-label-caps">Completed Sessions</h3>
+                        <p class="text-3xl font-extrabold text-on-surface mt-1">1,482</p>
+                    </div>
+                </div>
+                <div
+                    class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/30 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="p-2 bg-tertiary-fixed/20 text-tertiary rounded-lg">
+                            <span class="material-symbols-outlined">analytics</span>
+                        </span>
+                        <div class="flex items-center gap-1 text-success text-green-600 font-bold text-xs">
+                            <span class="material-symbols-outlined text-sm">trending_up</span>
+                            1.6%
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-on-surface-variant font-label-caps text-label-caps">AI Extraction Accuracy</h3>
+                        <p class="text-3xl font-extrabold text-on-surface mt-1">94.8%</p>
+                    </div>
+                </div>
+                <div
+                    class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-error-container/50 flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="p-2 bg-error-container text-error rounded-lg">
+                            <span class="material-symbols-outlined">priority_high</span>
+                        </span>
+                        <span class="text-xs font-bold text-error">URGENT</span>
+                    </div>
+                    <div>
+                        <h3 class="text-on-surface-variant font-label-caps text-label-caps">Awaiting Validation</h3>
+                        <p class="text-3xl font-extrabold text-error mt-1">12</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Left Column: Active Work -->
+        <div class="col-span-12 lg:col-span-8 ml-8 mr-8 mb-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="font-headline-md text-headline-md font-bold text-on-surface">Current AI Labeling Sessions
+                </h2>
+                <button class="text-primary font-body-md font-bold hover:underline">View All Sessions</button>
+            </div>
+            <div class="grid grid-cols-1 gap-4">
+                <!-- Session Card 1 -->
+                <div
+                    class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/20 hover:shadow-md transition-shadow group ai-glow">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <h3 class="font-body-lg text-body-lg font-bold text-on-surface">Financial Statements Q1
+                                </h3>
+                                <span
+                                    class="bg-secondary-fixed/30 text-secondary px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider">In
+                                    Progress</span>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-body-md">
+                                <div>
+                                    <p class="text-on-surface-variant text-xs font-label-caps">Dataset</p>
+                                    <p class="text-on-surface font-medium">Quarterly Reports</p>
+                                </div>
+                                <div>
+                                    <p class="text-on-surface-variant text-xs font-label-caps">Doc Type</p>
+                                    <p class="text-on-surface font-medium">Balance Sheet</p>
+                                </div>
+                                <div>
+                                    <p class="text-on-surface-variant text-xs font-label-caps">AI Model</p>
+                                    <p class="text-on-surface font-medium">Financial NER v2</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-48">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold text-on-surface-variant">Progress</span>
+                                <span class="text-xs font-bold text-primary">82%</span>
+                            </div>
+                            <div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+                                <div class="h-full primary-gradient rounded-full" style="width: 82%"></div>
+                            </div>
+                        </div>
+                        <div class="flex md:flex-col justify-end">
+                            <button
+                                class="primary-gradient text-white px-6 py-2.5 rounded-lg font-bold text-body-md hover:opacity-90 transition-opacity">
+                                Continue Session
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Session Card 2 -->
+                <div
+                    class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/20 hover:shadow-md transition-shadow group">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <h3 class="font-body-lg text-body-lg font-bold text-on-surface">Global ESG Analysis 2024
+                                </h3>
+                                <span
+                                    class="bg-tertiary-fixed/30 text-tertiary px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider">Review
+                                    Required</span>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-body-md">
+                                <div>
+                                    <p class="text-on-surface-variant text-xs font-label-caps">Dataset</p>
+                                    <p class="text-on-surface font-medium">Sustainability Disclosures</p>
+                                </div>
+                                <div>
+                                    <p class="text-on-surface-variant text-xs font-label-caps">Doc Type</p>
+                                    <p class="text-on-surface font-medium">Annual Report</p>
+                                </div>
+                                <div>
+                                    <p class="text-on-surface-variant text-xs font-label-caps">AI Model</p>
+                                    <p class="text-on-surface font-medium">Quant GPT-4</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-48">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold text-on-surface-variant">Progress</span>
+                                <span class="text-xs font-bold text-primary">45%</span>
+                            </div>
+                            <div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+                                <div class="h-full primary-gradient rounded-full opacity-60" style="width: 45%"></div>
+                            </div>
+                        </div>
+                        <div class="flex md:flex-col justify-end">
+                            <button
+                                class="primary-gradient text-white px-6 py-2.5 rounded-lg font-bold text-body-md hover:opacity-90 transition-opacity">
+                                Continue Session
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Session Card 3 -->
+                <div
+                    class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/20 hover:shadow-md transition-shadow group">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <h3 class="font-body-lg text-body-lg font-bold text-on-surface">M&amp;A Due Diligence -
+                                    Project X</h3>
+                                <span
+                                    class="bg-secondary-fixed/30 text-secondary px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider">In
+                                    Progress</span>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-body-md">
+                                <div>
+                                    <p class="text-on-surface-variant text-xs font-label-caps">Dataset</p>
+                                    <p class="text-on-surface font-medium">Legal Contracts</p>
+                                </div>
+                                <div>
+                                    <p class="text-on-surface-variant text-xs font-label-caps">Doc Type</p>
+                                    <p class="text-on-surface font-medium">SPA/Lease Agreements</p>
+                                </div>
+                                <div>
+                                    <p class="text-on-surface-variant text-xs font-label-caps">AI Model</p>
+                                    <p class="text-on-surface font-medium">Financial NER v2</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-48">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold text-on-surface-variant">Progress</span>
+                                <span class="text-xs font-bold text-primary">12%</span>
+                            </div>
+                            <div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+                                <div class="h-full primary-gradient rounded-full opacity-30" style="width: 12%"></div>
+                            </div>
+                        </div>
+                        <div class="flex md:flex-col justify-end">
+                            <button
+                                class="primary-gradient text-white px-6 py-2.5 rounded-lg font-bold text-body-md hover:opacity-90 transition-opacity">
+                                Continue Session
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Sidebar / Right Panel -->
+        <div class="col-span-12 lg:col-span-8 space-y-gutter ml-8 mr-8 mb-6">
+
+            <!-- Recent AI Activity -->
+            <section class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/30">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="font-headline-md text-headline-md font-bold text-on-surface">Recent Activity</h3>
+                    <span class="material-symbols-outlined text-on-surface-variant">history</span>
+                </div>
+                <div
+                    class="space-y-6 relative before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-[2px] before:bg-surface-container-highest">
+                    <!-- Activity Item 1 -->
+                    <div class="relative pl-12">
+                        <div
+                            class="absolute left-0 top-0 w-10 h-10 bg-surface-container-lowest rounded-full border-4 border-surface-container flex items-center justify-center z-10">
+                            <span class="material-symbols-outlined text-sm text-primary"
+                                style="font-variation-settings: &quot;FILL&quot; 1;">auto_awesome</span>
+                        </div>
+                        <div>
+                            <p class="text-body-md text-on-surface">AI extracted entities from <span
+                                    class="font-bold">Annual Report 2025</span></p>
+                            <p class="text-xs text-on-surface-variant mt-1">24 mins ago • Dataset: Global Indices</p>
+                        </div>
+                    </div>
+                    <!-- Activity Item 2 -->
+                    <div class="relative pl-12">
+                        <div
+                            class="absolute left-0 top-0 w-10 h-10 bg-surface-container-lowest rounded-full border-4 border-surface-container flex items-center justify-center z-10">
+                            <span class="material-symbols-outlined text-sm text-secondary"
+                                style="font-variation-settings: &quot;FILL&quot; 1;">check_circle</span>
+                        </div>
+                        <div>
+                            <p class="text-body-md text-on-surface">Balance Sheet labeling <span
+                                    class="font-bold">submitted</span></p>
+                            <p class="text-xs text-on-surface-variant mt-1">2 hours ago • By Alex Rivera</p>
+                        </div>
+                    </div>
+                    <!-- Activity Item 3 -->
+                    <div class="relative pl-12">
+                        <div
+                            class="absolute left-0 top-0 w-10 h-10 bg-surface-container-lowest rounded-full border-4 border-surface-container flex items-center justify-center z-10">
+                            <span class="material-symbols-outlined text-sm text-tertiary"
+                                style="font-variation-settings: &quot;FILL&quot; 1;">edit_note</span>
+                        </div>
+                        <div>
+                            <p class="text-body-md text-on-surface">Prompt updated for <span class="font-bold">Statement
+                                    extraction</span></p>
+                            <p class="text-xs text-on-surface-variant mt-1">5 hours ago • Version v4.2</p>
+                        </div>
+                    </div>
+                    <!-- Activity Item 4 -->
+                    <div class="relative pl-12">
+                        <div
+                            class="absolute left-0 top-0 w-10 h-10 bg-surface-container-lowest rounded-full border-4 border-surface-container flex items-center justify-center z-10">
+                            <span class="material-symbols-outlined text-sm text-on-surface-variant"
+                                style="font-variation-settings: &quot;FILL&quot; 1;">cloud_done</span>
+                        </div>
+                        <div>
+                            <p class="text-body-md text-on-surface">New dataset <span class="font-bold">Project
+                                    Alpha</span> synced</p>
+                            <p class="text-xs text-on-surface-variant mt-1">Yesterday • 1,204 documents</p>
+                        </div>
+                    </div>
+                </div>
+                <button
+                    class="w-full mt-8 text-on-surface-variant font-bold text-xs uppercase tracking-widest hover:text-primary transition-colors py-2 border-t border-outline-variant/20 pt-4">
+                    See Full Audit Trail
+                </button>
+            </section>
+        </div>
+
+    </main>
+
+    <script > </script>
+
+</body>
+
+</html>

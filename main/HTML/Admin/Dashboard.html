@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap">
+
+    <!-- Material Symbols -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+
+    <!-- AAIR Tailwind Configuration -->
+    <script src="../../JavaScript/tailwind.js"></script>
+
+    <!-- Custom CSS -->
+    <link href="../../Style/basic.css" rel="stylesheet">
+</head>
+
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+
+    <!-- Fixed Header -->
+    <header class="fixed top-0 left-0 right-0 h-[50px] bg-normal border-b border-outline-variant flex items-center px-2 z-50">
+
+        <!-- AAIR Logo -->
+        <div class="flex items-center gap-2 mr-6">
+            <img src="/resource/icon/logo_remove_BG.png" alt="AAIR Lab Logo" class="h-8 w-auto">
+
+            <h1 class="font-headline-sm text-[14px] font-bold text-primary">
+                AAIR Lab
+            </h1>
+        </div>
+
+        <div class="h-12 w-[1px] bg-outline-variant ms-2"></div>
+
+        <nav class="flex items-center h-full">
+
+            <a href="../../HTML/Admin/Dashboard.html" class="flex items-center gap-2 px-4 h-full
+                   text-text-active
+                   bg-button-active
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    dashboard
+                </span>
+
+                <span class="font-body-md text-[12px]">
+                    Dashboard
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a href="../../HTML/Admin/ManagerManagement.html" class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    group
+                </span>
+
+                <span class="font-body-md  text-[12px]">
+                    Manager
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a href="../../HTML/Admin/PermissionManagement.html" class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    security_update_good
+                </span>
+
+                <span class="font-body-md  text-[12px]">
+                    Permission
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a href="../../HTML/Admin/LogView.html" class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    history
+                </span>
+
+                <span class="font-body-md  text-[12px]">
+                    Audit Logs
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a href="../../HTML/Admin/SystemMonitoring.html" class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    monitoring
+                </span>
+
+                <span class="font-body-md  text-[12px]">
+                    System Monitoring
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+        </nav>
+
+        <!-- User Profile -->
+        <div class="ml-auto flex items-center gap-3">
+
+            <div class="w-7 h-7 rounded-full
+                   bg-primary-container/10
+                   flex items-center justify-center
+                   text-primary font-bold">
+                A
+            </div>
+
+            <div class="hidden md:block">
+                <p class="text-[12px] font-bold text-on-surface">
+                    NV. A
+                </p>
+                <p class="text-[8px] text-on-surface-variant uppercase tracking-wider">
+                    Admin
+                </p>
+            </div>
+
+        </div>
+
+    </header>
+
+    <!-- TopNavBar -->
+    <header class="w-full h-12
+           flex items-center gap-2 px-lg
+           bg-text-active border-b border-outline-variant
+           shadow-sm sticky top-[50px] z-30 mb-6">
+
+        <div class="flex items-center">
+            <h2 class="text-lg font-bold text-on-surface">
+                Good Morning,
+            </h2>
+        </div>
+
+        <!-- Buttons -->
+        <div class="ml-auto flex items-center gap-2">
+
+            <button class="px-4 py-2
+                       rounded-lg
+                       text-[12px]
+                       bg-button-active
+                       text-text-active
+                       hover:opacity-85
+                       transition-opacity
+                       flex items-center gap-2 shadow-sm">
+
+                <span class="material-symbols-outlined text-[12px]">
+                    calendar_today
+                </span>
+
+                Last 30 Days
+            </button>
+
+            <button type="butotn"
+                    class="px-4 py-2
+                       rounded-lg
+                       text-[12px]
+                       bg-button-active
+                       text-text-active
+                       hover:opacity-85
+                       transition-opacity
+                       flex items-center gap-2 shadow-sm"
+                    onclick="location.reload()">
+
+                <span class="material-symbols-outlined text-[12px]">
+                    refresh
+                </span>
+
+                Refresh
+            </button>
+
+        </div>
+
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="w-full min-h-[calc(100vh-98px)] bg-surface pt-6">
+
+        <!-- Dashboard Content -->
+        <div class="w-full px-6 py-6">
+
+            <!-- KPI Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter mb-6">
+                <!-- KPI 1 -->
+                <div class="bg-white p-6 rounded-[16px] card-shadow border border-outline-variant flex flex-col gap-4">
+                    <div class="flex justify-between items-start">
+                        <div class="p-2 bg-primary-container/10 rounded-lg text-primary">
+                            <span class="material-symbols-outlined">group</span>
+                        </div>
+                        <!-- <span class="text-[12px] font-bold text-tertiary bg-tertiary-container/10 px-2 py-1 rounded">+8%
+                            month</span> -->
+                    </div>
+                    <div>
+                        <p class="text-on-surface-variant text-body-md font-medium">Active Managers</p>
+                        <h3 class="text-[32px] font-bold text-on-surface">42</h3>
+                    </div>
+                </div>
+                <!-- KPI 2 -->
+                <div class="bg-white p-6 rounded-[16px] card-shadow border border-outline-variant flex flex-col gap-4">
+                    <div class="flex justify-between items-start">
+                        <div class="p-2 bg-secondary-container/20 rounded-lg text-secondary">
+                            <span class="material-symbols-outlined">smart_toy</span>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-on-surface-variant text-body-md font-medium">Running AI Services</p>
+                        <h3 class="text-[32px] font-bold text-on-surface">8 / 8</h3>
+                    </div>
+                </div>
+
+                <!-- KPI 3 -->
+                <div class="bg-white p-6 rounded-[16px] card-shadow border border-outline-variant flex flex-col gap-4">
+                    <div class="flex justify-between items-start">
+                        <div class="p-2 bg-outline-variant/10 rounded-lg text-outline">
+                            <span class="material-symbols-outlined">database</span>
+                        </div>
+                        <div class="w-12 h-12 relative flex items-center justify-center">
+                            <svg class="w-full h-full -rotate-90">
+                                <circle class="text-surface-container" cx="24" cy="24" fill="transparent" r="20"
+                                    stroke="currentColor" stroke-width="4"></circle>
+                                <circle class="text-primary" cx="24" cy="24" fill="transparent" r="20"
+                                    stroke="currentColor" stroke-dasharray="125.6" stroke-dashoffset="40"
+                                    stroke-width="4"></circle>
+                            </svg>
+                            <span class="absolute text-[10px] font-bold">68%</span>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-on-surface-variant text-body-md font-medium">Storage Usage</p>
+                        <h3 class="text-[32px] font-bold text-on-surface">1.8 <span
+                                class="text-lg font-normal text-on-surface-variant">/ 2.5 TB</span></h3>
+                    </div>
+                </div>
+
+                <!-- KPI 4 -->
+                <div
+                    class="bg-white p-6 rounded-[16px] card-shadow border border-outline-variant flex flex-col gap-4 border-l-4 border-l-error">
+                    <div class="flex justify-between items-start">
+                        <div class="p-2 bg-error-container/20 rounded-lg text-error">
+                            <span class="material-symbols-outlined">security</span>
+                        </div>
+                        <span class="text-[10px] font-bold text-white bg-error px-2 py-1 rounded-full uppercase">Action
+                            Required</span>
+                    </div>
+                    <div>
+                        <p class="text-on-surface-variant text-body-md font-medium">Security Alerts</p>
+                        <h3 class="text-[32px] font-bold text-error">3</h3>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- System Health & Analytics -->
+            <div class="bg-white p-lg rounded-xl border border-outline-variant/30 card-shadow mb-3xl">
+                <!-- Recent Audit Activities -->
+                <div
+                    class="xl:col-span-4 bg-white rounded-[16px] card-shadow border border-outline-variant overflow-hidden">
+                    <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center">
+                        <h4 class="font-headline-sm text-on-surface">Recent Audit Activities</h4>
+                        <div class="flex items-center gap-4">
+                            <div class="relative"><span
+                                    class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span><input
+                                    type="text" placeholder="Search Audit..."
+                                    class="pl-10 pr-4 py-1.5 bg-surface-container-low border border-outline-variant rounded-lg text-body-sm focus:outline-none focus:border-primary w-64">
+                            </div>
+
+                            <button class="text-primary font-bold text-body-sm hover:underline">View Full
+                                Audit
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-surface-container-low border-b border-outline-variant">
+                                <tr class="">
+                                    <th
+                                        class="px-6 py-3 text-[12px] font-bold text-on-surface-variant uppercase tracking-wider">
+                                        Time&nbsp;<br></th>
+                                    <th
+                                        class="px-6 py-3 text-[12px] font-bold text-on-surface-variant uppercase tracking-wider">
+                                        Name</th>
+                                    <th
+                                        class="px-6 py-3 text-[12px] font-bold text-on-surface-variant uppercase tracking-wider">
+                                        Role</th>
+                                    <th
+                                        class="px-6 py-3 text-[12px] font-bold text-on-surface-variant uppercase tracking-wider">
+                                        Date</th>
+                                    <th
+                                        class="px-6 py-3 text-[12px] font-bold text-on-surface-variant uppercase tracking-wider">
+                                        action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-outline-variant">
+                                <tr class="hover:bg-surface-container-low transition-colors group">
+                                    <td class="px-6 py-4 font-code text-on-surface">14:37</td>
+                                    <td class="px-6 py-4 font-medium text-on-surface">Emily Wong</td>
+                                    <td class="px-6 py-4 text-on-surface-variant">Manager</td>
+                                    <td class="px-6 py-4 text-on-surface-variant">26 Jul 2026</td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2"><span
+                                                class="w-2 h-2 rounded-full bg-outline"></span><span
+                                                class="text-body-sm">Logged out of the system</span></div>
+                                    </td>
+                                </tr>
+                                <tr
+                                    class="bg-surface-container-low/30 hover:bg-surface-container-low transition-colors group">
+                                    <td class="px-6 py-4 font-code text-on-surface">13:05</td>
+                                    <td class="px-6 py-4 font-medium text-on-surface">David Chen</td>
+                                    <td class="px-6 py-4 text-on-surface-variant">Manager</td>
+                                    <td class="px-6 py-4 text-on-surface-variant">26 Jul 2026</td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2"><span
+                                                class="w-2 h-2 rounded-full bg-tertiary"></span><span
+                                                class="text-body-sm">Logged into the system</span></div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-surface-container-low transition-colors group">
+                                    <td class="px-6 py-4 font-code text-on-surface">11:42</td>
+                                    <td class="px-6 py-4 font-medium text-on-surface">Sarah Lee</td>
+                                    <td class="px-6 py-4 text-on-surface-variant">Manager</td>
+                                    <td class="px-6 py-4 text-on-surface-variant">26 Jul 2026</td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2"><span
+                                                class="w-2 h-2 rounded-full bg-outline"></span><span
+                                                class="text-body-sm">Logged out of the system</span></div>
+                                    </td>
+                                </tr>
+                                <tr
+                                    class="bg-surface-container-low/30 hover:bg-surface-container-low transition-colors group">
+                                    <td class="px-6 py-4 font-code text-on-surface">09:15</td>
+                                    <td class="px-6 py-4 font-medium text-on-surface">John Smith</td>
+                                    <td class="px-6 py-4 text-on-surface-variant">Manager</td>
+                                    <td class="px-6 py-4 text-on-surface-variant">26 Jul 2026</td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2"><span
+                                                class="w-2 h-2 rounded-full bg-tertiary"></span><span
+                                                class="text-body-sm">Logged into the system</span></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Quick Actions -->
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- javascript-->
+    <script> </script>
+
+</body>
+
+</html>

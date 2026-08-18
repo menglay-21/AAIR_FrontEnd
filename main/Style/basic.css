@@ -1,0 +1,35 @@
+ body {
+     font-family: 'Inter', sans-serif;
+ }
+
+ .card-shadow {
+     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+ }
+
+ .material-symbols-outlined {
+     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+     vertical-align: middle;
+ }
+
+ .sidebar-active {
+     border-left: 3px solid #004ac6;
+ }
+
+ /* Custom scrollbar for data-dense interfaces */
+ ::-webkit-scrollbar {
+     width: 6px;
+     height: 6px;
+ }
+
+ ::-webkit-scrollbar-track {
+     background: transparent;
+ }
+
+ ::-webkit-scrollbar-thumb {
+     background: #cbd5e1;
+     border-radius: 10px;
+ }
+
+ ::-webkit-scrollbar-thumb:hover {
+     background: #94a3b8;
+ }

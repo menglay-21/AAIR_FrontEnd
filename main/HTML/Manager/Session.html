@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Session</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap">
+
+    <!-- Material Symbols -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+
+    <!-- AAIR Tailwind Configuration -->
+    <script src="../../JavaScript/tailwind.js"></script>
+
+    <!-- Custom CSS -->
+    <link href="../../Style/UserCreation.css" rel="stylesheet">
+
+    <link href="../../Style/basic.css" rel="stylesheet">
+
+</head>
+
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+
+    <!-- Fixed Header -->
+    <header
+        class="fixed top-0 left-0 right-0 h-[50px] bg-normal border-b border-outline-variant flex items-center px-2 z-50">
+
+        <!-- AAIR Logo -->
+        <div class="flex items-center gap-2 mr-6">
+            <img src="/resource/icon/logo_remove_BG.png" alt="AAIR Lab Logo" class="h-8 w-auto">
+
+            <h1 class="font-headline-sm text-[14px] font-bold text-primary">
+                AAIR Lab
+            </h1>
+        </div>
+
+        <div class="h-12 w-[1px] bg-outline-variant ms-2"></div>
+
+        <nav class="flex items-center h-full">
+
+            <a href="../../HTML/Manager/Dashboard.html" class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    dashboard
+                </span>
+
+                <span class="font-body-md text-[12px]">
+                    Dashboard
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a href="../../HTML/Manager/UserManagement.html" class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    group
+                </span>
+
+                <span class="font-body-md  text-[12px]">
+                    User
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a href="../../HTML/Manager/DocumentManagement.html" class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    description
+                </span>
+
+                <span class="font-body-md  text-[12px]">
+                    Document
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a href="../../HTML/Manager/Session.html" class="flex items-center gap-2 px-4 h-full
+                   text-text-active
+                   bg-button-active
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    smart_toy
+                </span>
+
+                <span class="font-body-md  text-[12px]">
+                    Session
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <a href="../../HTML/Manager/Statistics.html" class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    monitoring
+                </span>
+
+                <span class="font-body-md  text-[12px]">
+                    Statistics
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+        </nav>
+
+        <!-- User Profile -->
+        <div class="ml-auto flex items-center gap-3">
+
+            <div class="w-7 h-7 rounded-full
+                   bg-primary-container/10
+                   flex items-center justify-center
+                   text-primary font-bold">
+                A
+            </div>
+
+            <div class="hidden md:block">
+                <p class="text-[12px] font-bold text-on-surface">
+                    NV. A
+                </p>
+                <p class="text-[8px] text-on-surface-variant uppercase tracking-wider">
+                    Manager
+                </p>
+            </div>
+
+        </div>
+
+    </header>
+
+    <!-- TopNavBar -->
+    <header class="w-full h-12
+           flex items-center gap-3 px-lg
+           bg-text-active border-b border-outline-variant
+           shadow-sm sticky top-[50px] z-30 mb-6">
+
+        <div class="relative flex-1 min-w-[240px] ">
+            <span
+                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">filter_list</span>
+            <input class="w-[500px] bg-white border border-outline-variant/60 rounded-lg
+                          py-2 pl-10 pr-4 text-body-sm
+                          focus:outline-none focus:ring-0 
+                          focus:border-outline-variant/60
+                          transition-colors" placeholder="Search.." type="text">
+        </div>
+
+        <!-- Buttons -->
+        <div class="ml-auto flex items-center gap-2">
+
+            <div class="flex items-center gap-2">
+                <label class="text-label-md text-on-surface-variant">Status:</label>
+                <select
+                    class="bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-body-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary">
+                    <option>All</option>
+                    <option>Active</option>
+                    <option>Disabled</option>
+                </select>
+            </div>
+
+            <button class="px-4 py-2
+                       rounded-lg
+                       text-[12px]
+                       bg-button-active
+                       text-text-active
+                       hover:opacity-85
+                       transition-opacity
+                       flex items-center gap-2 shadow-sm" onclick="toggleModal()">
+                <span class="material-symbols-outlined text-[20px]">add</span>
+                <span class="">New Session</span>
+            </button>
+
+        </div>
+
+    </header>
+
+    <!-- Main Content Canvas -->
+    <main class="w-full min-h-[calc(100vh-98px)] bg-surface pt-6">
+        <!-- TopNavBar Anchor -->
+
+        <div class="w-full px-6 py-6">
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div
+                    class="bg-white p-lg rounded-xl border border-outline-variant/30 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between mb-md">
+                        <div
+                            class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-outline">
+                            <span class="material-symbols-outlined">list_alt</span>
+                        </div>
+                        <span class="text-label-md text-on-surface-variant">+12%</span>
+                    </div>
+                    <div class="font-display-lg text-[32px] text-on-surface font-bold">124</div>
+                    <div class="font-label-md text-outline uppercase tracking-wider text-[11px]">Total AI Sessions</div>
+                </div>
+                <div
+                    class="bg-white p-lg rounded-xl border border-outline-variant/30 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between mb-md">
+                        <div
+                            class="w-10 h-10 rounded-lg bg-tertiary-fixed/20 flex items-center justify-center text-tertiary">
+                            <span class="material-symbols-outlined">play_circle</span>
+                        </div>
+                        <span class="text-label-md text-tertiary">Active</span>
+                    </div>
+                    <div class="font-display-lg text-[32px] text-on-surface font-bold">18</div>
+                    <div class="font-label-md text-outline uppercase tracking-wider text-[11px]">Running Sessions</div>
+                </div>
+                <div
+                    class="bg-white p-lg rounded-xl border border-outline-variant/30 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between mb-md">
+                        <div
+                            class="w-10 h-10 rounded-lg bg-primary-fixed/20 flex items-center justify-center text-primary">
+                            <span class="material-symbols-outlined">pause_circle</span>
+                        </div>
+                        <span class="text-label-md text-primary">Pending</span>
+                    </div>
+                    <div class="font-display-lg text-[32px] text-on-surface font-bold">4</div>
+                    <div class="font-label-md text-outline uppercase tracking-wider text-[11px]">Paused Sessions</div>
+                </div>
+                <div
+                    class="bg-white p-lg rounded-xl border border-outline-variant/30 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between mb-md">
+                        <div
+                            class="w-10 h-10 rounded-lg bg-secondary-fixed/20 flex items-center justify-center text-secondary">
+                            <span class="material-symbols-outlined">check_circle</span>
+                        </div>
+                        <span class="text-label-md text-secondary">Done</span>
+                    </div>
+                    <div class="font-display-lg text-[32px] text-on-surface font-bold">102</div>
+                    <div class="font-label-md text-outline uppercase tracking-wider text-[11px]">Completed Sessions
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Table Section -->
+            <div class="bg-white rounded-2xl border border-outline-variant/50 shadow-sm">
+                <div class="overflow-x-auto ">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-text-active">
+                                <th
+                                    class="px-lg py-md font-label-md text-outline border-b border-outline-variant/30 w-12 text-center">
+                                    No.</th>
+                                <th class="px-lg py-md font-label-md text-outline border-b border-outline-variant/30">AI
+                                    Session</th>
+                                <th class="px-lg py-md font-label-md text-outline border-b border-outline-variant/30">AI
+                                    Model</th>
+                                <th class="px-lg py-md font-label-md text-outline border-b border-outline-variant/30">
+                                    Assigned Users</th>
+                                <th
+                                    class="px-lg py-md font-label-md text-outline border-b border-outline-variant/30 w-1/5">
+                                    Progress</th>
+                                <th class="px-lg py-md font-label-md text-outline border-b border-outline-variant/30">
+                                    Status</th>
+                                <th class="px-lg py-md font-label-md text-outline border-b border-outline-variant/30">
+                                    Last Updated</th>
+                                <th
+                                    class="px-lg py-md font-label-md text-outline border-b border-outline-variant/30 text-right">
+                                    Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-outline-variant/20">
+                            <!-- Row 1: Apple -->
+                            <tr class="hover:bg-surface-variant/10 transition-colors group">
+                                <td class="px-lg py-lg text-body-sm text-outline text-center">01</td>
+                                <td class="px-lg py-lg">
+                                    <div class="flex items-center gap-sm">
+                                        <div
+                                            class="w-8 h-8 rounded bg-primary-container/10 flex items-center justify-center text-primary">
+                                            <span class="material-symbols-outlined text-[18px]">summarize</span>
+                                        </div>
+                                        <span class="font-label-md text-on-surface">Apple – Annual Report 2025</span>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <span
+                                        class="font-code-sm text-code-sm px-sm py-1 bg-surface-container rounded-md">Gemma
+                                        3</span>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <div class="flex items-center gap-xs">
+                                        <span class="font-body-sm text-on-surface-variant">8 Users</span>
+                                        <div class="flex -space-x-2 ml-1">
+                                            <div
+                                                class="w-6 h-6 rounded-full bg-blue-500 border border-white flex items-center justify-center text-[8px] text-white">
+                                                AS</div>
+                                            <div
+                                                class="w-6 h-6 rounded-full bg-surface-container border border-white flex items-center justify-center text-[8px] text-outline">
+                                                +6</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <div class="space-y-xs">
+                                        <div class="flex justify-between text-[11px] text-on-surface-variant">
+                                            <span class="">Processing</span>
+                                            <span class="">65%</span>
+                                        </div>
+                                        <div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+                                            <div class="h-full bg-primary progress-bar-animate rounded-full"
+                                                style="width: 65%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-tertiary-container text-tertiary-fixed">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed mr-1.5"></span>
+                                        🟢 Running
+                                    </span>
+                                </td>
+                                <td class="px-lg py-lg text-body-sm text-on-surface-variant">10 min ago</td>
+                                <td class="px-lg py-lg text-right">
+                                    <div class="flex items-center justify-end gap-xs">
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-primary"
+                                            title="View"><span
+                                                class="material-symbols-outlined text-[20px]">visibility</span></button>
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-outline"
+                                            title="Edit"><span
+                                                class="material-symbols-outlined text-[20px]">edit</span></button>
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-outline"
+                                            title="Pause"><span
+                                                class="material-symbols-outlined text-[20px]">pause</span></button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 1: Apple -->
+                            <tr class="hover:bg-surface-variant/10 transition-colors group">
+                                <td class="px-lg py-lg text-body-sm text-outline text-center">01</td>
+                                <td class="px-lg py-lg">
+                                    <div class="flex items-center gap-sm">
+                                        <div
+                                            class="w-8 h-8 rounded bg-primary-container/10 flex items-center justify-center text-primary">
+                                            <span class="material-symbols-outlined text-[18px]">summarize</span>
+                                        </div>
+                                        <span class="font-label-md text-on-surface">Apple – Annual Report 2025</span>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <span
+                                        class="font-code-sm text-code-sm px-sm py-1 bg-surface-container rounded-md">Gemma
+                                        3</span>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <div class="flex items-center gap-xs">
+                                        <span class="font-body-sm text-on-surface-variant">8 Users</span>
+                                        <div class="flex -space-x-2 ml-1">
+                                            <div
+                                                class="w-6 h-6 rounded-full bg-blue-500 border border-white flex items-center justify-center text-[8px] text-white">
+                                                AS</div>
+                                            <div
+                                                class="w-6 h-6 rounded-full bg-surface-container border border-white flex items-center justify-center text-[8px] text-outline">
+                                                +6</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <div class="space-y-xs">
+                                        <div class="flex justify-between text-[11px] text-on-surface-variant">
+                                            <span class="">Processing</span>
+                                            <span class="">65%</span>
+                                        </div>
+                                        <div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+                                            <div class="h-full bg-primary progress-bar-animate rounded-full"
+                                                style="width: 65%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-tertiary-container text-tertiary-fixed">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed mr-1.5"></span>
+                                        🟢 Running
+                                    </span>
+                                </td>
+                                <td class="px-lg py-lg text-body-sm text-on-surface-variant">10 min ago</td>
+                                <td class="px-lg py-lg text-right">
+                                    <div class="flex items-center justify-end gap-xs">
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-primary"
+                                            title="View"><span
+                                                class="material-symbols-outlined text-[20px]">visibility</span></button>
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-outline"
+                                            title="Edit"><span
+                                                class="material-symbols-outlined text-[20px]">edit</span></button>
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-outline"
+                                            title="Pause"><span
+                                                class="material-symbols-outlined text-[20px]">pause</span></button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 1: Apple -->
+                            <tr class="hover:bg-surface-variant/10 transition-colors group">
+                                <td class="px-lg py-lg text-body-sm text-outline text-center">01</td>
+                                <td class="px-lg py-lg">
+                                    <div class="flex items-center gap-sm">
+                                        <div
+                                            class="w-8 h-8 rounded bg-primary-container/10 flex items-center justify-center text-primary">
+                                            <span class="material-symbols-outlined text-[18px]">summarize</span>
+                                        </div>
+                                        <span class="font-label-md text-on-surface">Apple – Annual Report 2025</span>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <span
+                                        class="font-code-sm text-code-sm px-sm py-1 bg-surface-container rounded-md">Gemma
+                                        3</span>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <div class="flex items-center gap-xs">
+                                        <span class="font-body-sm text-on-surface-variant">8 Users</span>
+                                        <div class="flex -space-x-2 ml-1">
+                                            <div
+                                                class="w-6 h-6 rounded-full bg-blue-500 border border-white flex items-center justify-center text-[8px] text-white">
+                                                AS</div>
+                                            <div
+                                                class="w-6 h-6 rounded-full bg-surface-container border border-white flex items-center justify-center text-[8px] text-outline">
+                                                +6</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <div class="space-y-xs">
+                                        <div class="flex justify-between text-[11px] text-on-surface-variant">
+                                            <span class="">Processing</span>
+                                            <span class="">65%</span>
+                                        </div>
+                                        <div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+                                            <div class="h-full bg-primary progress-bar-animate rounded-full"
+                                                style="width: 65%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-tertiary-container text-tertiary-fixed">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed mr-1.5"></span>
+                                        🟢 Running
+                                    </span>
+                                </td>
+                                <td class="px-lg py-lg text-body-sm text-on-surface-variant">10 min ago</td>
+                                <td class="px-lg py-lg text-right">
+                                    <div class="flex items-center justify-end gap-xs">
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-primary"
+                                            title="View"><span
+                                                class="material-symbols-outlined text-[20px]">visibility</span></button>
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-outline"
+                                            title="Edit"><span
+                                                class="material-symbols-outlined text-[20px]">edit</span></button>
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-outline"
+                                            title="Pause"><span
+                                                class="material-symbols-outlined text-[20px]">pause</span></button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 1: Apple -->
+                            <tr class="hover:bg-surface-variant/10 transition-colors group">
+                                <td class="px-lg py-lg text-body-sm text-outline text-center">01</td>
+                                <td class="px-lg py-lg">
+                                    <div class="flex items-center gap-sm">
+                                        <div
+                                            class="w-8 h-8 rounded bg-primary-container/10 flex items-center justify-center text-primary">
+                                            <span class="material-symbols-outlined text-[18px]">summarize</span>
+                                        </div>
+                                        <span class="font-label-md text-on-surface">Apple – Annual Report 2025</span>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <span
+                                        class="font-code-sm text-code-sm px-sm py-1 bg-surface-container rounded-md">Gemma
+                                        3</span>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <div class="flex items-center gap-xs">
+                                        <span class="font-body-sm text-on-surface-variant">8 Users</span>
+                                        <div class="flex -space-x-2 ml-1">
+                                            <div
+                                                class="w-6 h-6 rounded-full bg-blue-500 border border-white flex items-center justify-center text-[8px] text-white">
+                                                AS</div>
+                                            <div
+                                                class="w-6 h-6 rounded-full bg-surface-container border border-white flex items-center justify-center text-[8px] text-outline">
+                                                +6</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <div class="space-y-xs">
+                                        <div class="flex justify-between text-[11px] text-on-surface-variant">
+                                            <span class="">Processing</span>
+                                            <span class="">65%</span>
+                                        </div>
+                                        <div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+                                            <div class="h-full bg-primary progress-bar-animate rounded-full"
+                                                style="width: 65%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-tertiary-container text-tertiary-fixed">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed mr-1.5"></span>
+                                        🟢 Running
+                                    </span>
+                                </td>
+                                <td class="px-lg py-lg text-body-sm text-on-surface-variant">10 min ago</td>
+                                <td class="px-lg py-lg text-right">
+                                    <div class="flex items-center justify-end gap-xs">
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-primary"
+                                            title="View"><span
+                                                class="material-symbols-outlined text-[20px]">visibility</span></button>
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-outline"
+                                            title="Edit"><span
+                                                class="material-symbols-outlined text-[20px]">edit</span></button>
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-outline"
+                                            title="Pause"><span
+                                                class="material-symbols-outlined text-[20px]">pause</span></button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 1: Apple -->
+                            <tr class="hover:bg-surface-variant/10 transition-colors group">
+                                <td class="px-lg py-lg text-body-sm text-outline text-center">01</td>
+                                <td class="px-lg py-lg">
+                                    <div class="flex items-center gap-sm">
+                                        <div
+                                            class="w-8 h-8 rounded bg-primary-container/10 flex items-center justify-center text-primary">
+                                            <span class="material-symbols-outlined text-[18px]">summarize</span>
+                                        </div>
+                                        <span class="font-label-md text-on-surface">Apple – Annual Report 2025</span>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <span
+                                        class="font-code-sm text-code-sm px-sm py-1 bg-surface-container rounded-md">Gemma
+                                        3</span>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <div class="flex items-center gap-xs">
+                                        <span class="font-body-sm text-on-surface-variant">8 Users</span>
+                                        <div class="flex -space-x-2 ml-1">
+                                            <div
+                                                class="w-6 h-6 rounded-full bg-blue-500 border border-white flex items-center justify-center text-[8px] text-white">
+                                                AS</div>
+                                            <div
+                                                class="w-6 h-6 rounded-full bg-surface-container border border-white flex items-center justify-center text-[8px] text-outline">
+                                                +6</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <div class="space-y-xs">
+                                        <div class="flex justify-between text-[11px] text-on-surface-variant">
+                                            <span class="">Processing</span>
+                                            <span class="">65%</span>
+                                        </div>
+                                        <div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+                                            <div class="h-full bg-primary progress-bar-animate rounded-full"
+                                                style="width: 65%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-tertiary-container text-tertiary-fixed">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed mr-1.5"></span>
+                                        🟢 Running
+                                    </span>
+                                </td>
+                                <td class="px-lg py-lg text-body-sm text-on-surface-variant">10 min ago</td>
+                                <td class="px-lg py-lg text-right">
+                                    <div class="flex items-center justify-end gap-xs">
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-primary"
+                                            title="View"><span
+                                                class="material-symbols-outlined text-[20px]">visibility</span></button>
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-outline"
+                                            title="Edit"><span
+                                                class="material-symbols-outlined text-[20px]">edit</span></button>
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-outline"
+                                            title="Pause"><span
+                                                class="material-symbols-outlined text-[20px]">pause</span></button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 1: Apple -->
+                            <tr class="hover:bg-surface-variant/10 transition-colors group">
+                                <td class="px-lg py-lg text-body-sm text-outline text-center">01</td>
+                                <td class="px-lg py-lg">
+                                    <div class="flex items-center gap-sm">
+                                        <div
+                                            class="w-8 h-8 rounded bg-primary-container/10 flex items-center justify-center text-primary">
+                                            <span class="material-symbols-outlined text-[18px]">summarize</span>
+                                        </div>
+                                        <span class="font-label-md text-on-surface">Apple – Annual Report 2025</span>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <span
+                                        class="font-code-sm text-code-sm px-sm py-1 bg-surface-container rounded-md">Gemma
+                                        3</span>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <div class="flex items-center gap-xs">
+                                        <span class="font-body-sm text-on-surface-variant">8 Users</span>
+                                        <div class="flex -space-x-2 ml-1">
+                                            <div
+                                                class="w-6 h-6 rounded-full bg-blue-500 border border-white flex items-center justify-center text-[8px] text-white">
+                                                AS</div>
+                                            <div
+                                                class="w-6 h-6 rounded-full bg-surface-container border border-white flex items-center justify-center text-[8px] text-outline">
+                                                +6</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <div class="space-y-xs">
+                                        <div class="flex justify-between text-[11px] text-on-surface-variant">
+                                            <span class="">Processing</span>
+                                            <span class="">65%</span>
+                                        </div>
+                                        <div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+                                            <div class="h-full bg-primary progress-bar-animate rounded-full"
+                                                style="width: 65%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-tertiary-container text-tertiary-fixed">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed mr-1.5"></span>
+                                        🟢 Running
+                                    </span>
+                                </td>
+                                <td class="px-lg py-lg text-body-sm text-on-surface-variant">10 min ago</td>
+                                <td class="px-lg py-lg text-right">
+                                    <div class="flex items-center justify-end gap-xs">
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-primary"
+                                            title="View"><span
+                                                class="material-symbols-outlined text-[20px]">visibility</span></button>
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-outline"
+                                            title="Edit"><span
+                                                class="material-symbols-outlined text-[20px]">edit</span></button>
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-outline"
+                                            title="Pause"><span
+                                                class="material-symbols-outlined text-[20px]">pause</span></button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Row 2: Tesla -->
+                            <tr class="hover:bg-surface-variant/10 transition-colors group">
+                                <td class="px-lg py-lg text-body-sm text-outline text-center">02</td>
+                                <td class="px-lg py-lg">
+                                    <div class="flex items-center gap-sm">
+                                        <div
+                                            class="w-8 h-8 rounded bg-secondary-container/10 flex items-center justify-center text-secondary">
+                                            <span class="material-symbols-outlined text-[18px]">finance</span>
+                                        </div>
+                                        <span class="font-label-md text-on-surface">Tesla – Q2 Financial Report
+                                            2026</span>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <span
+                                        class="font-code-sm text-code-sm px-sm py-1 bg-surface-container rounded-md">GPT-4</span>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <div class="flex items-center gap-xs">
+                                        <span class="font-body-sm text-on-surface-variant">6 Users</span>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <div class="space-y-xs">
+                                        <div class="flex justify-between text-[11px] text-on-surface-variant">
+                                            <span class="">Done</span>
+                                            <span class="">100%</span>
+                                        </div>
+                                        <div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+                                            <div class="h-full bg-tertiary rounded-full" style="width: 100%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-lg py-lg">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-tertiary-fixed/30 text-tertiary">
+                                        <span class="material-symbols-outlined text-[14px] mr-1">check_circle</span>
+                                        ✅ Completed
+                                    </span>
+                                </td>
+                                <td class="px-lg py-lg text-body-sm text-on-surface-variant">2 hours ago</td>
+                                <td class="px-lg py-lg text-right">
+                                    <div class="flex items-center justify-end gap-xs">
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-primary"
+                                            title="View"><span
+                                                class="material-symbols-outlined text-[20px]">visibility</span></button>
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-outline"
+                                            title="Edit"><span
+                                                class="material-symbols-outlined text-[20px]">edit</span></button>
+                                        <button class="p-2 hover:bg-surface-variant rounded-lg text-outline"
+                                            title="Pause"><span
+                                                class="material-symbols-outlined text-[20px]">pause</span></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State Logic (Hidden by default but present for logic) -->
+                <div class="hidden flex flex-col items-center justify-center py-3xl px-lg text-center space-y-md">
+                    <div
+                        class="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center text-outline-variant">
+                        <span class="material-symbols-outlined text-[48px]">folder_off</span>
+                    </div>
+                    <div class="max-w-md">
+                        <h3 class="font-headline-md text-on-surface">No AI sessions available.</h3>
+                        <p class="font-body-md text-on-surface-variant mt-xs">Create your first AI annotation session to
+                            begin annotating company economic reports.</p>
+                    </div>
+                    <button
+                        class="flex items-center gap-sm px-lg py-sm rounded-xl primary-gradient text-white font-label-md">
+                        <span class="material-symbols-outlined">add</span>
+                        Create First Session
+                    </button>
+                </div>
+
+                <!-- Table Footer/Pagination -->
+                <div class="px-6 py-4
+                        bg-text-active
+                        border-t border-slate-200
+                        flex items-center
+                        justify-center">
+
+
+                    <!-- Pagination -->
+                    <div class="flex items-center gap-6">
+
+                        <!-- Previous -->
+                        <button class="w-9 h-9
+                                    flex items-center justify-center
+                                    rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+
+                            <span class="material-symbols-outlined text-[20px]">
+                                chevron_left
+                            </span>
+
+                        </button>
+
+
+                        <!-- Page 1 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                   bg-button-active
+                                   text-text-active
+                                   text-sm
+                                   font-medium">
+                            1
+                        </button>
+
+
+                        <!-- Page 2 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            2
+                        </button>
+
+
+                        <!-- Page 3 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            3
+                        </button>
+
+
+                        <!-- Page 4 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            4
+                        </button>
+
+
+                        <!-- Page 5 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            5
+                        </button>
+
+
+                        <!-- Page 6 -->
+                        <button class="w-9 h-9
+                                   rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+                            6
+                        </button>
+
+
+                        <!-- Next -->
+                        <button class="w-9 h-9
+                                    flex items-center justify-center
+                                    rounded-lg
+                                    text-slate-600
+                                    hover:bg-slate-200
+                                    hover:text-slate-900
+                                    transition-colors duration-150">
+
+                            <span class="material-symbols-outlined text-[20px]">
+                                chevron_right
+                            </span>
+
+                        </button>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Create New Session Modal -->
+    <div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm z-[100] flex items-center justify-center transition-opacity duration-300 opacity-0 hidden"
+        id="modalOverlay">
+
+        <div class="glass-modal w-full max-w-3xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-transform duration-300 scale-95"
+            id="modalContent">
+
+            <!-- ================================================= -->
+            <!-- Modal Header -->
+            <!-- ================================================= -->
+            <div class="px-8 py-6 border-b border-outline-variant flex justify-between items-center bg-white/50">
+
+                <div>
+                    <h3 class="font-headline-sm text-headline-sm text-on-surface">
+                        Create New Session
+                    </h3>
+
+                    <p class="text-body-sm text-on-surface-variant mt-1">
+                        Configure the annotation session and assign resources.
+                    </p>
+                </div>
+
+                <button
+                    class="p-2 hover:bg-surface-container-low rounded-full transition-colors text-on-surface-variant"
+                    onclick="toggleModal()">
+
+                    <span class="material-symbols-outlined">
+                        close
+                    </span>
+                </button>
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- Modal Body -->
+            <!-- ================================================= -->
+            <div class="flex-1 min-h-0 px-8 py-6 space-y-6 overflow-y-auto custom-scrollbar">
+
+
+                <!-- ================================================= -->
+                <!-- Session Information -->
+                <!-- ================================================= -->
+                <div class="space-y-4">
+
+
+                    <!-- Session Name -->
+                    <div class="space-y-1.5">
+
+                        <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
+                            Session Name
+                        </label>
+
+                        <input class="w-full px-4 py-2.5 rounded-lg border border-outline-variant
+                               bg-surface-container-lowest
+                               focus:ring-2 focus:ring-primary/20
+                               focus:border-primary outline-none
+                               transition-all text-body-md" placeholder="e.g. Economic Report Annotation Session"
+                            type="text">
+                    </div>
+
+
+                    <!-- Description -->
+                    <div class="space-y-1.5">
+
+                        <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
+                            Description
+                            <span class="font-normal normal-case">(Optional)</span>
+                        </label>
+
+                        <textarea rows="3" class="w-full px-4 py-2.5 rounded-lg border border-outline-variant
+                               bg-surface-container-lowest
+                               focus:ring-2 focus:ring-primary/20
+                               focus:border-primary outline-none
+                               transition-all text-body-md resize-none"
+                            placeholder="Briefly describe the purpose of this session..."></textarea>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- Documents Section -->
+                <!-- ================================================= -->
+                <div class="p-4 bg-surface-container-low border border-outline-variant rounded-xl space-y-4">
+
+                    <div class="flex items-center justify-between">
+
+                        <div>
+                            <p class="font-bold text-body-md text-on-surface">
+                                Documents
+                            </p>
+
+                            <p class="text-body-sm text-on-surface-variant">
+                                Select documents to include in this session.
+                            </p>
+                        </div>
+
+                        <span class="text-label-md font-bold text-primary">
+                            0 Selected
+                        </span>
+
+                    </div>
+
+
+                    <!-- Search + Select All -->
+                    <div class="flex gap-3">
+
+                        <div class="relative flex-1">
+
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2
+                                   text-on-surface-variant text-[20px]">
+                                search
+                            </span>
+
+                            <input type="text" placeholder="Search documents..." class="w-full pl-10 pr-4 py-2.5 rounded-lg
+                                   border border-outline-variant
+                                   bg-surface-container-lowest
+                                   focus:ring-2 focus:ring-primary/20
+                                   focus:border-primary outline-none
+                                   transition-all text-body-md">
+                        </div>
+
+                        <button type="button" class="px-4 py-2.5 rounded-lg
+                               border border-outline-variant
+                               bg-white hover:bg-surface-container
+                               text-body-sm font-bold
+                               text-on-surface
+                               transition-colors">
+
+                            Select All
+                        </button>
+
+                    </div>
+
+
+                    <!-- Document List -->
+                    <div class="border border-outline-variant rounded-lg
+                           bg-surface-container-lowest
+                           max-h-48 overflow-y-auto custom-scrollbar">
+
+                        <!-- Document -->
+                        <label class="flex items-center gap-3 px-4 py-3
+                               border-b border-outline-variant
+                               hover:bg-surface-container-low
+                               cursor-pointer transition-colors">
+
+                            <input type="checkbox" class="rounded border-outline-variant
+                                   text-primary focus:ring-primary">
+
+                            <span class="material-symbols-outlined text-primary">
+                                description
+                            </span>
+
+                            <div class="flex-1 min-w-0">
+
+                                <p class="text-body-md font-medium text-on-surface truncate">
+                                    Annual_Economic_Report_2025.pdf
+                                </p>
+
+                                <p class="text-body-sm text-on-surface-variant">
+                                    PDF · 4.2 MB
+                                </p>
+
+                            </div>
+
+                        </label>
+
+
+                        <!-- Document -->
+                        <label class="flex items-center gap-3 px-4 py-3
+                               border-b border-outline-variant
+                               hover:bg-surface-container-low
+                               cursor-pointer transition-colors">
+
+                            <input type="checkbox" class="rounded border-outline-variant
+                                   text-primary focus:ring-primary">
+
+                            <span class="material-symbols-outlined text-primary">
+                                description
+                            </span>
+
+                            <div class="flex-1 min-w-0">
+
+                                <p class="text-body-md font-medium text-on-surface truncate">
+                                    Financial_Statement_Q2.pdf
+                                </p>
+
+                                <p class="text-body-sm text-on-surface-variant">
+                                    PDF · 2.8 MB
+                                </p>
+
+                            </div>
+
+                        </label>
+
+
+                        <!-- Document -->
+                        <label class="flex items-center gap-3 px-4 py-3
+                               hover:bg-surface-container-low
+                               cursor-pointer transition-colors">
+
+                            <input type="checkbox" class="rounded border-outline-variant
+                                   text-primary focus:ring-primary">
+
+                            <span class="material-symbols-outlined text-primary">
+                                description
+                            </span>
+
+                            <div class="flex-1 min-w-0">
+
+                                <p class="text-body-md font-medium text-on-surface truncate">
+                                    Market_Analysis_2025.pdf
+                                </p>
+
+                                <p class="text-body-sm text-on-surface-variant">
+                                    PDF · 6.1 MB
+                                </p>
+
+                            </div>
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- AI Model Section -->
+                <!-- ================================================= -->
+                <div class="p-4 bg-surface-container-low border border-outline-variant rounded-xl space-y-4">
+
+                    <div class="flex items-center justify-between">
+
+                        <div>
+                            <p class="font-bold text-body-md text-on-surface">
+                                Select AI Model
+                            </p>
+
+                            <p class="text-body-sm text-on-surface-variant">
+                                Select the AI model that will be used for this session.
+                            </p>
+                        </div>
+
+                        <span class="text-label-md font-bold text-primary">
+                            0 Selected
+                        </span>
+
+                    </div>
+
+
+                    <!-- Search + Select All -->
+                    <div class="flex gap-3">
+
+                        <div class="relative flex-1">
+
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2
+                   text-on-surface-variant text-[20px]">
+                                search
+                            </span>
+
+                            <input type="text" placeholder="Search AI models..." class="w-full pl-10 pr-4 py-2.5 rounded-lg
+                       border border-outline-variant
+                       bg-surface-container-lowest
+                       focus:ring-2 focus:ring-primary/20
+                       focus:border-primary outline-none
+                       transition-all text-body-md">
+                        </div>
+
+                        <button type="button" class="px-4 py-2.5 rounded-lg
+                   border border-outline-variant
+                   bg-white hover:bg-surface-container
+                   text-body-sm font-bold
+                   text-on-surface
+                   transition-colors">
+
+                            Select All
+                        </button>
+
+                    </div>
+
+
+                    <!-- AI Model List -->
+                    <div class="border border-outline-variant rounded-lg
+           bg-surface-container-lowest
+           max-h-48 overflow-y-auto custom-scrollbar">
+
+
+                        <!-- AI Model -->
+                        <label class="flex items-center gap-3 px-4 py-3
+                   border-b border-outline-variant
+                   hover:bg-surface-container-low
+                   cursor-pointer transition-colors">
+
+                            <input type="checkbox" class="rounded border-outline-variant
+                       text-primary focus:ring-primary">
+
+                            <div class="w-9 h-9 rounded-lg
+                   bg-primary/10
+                   flex items-center justify-center
+                   text-primary">
+
+                                <span class="material-symbols-outlined">
+                                    smart_toy
+                                </span>
+
+                            </div>
+
+                            <div class="flex-1 min-w-0">
+
+                                <p class="text-body-md font-medium text-on-surface">
+                                    AAIR Financial NER
+                                </p>
+
+                                <p class="text-body-sm text-on-surface-variant">
+                                    Named Entity Recognition · v1.2
+                                </p>
+
+                            </div>
+
+                            <span class="px-2 py-1 rounded-full
+                       bg-green-100 text-green-700
+                       text-[11px] font-bold">
+                                Active
+                            </span>
+
+                        </label>
+
+
+                        <!-- AI Model -->
+                        <label class="flex items-center gap-3 px-4 py-3
+                   border-b border-outline-variant
+                   hover:bg-surface-container-low
+                   cursor-pointer transition-colors">
+
+                            <input type="checkbox" class="rounded border-outline-variant
+                       text-primary focus:ring-primary">
+
+                            <div class="w-9 h-9 rounded-lg
+                   bg-primary/10
+                   flex items-center justify-center
+                   text-primary">
+
+                                <span class="material-symbols-outlined">
+                                    smart_toy
+                                </span>
+
+                            </div>
+
+                            <div class="flex-1 min-w-0">
+
+                                <p class="text-body-md font-medium text-on-surface">
+                                    AAIR Document Classifier
+                                </p>
+
+                                <p class="text-body-sm text-on-surface-variant">
+                                    Document Classification · v2.0
+                                </p>
+
+                            </div>
+
+                            <span class="px-2 py-1 rounded-full
+                       bg-green-100 text-green-700
+                       text-[11px] font-bold">
+                                Active
+                            </span>
+
+                        </label>
+
+
+                        <!-- AI Model -->
+                        <label class="flex items-center gap-3 px-4 py-3
+                   hover:bg-surface-container-low
+                   cursor-pointer transition-colors">
+
+                            <input type="checkbox" class="rounded border-outline-variant
+                       text-primary focus:ring-primary">
+
+                            <div class="w-9 h-9 rounded-lg
+                   bg-primary/10
+                   flex items-center justify-center
+                   text-primary">
+
+                                <span class="material-symbols-outlined">
+                                    psychology
+                                </span>
+
+                            </div>
+
+                            <div class="flex-1 min-w-0">
+
+                                <p class="text-body-md font-medium text-on-surface">
+                                    AAIR Financial Classifier
+                                </p>
+
+                                <p class="text-body-sm text-on-surface-variant">
+                                    Financial Document Analysis · v1.0
+                                </p>
+
+                            </div>
+
+                            <span class="px-2 py-1 rounded-full
+                       bg-green-100 text-green-700
+                       text-[11px] font-bold">
+                                Active
+                            </span>
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- Users Section -->
+                <!-- ================================================= -->
+                <div class="p-4 bg-surface-container-low border border-outline-variant rounded-xl space-y-4">
+
+                    <div class="flex items-center justify-between">
+
+                        <div>
+                            <p class="font-bold text-body-md text-on-surface">
+                                Assign Users
+                            </p>
+
+                            <p class="text-body-sm text-on-surface-variant">
+                                Select users who will participate in this session.
+                            </p>
+                        </div>
+
+                        <span class="text-label-md font-bold text-primary">
+                            0 Selected
+                        </span>
+
+                    </div>
+
+
+                    <!-- Search + Select All -->
+                    <div class="flex gap-3">
+
+                        <div class="relative flex-1">
+
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2
+                                   text-on-surface-variant text-[20px]">
+                                search
+                            </span>
+
+                            <input type="text" placeholder="Search users..." class="w-full pl-10 pr-4 py-2.5 rounded-lg
+                                   border border-outline-variant
+                                   bg-surface-container-lowest
+                                   focus:ring-2 focus:ring-primary/20
+                                   focus:border-primary outline-none
+                                   transition-all text-body-md">
+                        </div>
+
+                        <button type="button" class="px-4 py-2.5 rounded-lg
+                               border border-outline-variant
+                               bg-white hover:bg-surface-container
+                               text-body-sm font-bold
+                               text-on-surface
+                               transition-colors">
+
+                            Select All
+                        </button>
+
+                    </div>
+
+
+                    <!-- User List -->
+                    <div class="border border-outline-variant rounded-lg
+                           bg-surface-container-lowest
+                           max-h-48 overflow-y-auto custom-scrollbar">
+
+
+                        <!-- User -->
+                        <label class="flex items-center gap-3 px-4 py-3
+                               border-b border-outline-variant
+                               hover:bg-surface-container-low
+                               cursor-pointer transition-colors">
+
+                            <input type="checkbox" class="rounded border-outline-variant
+                                   text-primary focus:ring-primary">
+
+                            <div class="w-9 h-9 rounded-full
+                                   bg-primary/10
+                                   flex items-center justify-center
+                                   text-primary font-bold">
+
+                                NA
+                            </div>
+
+                            <div class="flex-1">
+
+                                <p class="text-body-md font-medium text-on-surface">
+                                    Nguyen A.
+                                </p>
+
+                                <p class="text-body-sm text-on-surface-variant">
+                                    annotator@aair.lab
+                                </p>
+
+                            </div>
+
+                        </label>
+
+
+                        <!-- User -->
+                        <label class="flex items-center gap-3 px-4 py-3
+                               border-b border-outline-variant
+                               hover:bg-surface-container-low
+                               cursor-pointer transition-colors">
+
+                            <input type="checkbox" class="rounded border-outline-variant
+                                   text-primary focus:ring-primary">
+
+                            <div class="w-9 h-9 rounded-full
+                                   bg-primary/10
+                                   flex items-center justify-center
+                                   text-primary font-bold">
+
+                                NB
+                            </div>
+
+                            <div class="flex-1">
+
+                                <p class="text-body-md font-medium text-on-surface">
+                                    Nguyen B.
+                                </p>
+
+                                <p class="text-body-sm text-on-surface-variant">
+                                    annotator2@aair.lab
+                                </p>
+
+                            </div>
+
+                        </label>
+
+
+                        <!-- User -->
+                        <label class="flex items-center gap-3 px-4 py-3
+                               hover:bg-surface-container-low
+                               cursor-pointer transition-colors">
+
+                            <input type="checkbox" class="rounded border-outline-variant
+                                   text-primary focus:ring-primary">
+
+                            <div class="w-9 h-9 rounded-full
+                                   bg-primary/10
+                                   flex items-center justify-center
+                                   text-primary font-bold">
+
+                                TC
+                            </div>
+
+                            <div class="flex-1">
+
+                                <p class="text-body-md font-medium text-on-surface">
+                                    Tran C.
+                                </p>
+
+                                <p class="text-body-sm text-on-surface-variant">
+                                    annotator3@aair.lab
+                                </p>
+
+                            </div>
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- Schedule Section -->
+                <!-- ================================================= -->
+                <div class="space-y-4">
+
+
+                    <div class="grid grid-cols-3 gap-4">
+
+                        <!-- Start Date -->
+                        <div class="space-y-1.5">
+
+                            <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
+                                Start Date
+                            </label>
+
+                            <div class="relative">
+
+                                <span class="material-symbols-outlined absolute left-3 top-1/2
+                                       -translate-y-1/2 text-on-surface-variant text-[20px]">
+                                    event
+                                </span>
+
+                                <input type="date" class="w-full pl-10 pr-3 py-2.5 rounded-lg
+                                       border border-outline-variant
+                                       bg-surface-container-lowest
+                                       focus:ring-2 focus:ring-primary/20
+                                       focus:border-primary outline-none
+                                       transition-all text-body-md">
+                            </div>
+
+                        </div>
+
+
+                        <!-- End Date -->
+                        <div class="space-y-1.5">
+
+                            <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
+                                End Date
+                            </label>
+
+                            <div class="relative">
+
+                                <span class="material-symbols-outlined absolute left-3 top-1/2
+                                       -translate-y-1/2 text-on-surface-variant text-[20px]">
+                                    event
+                                </span>
+
+                                <input type="date" class="w-full pl-10 pr-3 py-2.5 rounded-lg
+                                       border border-outline-variant
+                                       bg-surface-container-lowest
+                                       focus:ring-2 focus:ring-primary/20
+                                       focus:border-primary outline-none
+                                       transition-all text-body-md">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- Modal Footer -->
+            <!-- ================================================= -->
+            <div class="px-8 py-6 border-t border-outline-variant
+                   flex justify-end gap-3 bg-white/50">
+
+                <button class="px-6 py-2.5 border border-outline-variant
+                       rounded-lg text-body-md font-bold
+                       text-on-surface-variant
+                       hover:bg-surface-container-low
+                       transition-all" onclick="toggleModal()">
+
+                    Cancel
+                </button>
+
+                <button class="gradient-btn px-8 py-2.5 rounded-lg
+                       text-white font-bold text-body-md
+                       shadow-lg hover:opacity-90
+                       active:scale-95 transition-all">
+
+                    Create Session
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script src="../../JavaScript/UserCreation.js"> </script>
+
+</body>
+
+</html>

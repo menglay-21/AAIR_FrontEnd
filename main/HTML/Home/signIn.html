@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Login | AAIR Lab</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono&amp;display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="../../Style/signIn.css">
+
+</head>
+
+<body
+    class="bg-background text-on-surface font-body-md min-h-screen flex flex-col items-center justify-center p-md relative overflow-hidden h-screen">
+    <!-- Atmospheric Background Element -->
+    <div class="fixed inset-0 z-0 pointer-events-none">
+    </div>
+    <!-- Main Content Container -->
+    <main class="relative z-10 w-full flex flex-col items-center h-full justify-center">
+        <!-- Login Card -->
+        <div
+            class="w-full bg-surface-container-lowest border border-outline-variant rounded-xl shadow-[0px_20px_40px_rgba(0,0,0,0.06)] transition-all duration-300 max-w-[480px] p-2xl">
+            <!-- Header Section -->
+            <div class="flex flex-col items-center text-center mb-xl">
+                <div class="mb-lg flex flex-col items-center gap-xs">
+                    <a href="../../../main/HTML/Home/home.html">
+                        <img alt="AAIR Lab Logo" class="w-32 h-auto mb-xs"
+                            src="../../../resource/icon/logo_remove_BG.png">
+                    </a>
+                </div>
+                <h1 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Welcome To AAIR Lab&nbsp;</h1>
+
+            </div>
+            <!-- Form Section -->
+            <form class="space-y-lg" id="loginForm" onsubmit="return false">
+                <!-- Username Field -->
+                <div class="space-y-xs">
+                    <label class="font-label-md text-label-md text-on-surface-variant ml-1"
+                        for="username">Username</label>
+                    <div
+                        class="relative group input-focus-ring border border-outline-variant rounded-lg transition-all duration-200">
+                        <div class="absolute inset-y-0 left-0 pl-md flex items-center pointer-events-none text-outline">
+                            <span class="material-symbols-outlined text-[20px]" data-icon="person">person</span>
+                        </div>
+                        <input
+                            class="block w-full pl-[48px] pr-md py-lg bg-transparent border-none focus:ring-0 text-on-surface placeholder-outline font-body-md rounded-lg"
+                            id="username" name="username" placeholder="Enter your username" required="" type="text">
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="space-y-xs">
+                    <label class="font-label-md text-label-md text-on-surface-variant ml-1"
+                        for="password">Password</label>
+                    <div
+                        class="relative group input-focus-ring border border-outline-variant rounded-lg transition-all duration-200">
+                        <div class="absolute inset-y-0 left-0 pl-md flex items-center pointer-events-none text-outline">
+                            <span class="material-symbols-outlined text-[20px]" data-icon="lock">lock</span>
+                        </div>
+                        <input
+                            class="block w-full pl-[48px] pr-[48px] py-lg bg-transparent border-none focus:ring-0 text-on-surface placeholder-outline font-body-md rounded-lg"
+                            id="password" name="password" placeholder="Enter your password" required="" type="password">
+                        <button
+                            class="absolute inset-y-0 right-0 pr-md flex items-center text-outline hover:text-primary transition-colors cursor-pointer"
+                            onclick="togglePassword()" type="button">
+                            <span class="material-symbols-outlined text-[20px]" data-icon="visibility"
+                                id="passwordIcon">visibility</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Controls Section -->
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center cursor-pointer group">
+
+
+                    </label>
+
+                </div>
+                <!-- Login Button -->
+                <button
+                    class="ripple-effect custom-gradient-btn w-full h-[48px] rounded-lg text-on-primary font-label-md text-label-md font-semibold flex items-center justify-center gap-sm"
+                    type="submit">
+                    Sign In
+                    <span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+                </button>
+            </form>
+            <!-- Divider -->
+            <div class="relative my-xl">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-outline-variant"></div>
+                </div>
+                <div class="relative flex justify-center text-label-md">
+
+                </div>
+            </div>
+            <!-- Social/SSO Placeholder -->
+
+        </div>
+        <!-- Footer Info -->
+        <footer class="text-center absolute bottom-12">
+            <p class="font-body-sm text-body-sm text-outline opacity-60">
+                Version 1.0
+            </p>
+        </footer>
+    </main>
+    <!-- Side Decoration (Hidden on small screens) -->
+    <div class="hidden lg:block absolute bottom-12 right-12 z-10">
+        <div class="w-64 h-64 opacity-20">
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="../../JavaScript/signIn.js"></script>
+    <script src="../../JavaScript/tailwind.js"></script>
+
+</body>
+
+</html>

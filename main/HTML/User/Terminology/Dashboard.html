@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap">
+
+    <!-- Material Symbols -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <script src="../../../JavaScript/tailwind.js"></script>
+
+    <link href="../../../Style/basic.css" rel="stylesheet" />
+
+</head>
+
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+
+    <!-- Fixed Header -->
+    <header
+        class="fixed top-0 left-0 right-0 h-[50px] bg-normal border-b border-outline-variant flex items-center px-2 z-50">
+
+        <!-- AAIR Logo -->
+        <div class="flex items-center gap-2 mr-6">
+            <img src="/resource/icon/logo_remove_BG.png" alt="AAIR Lab Logo" class="h-8 w-auto">
+
+            <h1 class="font-headline-sm text-[14px] font-bold text-primary">
+                AAIR Lab
+            </h1>
+        </div>
+
+        <div class="h-12 w-[1px] bg-outline-variant ms-2"></div>
+
+        <!-- Navigation -->
+        <nav class="flex items-center h-full">
+
+            <!-- Dashboard -->
+            <a href="../../User/Terminology/Dashboard.html" class="flex items-center gap-2 px-4 h-full
+                   text-text-active
+                   bg-button-active
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    dashboard
+                </span>
+
+                <span class="font-body-md text-[12px]">
+                    Dashboard
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+            <!-- Terminology Base -->
+            <a href="../../User/Terminology/BaseManagement.html" class="flex items-center gap-2 px-4 h-full
+                   text-on-surface-variant
+                   hover:text-text-hover
+                   hover:bg-button-hover
+                   transition-colors duration-200">
+
+                <span class="material-symbols-outlined">
+                    dictionary
+                </span>
+
+                <span class="font-body-md  text-[12px]">
+                    Terminology Base
+                </span>
+            </a>
+
+            <div class="h-12 w-[1px] bg-outline-variant"></div>
+
+        </nav>
+
+        <!-- User Profile -->
+        <div class="ml-auto flex items-center gap-3">
+
+            <div class="w-7 h-7 rounded-full
+                   bg-primary-container/10
+                   flex items-center justify-center
+                   text-primary font-bold">
+                A
+            </div>
+
+            <div class="hidden md:block">
+                <p class="text-[12px] font-bold text-on-surface">
+                    NV. A
+                </p>
+                <p class="text-[8px] text-on-surface-variant uppercase tracking-wider">
+                    Terminology
+                </p>
+            </div>
+
+        </div>
+
+    </header>
+
+    <!-- TopNavBar -->
+    <header class="w-full h-12
+           flex items-center px-lg
+           bg-text-active border-b border-outline-variant
+           shadow-sm sticky top-[50px] z-30 mb-6">
+
+        <div class="flex items-center">
+            <h2 class="text-lg font-bold text-on-surface">
+                Good Morning, 
+            </h2>
+        </div>
+        <!-- Buttons -->
+        <div class="ml-auto flex items-center gap-2">
+
+            <button class="px-4 py-2
+                       rounded-lg
+                       text-[12px]
+                       bg-button-active
+                       text-text-active
+                       hover:opacity-85
+                       transition-opacity
+                       flex items-center gap-2 shadow-sm">
+
+                <span class="material-symbols-outlined text-[12px]">
+                    calendar_today
+                </span>
+
+                Last 30 Days
+            </button>
+
+            <button type="butotn"
+                    class="px-4 py-2
+                       rounded-lg
+                       text-[12px]
+                       bg-button-active
+                       text-text-active
+                       hover:opacity-85
+                       transition-opacity
+                       flex items-center gap-2 shadow-sm"
+                    onclick="location.reload()">
+
+                <span class="material-symbols-outlined text-[12px]">
+                    refresh
+                </span>
+
+                Refresh
+            </button>
+
+        </div>
+
+    </header>
+
+    <!-- Main Dashboard -->
+    <main class="w-full] min-h-[calc(100vh-98px)] bg-surface pt-6">
+
+        <!-- Header Section -->
+        <div class="w-full px-6 py-6">
+
+            <!-- KPI Cards Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter mb-6">
+                
+                <!-- Card 1: Total Terms -->
+                <div class="bg-white p-6 rounded-[16px] card-shadow border border-outline-variant flex flex-col gap-4">
+                    <div class="flex justify-between items-start">
+                        <div class="p-2 bg-surface-container rounded-lg text-primary">
+                            <span class="material-symbols-outlined">menu_book</span>
+                        </div>
+                        <span class="text-primary font-bold text-sm flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[16px]">trending_up</span>
+                            +56 this week
+                        </span>
+                    </div>
+                    <div>
+                        <p class="font-label-md text-label-md text-on-surface-variant font-medium">Total Terms</p>
+                        <p class="font-headline-md text-headline-md mt-1">12,548 Terms</p>
+                    </div>
+                </div>
+
+                <!-- Card 2: Categories -->
+                <div class="bg-white p-6 rounded-[16px] card-shadow border border-outline-variant flex flex-col gap-4">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-2 bg-surface-container text-on-secondary-container rounded-xl">
+                            <span class="material-symbols-outlined">folder_special</span>
+                        </div>
+                        <span
+                            class="bg-secondary text-white px-2 py-0.5 rounded-full text-[10px] font-bold">STABLE</span>
+                    </div>
+                    <div>
+                        <p class="font-label-md text-label-md text-on-surface-variant font-medium">Financial Categories
+                        </p>
+                        <p class="font-headline-md text-headline-md mt-1">18 Categories</p>
+                    </div>
+                </div>
+                
+                <!-- Card 3: Recently Updated -->
+                <div class="bg-white p-6 rounded-[16px] card-shadow border border-outline-variant flex flex-col gap-4">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-2 bg-surface-container-highest text-on-surface-variant rounded-xl">
+                            <span class="material-symbols-outlined">history</span>
+                        </div>
+                        <p class="font-label-md text-label-md text-on-surface-variant">Last 7 Days</p>
+                    </div>
+                    <div>
+                        <p class="font-label-md text-label-md text-on-surface-variant font-medium">Recently Updated</p>
+                        <p class="font-headline-md text-headline-md mt-1">128 Terms Updated</p>
+                    </div>
+                </div>
+                
+                <!-- Card 4: Pending Review -->
+                <div class="bg-white p-6 rounded-[16px] card-shadow border border-outline-variant flex flex-col gap-4">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-2 bg-surface-container text-on-warning-container rounded-xl">
+                            <span class="material-symbols-outlined">pending_actions</span>
+                        </div>
+                        <span class="text-warning font-bold text-sm">Critical</span>
+                    </div>
+                    <div>
+                        <p class="font-label-md text-label-md text-on-surface-variant font-medium">Pending Review</p>
+                        <p class="font-headline-md text-headline-md mt-1 text-warning">34 Awaiting Validation</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+                <!-- Left Column (Wide): Recent Table -->
+                <div class="lg:col-span-2 flex flex-col gap-gutter">
+                    <div
+                        class="bg-surface-container-lowest rounded-2xl soft-card-shadow border border-outline-variant/50 overflow-hidden">
+                        <div class="p-lg border-b border-outline-variant/30 flex justify-between items-center">
+                            <h3 class="font-title-lg text-title-lg text-on-surface">Recent Financial Terminology Updates
+                            </h3>
+                            <button
+                                class="text-primary font-label-md text-label-md hover:underline font-semibold flex items-center gap-1">
+                                View All <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead
+                                    class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md">
+                                    <tr>
+                                        <th class="px-lg py-4 font-semibold uppercase tracking-wider">Term</th>
+                                        <th class="px-lg py-4 font-semibold uppercase tracking-wider">Updated By</th>
+                                        <th class="px-lg py-4 font-semibold uppercase tracking-wider">Date</th>
+                                        <th class="px-lg py-4 font-semibold uppercase tracking-wider">Status</th>
+                                        <th class="px-lg py-4 font-semibold"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="font-body-sm text-body-sm divide-y divide-outline-variant/10">
+                                    <tr class="hover:bg-surface-container-low/50 transition-all cursor-default">
+                                        <td class="px-lg py-4">
+                                            <div class="flex flex-col">
+                                                <span class="font-bold text-primary">Return on Equity (ROE)</span>
+                                                <span class="text-[10px] text-on-surface-variant">Corporate
+                                                    Finance</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-lg py-4">
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="w-7 h-7 rounded-full bg-primary-fixed flex items-center justify-center text-[10px] text-on-primary-fixed font-bold">
+                                                    AD</div>
+                                                A. Durand
+                                            </div>
+                                        </td>
+                                        <td class="px-lg py-4 text-on-surface-variant">Oct 23, 2023</td>
+                                        <td class="px-lg py-4">
+                                            <span
+                                                class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-[11px] font-bold">Approved</span>
+                                        </td>
+                                        <td class="px-lg py-4 text-right">
+                                            <button class="p-1 hover:bg-surface-container-high rounded-lg"><span
+                                                    class="material-symbols-outlined text-[20px]">more_vert</span></button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-surface-container-low/50 transition-all cursor-default">
+                                        <td class="px-lg py-4">
+                                            <div class="flex flex-col">
+                                                <span class="font-bold text-primary">EBITDA</span>
+                                                <span class="text-[10px] text-on-surface-variant">Accounting</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-lg py-4">
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="w-7 h-7 rounded-full bg-secondary-fixed flex items-center justify-center text-[10px] text-on-secondary-fixed font-bold">
+                                                    MS</div>
+                                                M. Smith
+                                            </div>
+                                        </td>
+                                        <td class="px-lg py-4 text-on-surface-variant">Oct 22, 2023</td>
+                                        <td class="px-lg py-4">
+                                            <span
+                                                class="px-3 py-1 bg-warning-container text-warning rounded-full text-[11px] font-bold">Pending
+                                                Review</span>
+                                        </td>
+                                        <td class="px-lg py-4 text-right">
+                                            <button class="p-1 hover:bg-surface-container-high rounded-lg"><span
+                                                    class="material-symbols-outlined text-[20px]">more_vert</span></button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-surface-container-low/50 transition-all cursor-default">
+                                        <td class="px-lg py-4">
+                                            <div class="flex flex-col">
+                                                <span class="font-bold text-primary">Liquidity Ratio</span>
+                                                <span class="text-[10px] text-on-surface-variant">Banking</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-lg py-4">
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="w-7 h-7 rounded-full bg-tertiary-fixed flex items-center justify-center text-[10px] text-on-tertiary-fixed font-bold">
+                                                    JK</div>
+                                                J. Karlof
+                                            </div>
+                                        </td>
+                                        <td class="px-lg py-4 text-on-surface-variant">Oct 21, 2023</td>
+                                        <td class="px-lg py-4">
+                                            <span
+                                                class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-[11px] font-bold">Approved</span>
+                                        </td>
+                                        <td class="px-lg py-4 text-right">
+                                            <button class="p-1 hover:bg-surface-container-high rounded-lg"><span
+                                                    class="material-symbols-outlined text-[20px]">more_vert</span></button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-surface-container-low/50 transition-all cursor-default">
+                                        <td class="px-lg py-4">
+                                            <div class="flex flex-col">
+                                                <span class="font-bold text-primary">Capital Adequacy</span>
+                                                <span class="text-[10px] text-on-surface-variant">Risk Management</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-lg py-4">
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="w-7 h-7 rounded-full bg-primary-fixed flex items-center justify-center text-[10px] text-on-primary-fixed font-bold">
+                                                    AD</div>
+                                                A. Durand
+                                            </div>
+                                        </td>
+                                        <td class="px-lg py-4 text-on-surface-variant">Oct 20, 2023</td>
+                                        <td class="px-lg py-4">
+                                            <span
+                                                class="px-3 py-1 bg-error-container text-on-error-container rounded-full text-[11px] font-bold">Flagged</span>
+                                        </td>
+                                        <td class="px-lg py-4 text-right">
+                                            <button class="p-1 hover:bg-surface-container-high rounded-lg"><span
+                                                    class="material-symbols-outlined text-[20px]">more_vert</span></button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-surface-container-low/50 transition-all cursor-default">
+                                        <td class="px-lg py-4">
+                                            <div class="flex flex-col">
+                                                <span class="font-bold text-primary">Derivatives</span>
+                                                <span class="text-[10px] text-on-surface-variant">Securities</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-lg py-4">
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="w-7 h-7 rounded-full bg-secondary-fixed flex items-center justify-center text-[10px] text-on-secondary-fixed font-bold">
+                                                    LB</div>
+                                                L. Berger
+                                            </div>
+                                        </td>
+                                        <td class="px-lg py-4 text-on-surface-variant">Oct 19, 2023</td>
+                                        <td class="px-lg py-4">
+                                            <span
+                                                class="px-3 py-1 bg-warning-container text-warning rounded-full text-[11px] font-bold">Pending
+                                                Review</span>
+                                        </td>
+                                        <td class="px-lg py-4 text-right">
+                                            <button class="p-1 hover:bg-surface-container-high rounded-lg"><span
+                                                    class="material-symbols-outlined text-[20px]">more_vert</span></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- Right Column (Narrow): Distribution -->
+                <div class="flex flex-col gap-gutter">
+                    <!-- Quick Actions -->
+
+                    <!-- Financial Category Distribution -->
+                    <div
+                        class="bg-surface-container-lowest p-lg rounded-2xl soft-card-shadow border border-outline-variant/50">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-title-lg text-title-lg text-on-surface">Category Distribution</h3>
+                            <button
+                                class="text-primary font-label-md text-label-md hover:underline font-semibold">Details</button>
+                        </div>
+                        <div class="space-y-5">
+                            <!-- Horizontal Bar Charts with counts -->
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-end">
+                                    <span class="font-body-sm font-semibold">Accounting</span>
+                                    <span class="text-[11px] font-bold text-on-surface-variant">2,145 Terms (42%)</span>
+                                </div>
+                                <div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+                                    <div class="bg-primary h-full w-[42%] rounded-full"></div>
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-end">
+                                    <span class="font-body-sm font-semibold">Investment</span>
+                                    <span class="text-[11px] font-bold text-on-surface-variant">1,876 Terms (28%)</span>
+                                </div>
+                                <div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+                                    <div class="bg-secondary h-full w-[28%] rounded-full"></div>
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-end">
+                                    <span class="font-body-sm font-semibold">Banking</span>
+                                    <span class="text-[11px] font-bold text-on-surface-variant">1,542 Terms (15%)</span>
+                                </div>
+                                <div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+                                    <div class="bg-[#3b82f6] h-full w-[15%] rounded-full"></div>
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-end">
+                                    <span class="font-body-sm font-semibold">Taxation</span>
+                                    <span class="text-[11px] font-bold text-on-surface-variant">892 Terms (10%)</span>
+                                </div>
+                                <div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+                                    <div class="bg-warning h-full w-[10%] rounded-full"></div>
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-end">
+                                    <span class="font-body-sm font-semibold">Securities</span>
+                                    <span class="text-[11px] font-bold text-on-surface-variant">420 Terms (5%)</span>
+                                </div>
+                                <div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+                                    <div class="bg-tertiary h-full w-[5%] rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Donut Chart Miniature Representation (Simplified for CSS) -->
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- javascript -->
+    <script ></script>
+
+</body>
+
+</html>
