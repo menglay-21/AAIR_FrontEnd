@@ -1,0 +1,136 @@
+================================================================================
+AAIR - NOTE API PHÂN HỆ ĐĂNG NHẬP
+Backend: Spring Boot (Java 21 LTS)
+Base URL mặc định: http://localhost:8080/api
+================================================================================
+
+LƯU Ý KẾT NỐI DATABASE
+-----------------------
+pgAdmin 4 là công cụ quản trị. Backend kết nối trực tiếp tới PostgreSQL server chứa
+database aair_db, không kết nối vào ứng dụng pgAdmin 4.
+
+Biến môi trường backend:
+- DB_URL      : jdbc:postgresql://localhost:5432/aair_db
+- DB_USERNAME : tên user PostgreSQL, ví dụ postgres
+- DB_PASSWORD : mật khẩu của user PostgreSQL
+- JWT_SECRET  : chuỗi bí mật tối thiểu 32 ký tự (bắt buộc đổi khi triển khai thật)
+- FRONTEND_ORIGIN: http://localhost:5173
+
+
+1. API ĐĂNG NHẬP
+----------------
+Method: POST
+URL: /api/auth/login
+Content-Type: application/json
+Authorization: Không cần
+
+Tham số đầu vào (JSON body):
++----------+--------+----------+----------------------------------------------+
+| Tên      | Kiểu   | Bắt buộc | Mô tả                                        |
++----------+--------+----------+----------------------------------------------+
+| username | string | Có       | Tên tài khoản, tối đa 50 ký tự              |
+| password | string | Có       | Mật khẩu gốc do người dùng nhập             |
++----------+--------+----------+----------------------------------------------+
+
+Ví dụ request:
+{
+  "username": "<username>",
+  "password": "<password>"
+}
+
+Tham số trả về khi thành công - HTTP 200:
++------------------------+---------+----------------------------------------------+
+| Trường                 | Kiểu    | Mô tả                                        |
++------------------------+---------+----------------------------------------------+
+| success                | boolean | true                                         |
+| message                | string  | Thông báo kết quả                            |
+| data.accessToken       | string  | JWT dùng cho API cần đăng nhập               |
+| data.tokenType         | string  | Luôn là Bearer                               |
+| data.expiresIn         | number  | Thời gian hiệu lực token, đơn vị giây        |
+| data.user.id           | number  | ID tài khoản                                 |
+| data.user.username     | string  | Tên tài khoản                                |
+| data.user.role         | string  | Vai trò                                      |
+| data.user.isActive     | boolean | Trạng thái hoạt động                         |
+| data.user.createdAt    | string  | Ngày giờ tạo theo ISO-8601                   |
+| data.user.redirectPath | string  | Trang HTML cần chuyển tới sau đăng nhập      |
++------------------------+---------+----------------------------------------------+
+
+Ví dụ response thành công:
+{
+  "success": true,
+  "message": "Đăng nhập thành công",
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
+    "tokenType": "Bearer",
+    "expiresIn": 28800,
+    "user": {
+      "id": 1,
+      "username": "<username>",
+      "role": "TERMINOLOGY",
+      "isActive": true,
+      "createdAt": "2026-08-29T14:30:00",
+      "redirectPath": "/main/HTML/User/Terminology/Dashboard.html"
+    }
+  }
+}
+
+Các lỗi có thể trả về:
+- HTTP 400 / VALIDATION_ERROR: thiếu username/password hoặc dữ liệu sai định dạng.
+- HTTP 401 / INVALID_CREDENTIALS: sai tên tài khoản hoặc mật khẩu.
+- HTTP 403 / ACCOUNT_INACTIVE: tài khoản đã bị khóa (is_active = false).
+
+Ví dụ response sai tài khoản hoặc mật khẩu - HTTP 401:
+{
+  "success": false,
+  "code": "INVALID_CREDENTIALS",
+  "message": "Tên tài khoản hoặc mật khẩu không chính xác",
+  "timestamp": "2026-08-29T14:31:00",
+  "details": {}
+}
+
+
+2. API LẤY THÔNG TIN TÀI KHOẢN ĐANG ĐĂNG NHẬP
+------------------------------------------------
+Method: GET
+URL: /api/auth/me
+Authorization: Bearer <accessToken>
+Body: Không có
+
+Tham số trả về khi thành công - HTTP 200:
+{
+  "success": true,
+  "message": "Lấy thông tin tài khoản thành công",
+  "data": {
+    "id": 1,
+    "username": "<username>",
+    "role": "TERMINOLOGY",
+    "isActive": true,
+    "createdAt": "2026-08-29T14:30:00",
+    "redirectPath": "/main/HTML/User/Terminology/Dashboard.html"
+  }
+}
+
+Nếu thiếu token, token sai hoặc hết hạn: HTTP 401 / UNAUTHORIZED.
+
+
+3. ĐIỀU HƯỚNG THEO VAI TRÒ
+--------------------------
+Backend trả về redirectPath tương ứng với role của tài khoản đã đăng nhập.
+Không có tài khoản hoặc mật khẩu mẫu được tạo sẵn.
+
+
+4. CÁCH GỌI API NHANH BẰNG POWERSHELL
+-------------------------------------
+$body = @{ username = "<username>"; password = "<password>" } | ConvertTo-Json
+$login = Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://localhost:8080/api/auth/login" `
+  -ContentType "application/json" `
+  -Body $body
+
+$token = $login.data.accessToken
+Invoke-RestMethod `
+  -Method Get `
+  -Uri "http://localhost:8080/api/auth/me" `
+  -Headers @{ Authorization = "Bearer $token" }
+================================================================================

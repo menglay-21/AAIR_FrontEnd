@@ -185,7 +185,7 @@
                 </select>
             </div>
 
-            <input type="file" id="documentInput" class="hidden" accept=".pdf,.doc,.docx,.txt,.xlsx,.csv">
+            <input type="file" id="documentInput" class="hidden" accept=".pdf,application/pdf" multiple>
 
             <button type="button" 
                     onclick="document.getElementById('documentInput').click()" 
@@ -203,6 +203,10 @@
                 </span>
 
                 Choose Document
+            </button>
+            <button type="button" id="saveDocumentsButton" class="px-4 py-2 rounded-lg text-[12px] bg-button-active text-text-active hover:opacity-85 transition-opacity flex items-center gap-2 shadow-sm">
+                <span class="material-symbols-outlined text-[18px]">save</span>
+                Save
             </button>
 
         </div>
@@ -633,9 +637,9 @@
             </div>
         </div>
     </main>
-    
-    <script src="../../JavaScript/managerDocumentManagement.js">  </script>
 
+    <script src="../../JavaScript/api.js"></script>
+    <script src="../../JavaScript/workspace.js"></script>
 </body>
 
 </html>

@@ -706,16 +706,19 @@
                             </select>
                         </div>
 
-                        <!-- Synonyms -->
+                        <!-- Status -->
                         <div>
                             <label class="block text-label-md font-bold text-on-surface mb-2">
-                                Synonyms
+                                Status
                             </label>
 
-                            <input type="text" placeholder="e.g. EBIT, Operating Profit" class="w-full bg-white border border-outline-variant/60 rounded-lg
-                           px-3 py-2.5 text-body-sm
-                           focus:outline-none focus:ring-2 focus:ring-primary/20
-                           focus:border-primary">
+                            <select id="termStatus" aria-label="Status" class="w-full bg-white border border-outline-variant/60 rounded-lg
+                            px-3 py-2.5 text-body-sm
+                            focus:outline-none focus:ring-2 focus:ring-primary/20
+                            focus:border-primary">
+                                <option value="ACTIVE">ACTIVE</option>
+                                <option value="INACTIVE">INACTIVE</option>
+                            </select>
                         </div>
 
                     </div>
@@ -751,6 +754,8 @@
 
     <!-- javascript -->
     <script ></script>
+    <script src="../../../JavaScript/api.js"></script>
+    <script src="../../../JavaScript/workspace.js"></script>
 </body>
 
 </html>

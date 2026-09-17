@@ -125,6 +125,11 @@
         <!-- Buttons -->
         <div class="ml-auto flex items-center gap-2">
 
+            <label class="text-xs text-on-surface-variant" for="manualAiModel">Model:</label>
+            <select id="manualAiModel" class="px-3 py-2 rounded-lg border border-outline-variant bg-white text-xs">
+                <option value="Gemini">Gemini</option>
+            </select>
+
             <button class="px-4 py-2
                        rounded-lg
                        text-[12px]
@@ -145,6 +150,10 @@
                        transition-opacity
                        flex items-center gap-2 shadow-sm">
                 Submit Task
+            </button>
+            <button type="button" class="px-4 py-2 rounded-lg text-[12px] bg-button-active text-text-active hover:opacity-85 transition-opacity flex items-center gap-2 shadow-sm">
+                <span class="material-symbols-outlined text-[12px]">play_arrow</span>
+                Run AI
             </button>
 
 
@@ -528,10 +537,11 @@
     </main>
 
     <!-- Interactive Layer (Simulated Effects) -->
-    <script src="../../../JavaScript/PDF_View.js">  </script>
 
 
 
+    <script src="../../../JavaScript/api.js"></script>
+    <script src="../../../JavaScript/workspace.js"></script>
 </body>
 
 </html>

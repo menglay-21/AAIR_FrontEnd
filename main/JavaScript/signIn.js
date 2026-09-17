@@ -30,8 +30,8 @@ document.querySelectorAll('.ripple-effect').forEach(button => {
     });
 });
 
-// Form Submit Simulation
-document.getElementById('loginForm').addEventListener('submit', (e) => {
+// Authenticate the existing sign-in form against Spring Boot.
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector('button[type="submit"]');
     const originalContent = btn.innerHTML;
@@ -40,17 +40,30 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
     btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-[18px]" data-icon="sync">sync</span> Authenticating...`;
     btn.classList.add('opacity-80');
 
-    setTimeout(() => {
-        btn.innerHTML = `<span class="material-symbols-outlined text-[18px]" data-icon="check_circle">check_circle</span> Success`;
-        btn.classList.remove('custom-gradient-btn');
-        btn.style.backgroundColor = '#10b981'; // Emerald 500 for success
-
-        setTimeout(() => {
-            btn.disabled = false;
-            btn.innerHTML = originalContent;
-            btn.classList.add('custom-gradient-btn');
-            btn.style.backgroundColor = '';
-            btn.classList.remove('opacity-80');
-        }, 2000);
-    }, 1500);
+    let error = document.getElementById('loginError');
+    if (!error) {
+        error = document.createElement('p');
+        error.id = 'loginError';
+        error.className = 'text-sm text-red-600';
+        error.setAttribute('role', 'alert');
+        btn.before(error);
+    }
+    error.textContent = '';
+    try {
+        // A fresh login must never inherit an expired token from an older tab.
+        AAIR.clearSession();
+        const result = await AAIR.request('/auth/login', { method: 'POST', json: {
+            username: document.getElementById('username').value.trim(),
+            password: document.getElementById('password').value,
+        } });
+        const destination = AAIR.home(result.user.role);
+        AAIR.saveSession(result.accessToken);
+        location.assign(destination);
+    } catch (reason) {
+        error.textContent = reason.message;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+        btn.classList.remove('opacity-80');
+    }
 });

@@ -874,7 +874,7 @@
     <div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm z-[100] flex items-center justify-center transition-opacity duration-300 opacity-0 hidden"
         id="modalOverlay">
 
-        <div class="glass-modal w-full max-w-3xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-transform duration-300 scale-95"
+        <div class="glass-modal w-[96vw] max-w-5xl max-h-[94vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-transform duration-300 scale-95"
             id="modalContent">
 
             <!-- ================================================= -->
@@ -1467,7 +1467,7 @@
                                     event
                                 </span>
 
-                                <input type="date" class="w-full pl-10 pr-3 py-2.5 rounded-lg
+                                <input id="sessionStartDate" type="date" class="w-full pl-10 pr-3 py-2.5 rounded-lg
                                        border border-outline-variant
                                        bg-surface-container-lowest
                                        focus:ring-2 focus:ring-primary/20
@@ -1492,7 +1492,9 @@
                                     event
                                 </span>
 
-                                <input type="date" class="w-full pl-10 pr-3 py-2.5 rounded-lg
+                                <input id="sessionDueDate" type="text" inputmode="numeric" maxlength="10"
+                                       placeholder="dd/mm/yyyy" autocomplete="off"
+                                       class="w-full pl-10 pr-3 py-2.5 rounded-lg
                                        border border-outline-variant
                                        bg-surface-container-lowest
                                        focus:ring-2 focus:ring-primary/20
@@ -1539,6 +1541,8 @@
 
     <script src="../../JavaScript/UserCreation.js"> </script>
 
+    <script src="../../JavaScript/api.js"></script>
+    <script src="../../JavaScript/workspace.js"></script>
 </body>
 
 </html>

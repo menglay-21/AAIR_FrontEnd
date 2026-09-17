@@ -1,0 +1,14 @@
+# Copy this file to application-ai-keys.yml and enter local API keys.
+# Never commit the file containing real keys.
+
+app:
+  ai:
+    gemini:
+      model: "gemini-2.5-flash"
+      api-key: "YOUR_GEMINI_API_KEY"
+    groq:
+      model: "llama-3.3-70b-versatile"
+      api-key: "YOUR_GROQ_API_KEY"
+    claude:
+      model: "claude-sonnet-4-6"
+      api-key: "YOUR_ANTHROPIC_API_KEY"
