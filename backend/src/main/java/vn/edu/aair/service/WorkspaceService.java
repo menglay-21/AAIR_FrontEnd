@@ -290,9 +290,28 @@ public class WorkspaceService {
         var s=one("SELECT * FROM annotation_sessions WHERE id=? FOR UPDATE",sessionId); owns(a,s,"created_by"); return s;
     }
     public Map<String,Object> createSession(Session r) {
-        var a=actor(); require(a,"MANAGER"); requirePermission(a, "SESSIONS", "WRITE"); valid(Set.of("AI","MANUAL").contains(r.sessionType()),"Loại phiên không hợp lệ");
-        var s=one("INSERT INTO annotation_sessions(name,description,session_type,due_at,created_by) VALUES (?,?,?,?,?) RETURNING *",r.name(),r.description(),r.sessionType(),r.dueAt(),a.id());
-        audit(a,"CREATE","SESSION",id(s,"id"));return s;
+        var a = actor();
+        require(a, "MANAGER");
+        requirePermission(a, "SESSIONS", "WRITE");
+        valid(r != null, "Dữ liệu phiên không được để trống");
+        valid(r.name() != null, "Tên phiên không được để trống");
+        String trimmedName = r.name().trim();
+        valid(!trimmedName.isBlank(), "Tên phiên không được để trống");
+        valid(trimmedName.length() <= 150, "Tên phiên tối đa 150 ký tự");
+        valid(r.description() == null || r.description().length() <= 10000, "Mô tả tối đa 10000 ký tự");
+        valid(r.sessionType() != null && Set.of("AI", "MANUAL").contains(r.sessionType().trim()), "Loại phiên chỉ cho phép AI hoặc MANUAL");
+        String sessionType = r.sessionType().trim();
+        valid(r.dueAt() != null && r.dueAt().isAfter(java.time.LocalDateTime.now()), "Thời hạn phiên phải ở thời điểm tương lai");
+        String description = r.description() == null ? null : r.description().trim();
+
+        var s = one("""
+                INSERT INTO annotation_sessions(name, description, session_type, status, due_at, created_by, started_at, ended_at)
+                VALUES (?, ?, ?, 'DRAFT', ?, ?, NULL, NULL)
+                RETURNING *
+                """,
+                trimmedName, description, sessionType, r.dueAt(), a.id());
+        audit(a, "CREATE", "SESSION", id(s, "id"));
+        return s;
     }
     public void members(long sessionId, Members r) {
         var a=actor();require(a,"MANAGER"); requirePermission(a, "SESSIONS", "WRITE"); var s=ownSession(a,sessionId); state(!s.get("status").equals("CLOSED"),"Phiên đã đóng");
@@ -302,7 +321,7 @@ public class WorkspaceService {
         var requested=new HashSet<>(r.userIds());
         for(long userId:requested) {
             var u=one("SELECT role,is_active FROM users WHERE id=? FOR SHARE",userId);
-            valid(Boolean.TRUE.equals(u.get("is_active")) && !Set.of("ADMIN","MANAGER").contains(u.get("role")),"Thành viên phải là user đang hoạt động");
+            valid(Boolean.TRUE.equals(u.get("is_active")) && Set.of("AI_LABELER","MANUAL_LABELER","REVIEWER","RESULT_ANALYST").contains(u.get("role")),"Thành viên phải là user đang hoạt động với vai trò hợp lệ");
             valid(count("SELECT count(*) FROM session_members m JOIN annotation_sessions s ON s.id=m.session_id WHERE m.user_id=? AND m.session_id<>? AND s.status IN ('DRAFT','ACTIVE')",userId,sessionId)==0,"Mỗi người chỉ được tham gia một session đang hoạt động");
         }
         for(var t:db.queryForList("SELECT assigned_to FROM annotation_tasks WHERE session_id=? AND assigned_to IS NOT NULL AND status<>'APPROVED'",sessionId))
@@ -339,7 +358,7 @@ public class WorkspaceService {
         owns(a,one("SELECT * FROM documents WHERE id=? FOR SHARE",r.documentId()),"uploaded_by");
         if(r.sessionId()!=null) {
             var s=ownSession(a,r.sessionId());state(!s.get("status").equals("CLOSED"),"Phiên đã đóng");
-            valid(s.get("session_type").equals("MIXED") || s.get("session_type").equals(r.taskType()),"Loại tác vụ không phù hợp với phiên");
+            valid(Objects.equals(s.get("session_type"), r.taskType()),"Loại tác vụ không phù hợp với phiên");
         }
         if(r.assignedTo()!=null) validAssignee(r.taskType(),r.sessionId(),r.assignedTo());
         var t=one("INSERT INTO annotation_tasks(document_id,session_id,task_type,assigned_to,assigned_by,due_at) VALUES (?,?,?,?,?,?) RETURNING *",r.documentId(),r.sessionId(),r.taskType(),r.assignedTo(),a.id(),r.dueAt());

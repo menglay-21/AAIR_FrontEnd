@@ -14,8 +14,10 @@ public final class WorkspaceRequests {
     public record UpdateUser(@NotBlank String role, @NotNull Boolean active) {}
     public record Password(@NotBlank String currentPassword, @NotBlank @Size(min=8,max=72) String newPassword) {}
     public record Document(@NotBlank @Size(max=200) String title, @Size(max=30) String documentType) {}
-    public record Session(@NotBlank @Size(max=150) String name, @Size(max=10000) String description,
-                          @NotBlank String sessionType, @NotNull @Future LocalDateTime dueAt) {}
+    public record Session(@NotBlank(message="Tên phiên không được để trống") @Size(max=150, message="Tên phiên tối đa 150 ký tự") String name,
+                          @Size(max=10000, message="Mô tả tối đa 10000 ký tự") String description,
+                          @NotBlank(message="Loại phiên không được để trống") @Pattern(regexp="^(AI|MANUAL)$", message="Loại phiên chỉ cho phép AI hoặc MANUAL") String sessionType,
+                          @NotNull(message="Thời hạn không được để trống") @Future(message="Thời hạn phải ở thời điểm tương lai") LocalDateTime dueAt) {}
     public record Members(@NotNull @Size(max=200) List<@NotNull @Positive Long> userIds) {}
     public record State(@NotBlank String status) {}
     public record Task(@NotNull @Positive Long documentId, @NotNull @Positive Long sessionId,
