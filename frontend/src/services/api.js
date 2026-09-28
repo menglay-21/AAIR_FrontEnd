@@ -1,7 +1,8 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'
 
 async function request(path, options = {}) {
-  const token = sessionStorage.getItem('aair_access_token')
+  const token = sessionStorage.getItem('aair_access_token') || localStorage.getItem('aair_access_token')
+  if (token && !sessionStorage.getItem('aair_access_token')) sessionStorage.setItem('aair_access_token', token)
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers: {
@@ -37,4 +38,13 @@ export function getCurrentUserApi() {
 
 export function api(path, options) {
   return request(path, options)
+}
+
+export async function pdfBlob(path) {
+  const token = sessionStorage.getItem('aair_access_token') || localStorage.getItem('aair_access_token')
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!response.ok) throw new Error('Không thể tải tài liệu PDF.')
+  return response.blob()
 }

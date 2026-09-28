@@ -56,8 +56,12 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             username: document.getElementById('username').value.trim(),
             password: document.getElementById('password').value,
         } });
-        const destination = AAIR.home(result.user.role);
-        AAIR.saveSession(result.accessToken);
+        const requestedPath = new URLSearchParams(location.search).get('returnTo');
+        const sameOriginPath = requestedPath && requestedPath.startsWith('/main/HTML/')
+            ? requestedPath
+            : null;
+        const destination = sameOriginPath || AAIR.home(result.user.role);
+        AAIR.saveSession(result.accessToken, result.user);
         location.assign(destination);
     } catch (reason) {
         error.textContent = reason.message;

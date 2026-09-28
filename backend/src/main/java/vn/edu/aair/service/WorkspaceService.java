@@ -1,5 +1,7 @@
 package vn.edu.aair.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -11,6 +13,8 @@ import vn.edu.aair.exception.AuthException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /** Business rules and row-level access for the existing PostgreSQL schema. */
@@ -36,8 +40,11 @@ public class WorkspaceService {
             "ADMIN", Set.of("DASHBOARD", "USER_MANAGEMENT", "PERMISSION_MANAGEMENT", "AUDIT_LOGS"),
             "MANAGER", Set.of("DASHBOARD", "USER_MANAGEMENT", "PERMISSION_MANAGEMENT", "DOCUMENTS", "SESSIONS", "TASKS", "STATISTICS"));
     private static final SecureRandom RANDOM = new SecureRandom();
+    private static final ObjectMapper JSON = new ObjectMapper();
     private static final String PASSWORD_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@#$%";
-    private static final String USER_COLUMNS = "id, username, email, role, is_active, created_at, created_by";
+    private static final String USER_COLUMNS = "id, username, email, avatar_url, role, is_active, created_at, created_by";
+    private static final List<String> REQUIRED_FINANCIAL_FIELDS = List.of(
+            "COMPANY_NAME", "INDUSTRY", "REPORT_PERIOD", "REPORT_YEAR", "REVENUE");
     private final JdbcTemplate db;
     private final PasswordEncoder passwords;
     private final AccountMailService accountMail;
@@ -90,6 +97,8 @@ public class WorkspaceService {
     }
     private boolean hasPermission(Actor a, String feature, String action) {
         if (!usesDynamicPermissions(a)) return true;
+        Boolean override = db.query("SELECT enabled FROM user_permission_overrides WHERE user_id=? AND feature=? AND action=?", rs -> rs.next() ? rs.getBoolean("enabled") : null, a.id(), feature, action);
+        if (override != null) return override;
         return count("SELECT COUNT(*) FROM role_permissions WHERE role=? AND feature=? AND action=? AND enabled=true",
                 a.role(), feature, action) > 0;
     }
@@ -106,6 +115,9 @@ public class WorkspaceService {
     public void audit(Actor a, String action, String resource, Long resourceId) {
         db.update("INSERT INTO audit_logs(actor_id,action,resource_type,resource_id) VALUES (?,?,?,?)", a.id(), action, resource, resourceId);
     }
+    public void audit(Actor a, String action, String resource, Long resourceId, String detail) {
+        db.update("INSERT INTO audit_logs(actor_id,action,resource_type,resource_id,detail) VALUES (?,?,?,?,?)", a.id(), action, resource, resourceId, detail);
+    }
 
     public List<Map<String,Object>> users() {
         var a = actor(); require(a, "ADMIN", "MANAGER"); requirePermission(a, "USER_MANAGEMENT", "READ");
@@ -117,7 +129,7 @@ public class WorkspaceService {
     }
     public List<Map<String,Object>> assignees() {
         var a = actor(); require(a, "MANAGER"); requirePermission(a, "TASKS", "READ");
-        return db.queryForList("SELECT id, username, role FROM users u WHERE is_active=true AND role IN ('AI_LABELER','MANUAL_LABELER','REVIEWER','RESULT_ANALYST') AND NOT EXISTS (SELECT 1 FROM session_members m JOIN annotation_sessions s ON s.id=m.session_id WHERE m.user_id=u.id AND s.status IN ('DRAFT','ACTIVE')) ORDER BY username");
+        return db.queryForList("SELECT id, username, avatar_url, role FROM users u WHERE is_active=true AND role IN ('AI_LABELER','MANUAL_LABELER','REVIEWER','RESULT_ANALYST') AND NOT EXISTS (SELECT 1 FROM session_members m JOIN annotation_sessions s ON s.id=m.session_id WHERE m.user_id=u.id AND s.status IN ('DRAFT','ACTIVE')) ORDER BY username");
     }
     public Map<String,Object> createUser(CreateUser r) {
         var a = actor(); require(a, "ADMIN", "MANAGER"); requirePermission(a, "USER_MANAGEMENT", "WRITE");
@@ -150,6 +162,14 @@ public class WorkspaceService {
         state(a.id()!=userId || (r.active() && r.role().equals("ADMIN")), "Không thể tự khóa hoặc hạ quyền tài khoản Admin đang sử dụng");
         var row = one("UPDATE users SET role=?, is_active=? WHERE id=? RETURNING " + USER_COLUMNS, r.role(), r.active(), userId);
         audit(a,"UPDATE_ROLE_STATUS","USER",userId); return row;
+    }
+    public record AvatarChange(Map<String,Object> user, String previousUrl) {}
+    public AvatarChange updateUserAvatar(long userId, String avatarUrl) {
+        var a = actor(); require(a, "ADMIN", "MANAGER"); requirePermission(a, "USER_MANAGEMENT", "WRITE");
+        var previous = one("SELECT avatar_url FROM users WHERE id=? FOR UPDATE", userId);
+        var row = one("UPDATE users SET avatar_url=? WHERE id=? RETURNING " + USER_COLUMNS, avatarUrl, userId);
+        audit(a,"UPDATE_AVATAR","USER",userId);
+        return new AvatarChange(row, (String) previous.get("avatar_url"));
     }
     public Map<String,Object> profile() {
         return one("SELECT " + USER_COLUMNS + " FROM users WHERE id=?", actor().id());
@@ -237,12 +257,68 @@ public class WorkspaceService {
         return permissions(role);
     }
 
+
+    public Map<String,Object> userPermissions(long userId) {
+        var a = actor(); require(a, "ADMIN"); requirePermission(a, "PERMISSION_MANAGEMENT", "READ");
+        var target = one("SELECT id,username,role,is_active FROM users WHERE id=?", userId);
+        String role = normalizeRole(String.valueOf(target.get("role")));
+        var inheritedRows = ACCOUNT_MANAGEMENT_ROLES.contains(role) ? db.queryForList("SELECT feature,action,enabled FROM role_permissions WHERE role=?", role) : List.<Map<String,Object>>of();
+        var inherited = new HashMap<String,Boolean>();
+        for (var row : inheritedRows) inherited.put(row.get("feature") + ":" + row.get("action"), Boolean.TRUE.equals(row.get("enabled")));
+        var overrideRows = db.queryForList("SELECT feature,action,enabled FROM user_permission_overrides WHERE user_id=?", userId);
+        var overrides = new HashMap<String,Boolean>();
+        for (var row : overrideRows) overrides.put(row.get("feature") + ":" + row.get("action"), Boolean.TRUE.equals(row.get("enabled")));
+        var features = new ArrayList<Map<String,Object>>();
+        for (String feature : PERMISSION_FEATURES) {
+            var actions = new LinkedHashMap<String,Object>();
+            for (String action : PERMISSION_ACTIONS) {
+                String key = feature + ":" + action;
+                var value = new LinkedHashMap<String,Object>();
+                boolean roleEnabled = Boolean.TRUE.equals(inherited.get(key));
+                Boolean overrideEnabled = overrides.get(key);
+                value.put("roleEnabled", roleEnabled);
+                value.put("overrideEnabled", overrideEnabled);
+                value.put("effectiveEnabled", overrideEnabled == null ? roleEnabled : overrideEnabled);
+                value.put("source", overrideEnabled == null ? "ROLE" : "CUSTOM");
+                actions.put(action, value);
+            }
+            var item = new LinkedHashMap<String,Object>();
+            item.put("key", feature); item.put("label", PERMISSION_LABELS.get(feature)); item.put("actions", actions);
+            features.add(item);
+        }
+        var result = new LinkedHashMap<String,Object>();
+        result.put("user", target); result.put("features", features); result.put("customCount", overrides.size());
+        return result;
+    }
+
+    public Map<String,Object> updateUserPermissions(long userId, UpdateUserPermissions request) {
+        var a = actor(); require(a, "ADMIN"); requirePermission(a, "PERMISSION_MANAGEMENT", "WRITE");
+        var target = one("SELECT id,username,role FROM users WHERE id=? FOR UPDATE", userId);
+        state(a.id() != userId, "Không thể override quyền của chính tài khoản Admin đang sử dụng");
+        var seen = new HashSet<String>();
+        var changed = new ArrayList<Map<String,Object>>();
+        for (var change : request.permissions()) {
+            String feature = normalizePermissionValue(change.feature(), new HashSet<>(PERMISSION_FEATURES), "Feature permission không hợp lệ");
+            String action = normalizePermissionValue(change.action(), new HashSet<>(PERMISSION_ACTIONS), "Action permission không hợp lệ");
+            state(seen.add(feature + ":" + action), "Danh sách permission bị trùng");
+            var previous = db.queryForList("SELECT enabled FROM user_permission_overrides WHERE user_id=? AND feature=? AND action=?", userId, feature, action);
+            Boolean oldValue = previous.isEmpty() ? null : Boolean.TRUE.equals(previous.getFirst().get("enabled"));
+            if (change.enabled() == null) db.update("DELETE FROM user_permission_overrides WHERE user_id=? AND feature=? AND action=?", userId, feature, action);
+            else db.update("INSERT INTO user_permission_overrides(user_id,feature,action,enabled,updated_by) VALUES (?,?,?,?,?) ON CONFLICT (user_id,feature,action) DO UPDATE SET enabled=EXCLUDED.enabled,updated_by=EXCLUDED.updated_by,updated_at=CURRENT_TIMESTAMP", userId, feature, action, change.enabled(), a.id());
+            if (!Objects.equals(oldValue, change.enabled())) { var item = new LinkedHashMap<String,Object>(); item.put("feature", feature); item.put("action", action); item.put("old", oldValue == null ? "INHERIT" : oldValue); item.put("new", change.enabled() == null ? "INHERIT" : change.enabled()); changed.add(item); }
+        }
+        audit(a, "UPDATE_USER_PERMISSIONS", "USER", userId, jsonValue(Map.of("username", target.get("username"), "changes", changed)));
+        return userPermissions(userId);
+    }
     // Managers own their resources. Reviewers see tasks only in their assigned sessions.
     private String taskScope(Actor a) {
         return switch (a.role()) {
             case "MANAGER" -> "t.assigned_by="+a.id();
-            case "RESULT_ANALYST" -> "1=1";
-            case "REVIEWER" -> "EXISTS (SELECT 1 FROM session_members m WHERE m.session_id=t.session_id AND m.user_id="+a.id()+")";
+            // Analysts compare AI runs only. This is enforced at the data boundary,
+            // so opening a manually labelled task directly cannot bypass the UI.
+            case "RESULT_ANALYST" -> "t.task_type='AI'";
+            case "REVIEWER" -> "(EXISTS (SELECT 1 FROM session_members m WHERE m.session_id=t.session_id AND m.user_id="+a.id()+") " +
+                    "OR EXISTS (SELECT 1 FROM review_cases rc WHERE rc.assigned_to="+a.id()+" AND t.id IN (rc.left_task_id,rc.right_task_id)))";
             default -> "t.assigned_to="+a.id();
         };
     }
@@ -283,7 +359,7 @@ public class WorkspaceService {
     public List<Map<String,Object>> sessions() {
         var a=actor(); require(a,"MANAGER"); requirePermission(a, "SESSIONS", "READ");
         var rows=db.queryForList("SELECT * FROM annotation_sessions WHERE created_by=? ORDER BY id DESC",a.id());
-        for(var r:rows) r.put("members",db.queryForList("SELECT u.id,u.username,u.role FROM users u JOIN session_members m ON m.user_id=u.id WHERE m.session_id=? ORDER BY u.username",id(r,"id")));
+        for(var r:rows) r.put("members",db.queryForList("SELECT u.id,u.username,u.avatar_url,u.role FROM users u JOIN session_members m ON m.user_id=u.id WHERE m.session_id=? ORDER BY u.username",id(r,"id")));
         return rows;
     }
     private Map<String,Object> ownSession(Actor a,long sessionId) {
@@ -337,9 +413,22 @@ public class WorkspaceService {
         db.update("UPDATE annotation_sessions SET status=?,started_at=CASE WHEN ?='ACTIVE' THEN CURRENT_TIMESTAMP ELSE started_at END,ended_at=CASE WHEN ?='CLOSED' THEN CURRENT_TIMESTAMP ELSE ended_at END WHERE id=?",r.status(),r.status(),r.status(),sessionId);
         audit(a,"STATUS_"+r.status(),"SESSION",sessionId);
     }
-    public List<Map<String,Object>> tasks() {
+    public List<Map<String,Object>> tasks() { return tasks(null,null,null,null,null); }
+    public List<Map<String,Object>> tasks(String type, String status, Long sessionId, String due, String search) {
         var a=actor(); if (a.role().equals("MANAGER")) requirePermission(a, "TASKS", "READ");
-        return db.queryForList("SELECT t.*,d.title AS document_title,u.username AS assignee,s.name AS session_name FROM annotation_tasks t JOIN documents d ON d.id=t.document_id LEFT JOIN users u ON u.id=t.assigned_to LEFT JOIN annotation_sessions s ON s.id=t.session_id WHERE "+taskScope(a)+" ORDER BY t.id DESC");
+        StringBuilder sql=new StringBuilder("SELECT t.*,d.title AS document_title,u.username AS assignee,s.name AS session_name, " +
+                "(SELECT count(*) FROM ai_labeler_results ar WHERE ar.task_id=t.id) AS result_count " +
+                "FROM annotation_tasks t JOIN documents d ON d.id=t.document_id LEFT JOIN users u ON u.id=t.assigned_to " +
+                "LEFT JOIN annotation_sessions s ON s.id=t.session_id WHERE "+taskScope(a));
+        var args=new ArrayList<Object>();
+        if(type!=null&&!type.isBlank()) { valid(Set.of("AI","MANUAL").contains(type.toUpperCase()),"Loại tác vụ không hợp lệ"); sql.append(" AND t.task_type=?"); args.add(type.toUpperCase()); }
+        if(status!=null&&!status.isBlank()) { sql.append(" AND t.status=?"); args.add(status.toUpperCase()); }
+        if(sessionId!=null) { sql.append(" AND t.session_id=?"); args.add(sessionId); }
+        if("OVERDUE".equalsIgnoreCase(due)) sql.append(" AND t.due_at IS NOT NULL AND t.due_at < CURRENT_TIMESTAMP AND t.status NOT IN ('APPROVED','REJECTED')");
+        if("UPCOMING".equalsIgnoreCase(due)) sql.append(" AND (t.due_at IS NULL OR t.due_at >= CURRENT_TIMESTAMP)");
+        if(search!=null&&!search.isBlank()) { sql.append(" AND (LOWER(d.title) LIKE LOWER(?) OR LOWER(d.original_name) LIKE LOWER(?))"); String q="%"+search.trim()+"%"; args.add(q);args.add(q); }
+        sql.append(" ORDER BY t.due_at NULLS LAST, t.id DESC");
+        return db.queryForList(sql.toString(),args.toArray());
     }
     public Map<String,Object> task(long taskId) {
         var a=actor(); if (a.role().equals("MANAGER")) requirePermission(a, "TASKS", "READ");
@@ -347,6 +436,18 @@ public class WorkspaceService {
         if(!canReadTask(a,taskId)) throw error(HttpStatus.FORBIDDEN,"Bạn không được phân công tác vụ này");
         t.put("labels",db.queryForList("SELECT * FROM annotations WHERE task_id=? ORDER BY id",taskId));
         t.put("reviews",db.queryForList("SELECT r.*,u.username AS reviewer FROM review_decisions r JOIN users u ON u.id=r.reviewed_by WHERE task_id=?",taskId));return t;
+    }
+    public List<Map<String,Object>> aiResults(long taskId) {
+        var a=actor();
+        if (!canReadTask(a, taskId)) throw error(HttpStatus.FORBIDDEN, "Bạn không được xem kết quả của tác vụ này");
+        return db.queryForList("""
+                SELECT id, run_id, task_id, document_id, provider, model, indicator_name,
+                       indicator_value, unit, source_page, source_label, confidence,
+                       created_by_username, created_at
+                FROM ai_labeler_results
+                WHERE task_id=?
+                ORDER BY created_at DESC, id DESC
+                """, taskId);
     }
     private void validAssignee(String type, Long sessionId, long userId) {
         var u=one("SELECT role,is_active FROM users WHERE id=? FOR SHARE",userId);
@@ -361,8 +462,14 @@ public class WorkspaceService {
             valid(Objects.equals(s.get("session_type"), r.taskType()),"Loại tác vụ không phù hợp với phiên");
         }
         if(r.assignedTo()!=null) validAssignee(r.taskType(),r.sessionId(),r.assignedTo());
-        var t=one("INSERT INTO annotation_tasks(document_id,session_id,task_type,assigned_to,assigned_by,due_at) VALUES (?,?,?,?,?,?) RETURNING *",r.documentId(),r.sessionId(),r.taskType(),r.assignedTo(),a.id(),r.dueAt());
+        String assistanceMode=r.taskType().equals("AI")?"AI_ASSISTED":normalizeAssistanceMode(r.assistanceMode());
+        var t=one("INSERT INTO annotation_tasks(document_id,session_id,task_type,assigned_to,assigned_by,due_at,assistance_mode) VALUES (?,?,?,?,?,?,?) RETURNING *",r.documentId(),r.sessionId(),r.taskType(),r.assignedTo(),a.id(),r.dueAt(),assistanceMode);
         audit(a,"CREATE","TASK",id(t,"id"));return t;
+    }
+    private static String normalizeAssistanceMode(String value) {
+        String normalized=value==null||value.isBlank()?"NONE":value.trim().toUpperCase(Locale.ROOT);
+        if(!Set.of("NONE","AI_ASSISTED").contains(normalized)) throw error(HttpStatus.BAD_REQUEST,"Chế độ hỗ trợ chỉ cho phép NONE hoặc AI_ASSISTED");
+        return normalized;
     }
     public void assign(long taskId,Assignment r) {
         var a=actor();require(a,"MANAGER");requirePermission(a, "TASKS", "WRITE");var t=one("SELECT * FROM annotation_tasks WHERE id=? FOR UPDATE",taskId);owns(a,t,"assigned_by");
@@ -386,13 +493,41 @@ public class WorkspaceService {
     public void labels(long taskId, Labels r) {
         var a=actor();var t=writableTask(a,taskId);state(t.get("status").equals("IN_PROGRESS"),"Hãy bắt đầu tác vụ trước khi lưu nhãn");
         db.update("DELETE FROM annotations WHERE task_id=?",taskId);
-        for(var l:r.labels()) db.update("INSERT INTO annotations(task_id,label_name,label_value,source_page,confidence,created_by) VALUES (?,?,?,?,?,?)",taskId,l.labelName(),l.labelValue(),l.sourcePage(),l.confidence(),a.id());
+        db.update("DELETE FROM task_section_progress WHERE task_id=? AND status<>'REVIEWED'",taskId);
+        for(var l:r.labels()) {
+            String key=fieldKey(l.labelName());
+            db.update("INSERT INTO annotations(task_id,label_name,label_value,source_page,confidence,source_bbox,created_by) VALUES (?,?,?,?,?,CAST(? AS jsonb),?)",
+                    taskId,l.labelName().trim(),l.labelValue(),l.sourcePage(),l.confidence(),json(l.sourceBbox()),a.id());
+            db.update("""
+                    INSERT INTO task_section_progress(task_id,field_key,field_name,status,started_at,saved_at)
+                    VALUES (?,?,?,'SAVED',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
+                    ON CONFLICT (task_id,field_key) DO UPDATE SET field_name=EXCLUDED.field_name,status='SAVED',
+                    started_at=COALESCE(task_section_progress.started_at,CURRENT_TIMESTAMP),saved_at=CURRENT_TIMESTAMP
+                    """,taskId,key,l.labelName().trim());
+        }
         audit(a,"SAVE_LABELS","TASK",taskId);
     }
     public void submit(long taskId) {
         var a=actor();var t=writableTask(a,taskId);state(t.get("status").equals("IN_PROGRESS"),"Tác vụ chưa ở trạng thái đang làm");
         state(count("SELECT count(*) FROM annotations WHERE task_id=?",taskId)>0,"Cần ít nhất một nhãn trước khi nộp");
-        db.update("UPDATE annotation_tasks SET status='SUBMITTED',completed_at=CURRENT_TIMESTAMP WHERE id=?",taskId);audit(a,"SUBMIT","TASK",taskId);
+        requireAllDone(labelerCompletion(a,nullableId(t,"session_id")),"Chưa thể Submit Task");
+        db.update("UPDATE annotation_tasks SET status='SUBMITTED',completed_at=CURRENT_TIMESTAMP WHERE id=?",taskId);
+        db.update("UPDATE task_section_progress SET status='SUBMITTED',submitted_at=CURRENT_TIMESTAMP WHERE task_id=?",taskId);
+        audit(a,"SUBMIT","TASK",taskId);
+    }
+
+    public Map<String,Object> sectionState(long taskId,String requestedFieldKey,SectionState r) {
+        var a=actor();var t=writableTask(a,taskId);
+        state(Set.of("PENDING","REJECTED","IN_PROGRESS").contains(String.valueOf(t.get("status"))),"Không thể cập nhật section ở trạng thái hiện tại");
+        String key=fieldKey(requestedFieldKey);
+        var row=one("""
+                INSERT INTO task_section_progress(task_id,field_key,field_name,status,started_at)
+                VALUES (?,?,?,'IN_PROGRESS',CURRENT_TIMESTAMP)
+                ON CONFLICT (task_id,field_key) DO UPDATE SET status=CASE WHEN task_section_progress.status='NOT_STARTED' THEN 'IN_PROGRESS' ELSE task_section_progress.status END,
+                started_at=COALESCE(task_section_progress.started_at,CURRENT_TIMESTAMP)
+                RETURNING *
+                """,taskId,key,requestedFieldKey.trim());
+        return row;
     }
     public void review(long taskId, Review r) {
         var a=actor();require(a,"REVIEWER");valid(Set.of("APPROVED","REJECTED").contains(r.decision()),"Quyết định không hợp lệ");
@@ -403,19 +538,377 @@ public class WorkspaceService {
         db.update("INSERT INTO review_decisions(task_id,decision,feedback,reviewed_by) VALUES (?,?,?,?) ON CONFLICT (task_id) DO UPDATE SET decision=EXCLUDED.decision,feedback=EXCLUDED.feedback,reviewed_by=EXCLUDED.reviewed_by,reviewed_at=CURRENT_TIMESTAMP",taskId,r.decision(),r.feedback(),a.id());
         db.update("UPDATE annotation_tasks SET status=? WHERE id=?",r.decision(),taskId);audit(a,"REVIEW_"+r.decision(),"TASK",taskId);
     }
-    public List<Map<String,Object>> terms() { actor();return db.queryForList("SELECT * FROM terminology_entries ORDER BY term"); }
+
+    private static String fieldKey(String value) {
+        String key=value==null?"":value.trim().replaceAll("\\s+","_").toUpperCase(Locale.ROOT);
+        if(key.isBlank()||key.length()>150) throw error(HttpStatus.BAD_REQUEST,"Tên section không hợp lệ");
+        return key;
+    }
+    private static String json(Map<String,Object> value) {
+        if(value==null||value.isEmpty()) return null;
+        try { return JSON.writeValueAsString(value); }
+        catch(JsonProcessingException exception) { throw error(HttpStatus.BAD_REQUEST,"Tọa độ vùng nguồn không hợp lệ"); }
+    }
+    private static String jsonValue(Object value) {
+        try { return JSON.writeValueAsString(value); }
+        catch(JsonProcessingException exception) { throw error(HttpStatus.BAD_REQUEST,"Dữ liệu JSON không hợp lệ"); }
+    }
+    private static <T> T readJson(Object value, Class<T> type, T fallback) {
+        if (value == null) return fallback;
+        try { return JSON.readValue(String.valueOf(value), type); }
+        catch (JsonProcessingException exception) { return fallback; }
+    }
+    private Map<String,Object> accessibleReviewCase(Actor a,long reviewCaseId,boolean lock) {
+        String suffix=lock?" FOR UPDATE OF rc":"";
+        var row=one("""
+                SELECT rc.*,d.title AS document_title,d.original_name,
+                       lu.username AS left_assignee,ru.username AS right_assignee,
+                       lt.task_type AS left_task_type,rt.task_type AS right_task_type,
+                       lt.session_id AS left_session_id,rt.session_id AS right_session_id,
+                       reviewer.username AS reviewer
+                FROM review_cases rc
+                JOIN documents d ON d.id=rc.document_id
+                JOIN annotation_tasks lt ON lt.id=rc.left_task_id
+                JOIN annotation_tasks rt ON rt.id=rc.right_task_id
+                LEFT JOIN users lu ON lu.id=lt.assigned_to
+                LEFT JOIN users ru ON ru.id=rt.assigned_to
+                JOIN users reviewer ON reviewer.id=rc.assigned_to
+                WHERE rc.id=?
+                """+suffix,reviewCaseId);
+        boolean allowed=(a.role().equals("REVIEWER")&&Objects.equals(a.id(),nullableId(row,"assigned_to")))
+                ||(a.role().equals("MANAGER")&&Objects.equals(a.id(),nullableId(row,"created_by")));
+        if(!allowed) throw error(HttpStatus.FORBIDDEN,"Bạn không được truy cập review case này");
+        return row;
+    }
+
+    public Map<String,Object> startWorkTime(WorkTimeStart r) {
+        var a=actor();require(a,"AI_LABELER","MANUAL_LABELER","REVIEWER");
+        valid((r.taskId()!=null)^(r.reviewCaseId()!=null),"Chỉ được chọn taskId hoặc reviewCaseId");
+        if(r.taskId()!=null) {
+            require(a,"AI_LABELER","MANUAL_LABELER");
+            var task=one("SELECT assigned_to,status FROM annotation_tasks WHERE id=?",r.taskId());
+            owns(a,task,"assigned_to");
+            state(!Set.of("SUBMITTED","APPROVED").contains(String.valueOf(task.get("status"))),"Tác vụ đã hoàn tất");
+        } else {
+            require(a,"REVIEWER");
+            var review=accessibleReviewCase(a,r.reviewCaseId(),true);
+            state(!"COMPLETED".equals(review.get("status")),"Review case đã hoàn tất");
+            if("PENDING".equals(review.get("status")))
+                db.update("UPDATE review_cases SET status='IN_PROGRESS',started_at=COALESCE(started_at,CURRENT_TIMESTAMP) WHERE id=?",r.reviewCaseId());
+        }
+        var active=db.queryForList("SELECT * FROM work_time_entries WHERE user_id=? AND task_id IS NOT DISTINCT FROM ? AND review_case_id IS NOT DISTINCT FROM ? AND ended_at IS NULL FOR UPDATE",a.id(),r.taskId(),r.reviewCaseId());
+        if(!active.isEmpty()) return active.getFirst();
+        return one("INSERT INTO work_time_entries(task_id,review_case_id,user_id,role_snapshot) VALUES (?,?,?,?) RETURNING *",r.taskId(),r.reviewCaseId(),a.id(),a.role());
+    }
+
+    public Map<String,Object> heartbeat(long entryId) {
+        var a=actor();require(a,"AI_LABELER","MANUAL_LABELER","REVIEWER");
+        var entry=one("SELECT * FROM work_time_entries WHERE id=? FOR UPDATE",entryId);owns(a,entry,"user_id");
+        state(entry.get("ended_at")==null,"Lượt đo thời gian đã kết thúc");
+        LocalDateTime last=(LocalDateTime)entry.get("last_heartbeat_at");
+        long delta=Math.max(0,Math.min(45,Duration.between(last,LocalDateTime.now()).getSeconds()));
+        return one("UPDATE work_time_entries SET active_seconds=active_seconds+?,last_heartbeat_at=CURRENT_TIMESTAMP WHERE id=? RETURNING *",delta,entryId);
+    }
+
+    public Map<String,Object> stopWorkTime(long entryId,WorkTimeStop r) {
+        var a=actor();require(a,"AI_LABELER","MANUAL_LABELER","REVIEWER");
+        var entry=one("SELECT * FROM work_time_entries WHERE id=? FOR UPDATE",entryId);owns(a,entry,"user_id");
+        if(entry.get("ended_at")!=null) return entry;
+        LocalDateTime last=(LocalDateTime)entry.get("last_heartbeat_at");
+        long delta=Math.max(0,Math.min(45,Duration.between(last,LocalDateTime.now()).getSeconds()));
+        return one("UPDATE work_time_entries SET active_seconds=active_seconds+?,last_heartbeat_at=CURRENT_TIMESTAMP,ended_at=CURRENT_TIMESTAMP,stop_reason=? WHERE id=? RETURNING *",delta,r.reason(),entryId);
+    }
+
+    public List<Map<String,Object>> reviewCases(String requestedStatus) {
+        var a=actor();require(a,"MANAGER","REVIEWER");
+        if(a.role().equals("MANAGER")) requirePermission(a,"TASKS","READ");
+        String status=requestedStatus==null?null:requestedStatus.trim().toUpperCase(Locale.ROOT);
+        if(status!=null&&!status.isBlank()) valid(Set.of("PENDING","IN_PROGRESS","COMPLETED").contains(status),"Trạng thái review case không hợp lệ");
+        String owner=a.role().equals("MANAGER")?"rc.created_by=?":"rc.assigned_to=?";
+        var args=new ArrayList<Object>();args.add(a.id());
+        String filter="";
+        if(status!=null&&!status.isBlank()){filter=" AND rc.status=?";args.add(status);}
+        return db.queryForList("""
+                SELECT rc.*,d.title AS document_title,d.original_name,
+                       lu.username AS left_assignee,ru.username AS right_assignee,
+                       reviewer.username AS reviewer,
+                       (SELECT count(*) FROM review_field_decisions fd WHERE fd.review_case_id=rc.id AND fd.final_value IS NOT NULL) AS resolved_fields
+                FROM review_cases rc
+                JOIN documents d ON d.id=rc.document_id
+                JOIN annotation_tasks lt ON lt.id=rc.left_task_id
+                JOIN annotation_tasks rt ON rt.id=rc.right_task_id
+                LEFT JOIN users lu ON lu.id=lt.assigned_to
+                LEFT JOIN users ru ON ru.id=rt.assigned_to
+                JOIN users reviewer ON reviewer.id=rc.assigned_to
+                """+" WHERE "+owner+filter+" ORDER BY rc.due_at NULLS LAST,rc.id DESC",args.toArray());
+    }
+
+    public Map<String,Object> createReviewCase(ReviewCaseCreate r) {
+        var a=actor();require(a,"MANAGER");requirePermission(a,"TASKS","WRITE");
+        valid(!r.leftTaskId().equals(r.rightTaskId()),"Hai nguồn review phải là hai task khác nhau");
+        var left=one("SELECT * FROM annotation_tasks WHERE id=? FOR SHARE",r.leftTaskId());
+        var right=one("SELECT * FROM annotation_tasks WHERE id=? FOR SHARE",r.rightTaskId());
+        owns(a,left,"assigned_by");owns(a,right,"assigned_by");
+        valid(Objects.equals(nullableId(left,"document_id"),nullableId(right,"document_id")),"Hai task phải thuộc cùng tài liệu");
+        state(Set.of("SUBMITTED","APPROVED").contains(String.valueOf(left.get("status")))&&Set.of("SUBMITTED","APPROVED").contains(String.valueOf(right.get("status"))),"Hai task phải được nộp trước khi tạo review case");
+        var reviewer=one("SELECT role,is_active FROM users WHERE id=?",r.assignedTo());
+        valid("REVIEWER".equals(reviewer.get("role"))&&Boolean.TRUE.equals(reviewer.get("is_active")),"Người nhận phải là Reviewer đang hoạt động");
+        var row=one("INSERT INTO review_cases(document_id,left_task_id,right_task_id,assigned_to,created_by,due_at) VALUES (?,?,?,?,?,?) RETURNING *",nullableId(left,"document_id"),r.leftTaskId(),r.rightTaskId(),r.assignedTo(),a.id(),r.dueAt());
+        audit(a,"CREATE","REVIEW_CASE",id(row,"id"));return row;
+    }
+
+    public Map<String,Object> reviewCase(long reviewCaseId) {
+        var a=actor();require(a,"MANAGER","REVIEWER");
+        var review=accessibleReviewCase(a,reviewCaseId,false);
+        long leftId=nullableId(review,"left_task_id"),rightId=nullableId(review,"right_task_id");
+        var left=annotationMap(leftId);var right=annotationMap(rightId);
+        var decisions=new HashMap<String,Map<String,Object>>();
+        for(var row:db.queryForList("SELECT * FROM review_field_decisions WHERE review_case_id=? ORDER BY id",reviewCaseId)) decisions.put(String.valueOf(row.get("field_key")),row);
+        var keys=new TreeSet<String>();keys.addAll(left.keySet());keys.addAll(right.keySet());
+        var fields=new ArrayList<Map<String,Object>>();
+        for(String key:keys) fields.add(comparisonField(key,left.get(key),right.get(key),decisions.get(key)));
+        review.put("fields",fields);
+        review.put("history",db.queryForList("SELECT fd.*,u.username AS reviewer FROM review_field_decisions fd LEFT JOIN users u ON u.id=fd.reviewed_by WHERE fd.review_case_id=? ORDER BY fd.reviewed_at DESC NULLS LAST,fd.id DESC",reviewCaseId));
+        return review;
+    }
+
+    private Map<String,Map<String,Object>> annotationMap(long taskId) {
+        var result=new LinkedHashMap<String,Map<String,Object>>();
+        for(var row:db.queryForList("SELECT id,label_name,label_value,source_page,confidence,source_bbox::text AS source_bbox FROM annotations WHERE task_id=? ORDER BY id",taskId)) result.put(fieldKey(String.valueOf(row.get("label_name"))),row);
+        return result;
+    }
+    private Map<String,Object> comparisonField(String key,Map<String,Object> left,Map<String,Object> right,Map<String,Object> decision) {
+        String leftValue=left==null?null:(String)left.get("label_value"),rightValue=right==null?null:(String)right.get("label_value");
+        String type=comparisonType(leftValue,rightValue);
+        var field=new LinkedHashMap<String,Object>();
+        field.put("fieldKey",key);field.put("fieldName",left!=null?left.get("label_name"):right.get("label_name"));field.put("comparisonType",type);
+        field.put("left",left);field.put("right",right);
+        if(decision!=null){field.put("finalValue",decision.get("final_value"));field.put("selectedSource",decision.get("selected_source"));field.put("feedback",decision.get("feedback"));}
+        else if("EXACT".equals(type)){field.put("finalValue",leftValue);field.put("selectedSource","AUTO");}
+        return field;
+    }
+    private static String comparisonType(String left,String right) {
+        if(left==null||right==null) return "MISSING";
+        String a=normalizeValue(left),b=normalizeValue(right);
+        if(a.equals(b)) return "EXACT";
+        return canonicalValue(a).equals(canonicalValue(b))?"FORMAT_ONLY":"VALUE_DIFFERENT";
+    }
+    private static String normalizeValue(String value) { return value.trim().replaceAll("\\s+"," ").toLowerCase(Locale.ROOT); }
+    private static String canonicalValue(String value) {
+        String grouped=value.replaceAll("(?<=\\d)[.,](?=\\d{3}(?:\\D|$))","");
+        return grouped.replace(',','.').replaceAll("[.!?]+$","");
+    }
+
+    public Map<String,Object> saveReviewField(long reviewCaseId,String requestedFieldKey,ReviewFieldDecision r) {
+        var a=actor();require(a,"REVIEWER");var review=accessibleReviewCase(a,reviewCaseId,true);
+        state(!"COMPLETED".equals(review.get("status")),"Review case đã hoàn tất");
+        String key=fieldKey(requestedFieldKey);
+        var left=annotationMap(nullableId(review,"left_task_id"));var right=annotationMap(nullableId(review,"right_task_id"));
+        valid(left.containsKey(key)||right.containsKey(key),"Section không tồn tại trong hai kết quả nguồn");
+        var l=left.get(key);var rr=right.get(key);String type=comparisonType(l==null?null:(String)l.get("label_value"),rr==null?null:(String)rr.get("label_value"));
+        String name=String.valueOf(l!=null?l.get("label_name"):rr.get("label_name"));
+        var row=one("""
+                INSERT INTO review_field_decisions(review_case_id,field_key,field_name,comparison_type,left_value,right_value,left_source_page,right_source_page,left_source_bbox,right_source_bbox,final_value,selected_source,feedback,reviewed_by,reviewed_at)
+                VALUES (?,?,?,?,?,?,?,?,CAST(? AS jsonb),CAST(? AS jsonb),?,?,?,?,CURRENT_TIMESTAMP)
+                ON CONFLICT (review_case_id,field_key) DO UPDATE SET field_name=EXCLUDED.field_name,comparison_type=EXCLUDED.comparison_type,left_value=EXCLUDED.left_value,right_value=EXCLUDED.right_value,left_source_page=EXCLUDED.left_source_page,right_source_page=EXCLUDED.right_source_page,left_source_bbox=EXCLUDED.left_source_bbox,right_source_bbox=EXCLUDED.right_source_bbox,final_value=EXCLUDED.final_value,selected_source=EXCLUDED.selected_source,feedback=EXCLUDED.feedback,reviewed_by=EXCLUDED.reviewed_by,reviewed_at=CURRENT_TIMESTAMP
+                RETURNING *
+                """,reviewCaseId,key,name,type,l==null?null:l.get("label_value"),rr==null?null:rr.get("label_value"),l==null?null:l.get("source_page"),rr==null?null:rr.get("source_page"),l==null?null:l.get("source_bbox"),rr==null?null:rr.get("source_bbox"),r.finalValue().trim(),r.selectedSource(),r.feedback(),a.id());
+        db.update("UPDATE review_cases SET status='IN_PROGRESS',started_at=COALESCE(started_at,CURRENT_TIMESTAMP) WHERE id=?",reviewCaseId);
+        audit(a,"RESOLVE_FIELD","REVIEW_CASE",reviewCaseId);return row;
+    }
+
+    public Map<String,Object> completeReviewCase(long reviewCaseId) {
+        var a=actor();require(a,"REVIEWER");var review=accessibleReviewCase(a,reviewCaseId,true);
+        state(!"COMPLETED".equals(review.get("status")),"Review case đã hoàn tất");
+        requireAllDone(reviewerCompletion(a),"Chưa thể Approve Review");
+        long leftId=nullableId(review,"left_task_id"),rightId=nullableId(review,"right_task_id");
+        var left=annotationMap(leftId);var right=annotationMap(rightId);var keys=new TreeSet<String>();keys.addAll(left.keySet());keys.addAll(right.keySet());
+        valid(!keys.isEmpty(),"Review case chưa có section để duyệt");
+        for(String key:keys) {
+            var l=left.get(key);var rr=right.get(key);String lv=l==null?null:(String)l.get("label_value"),rv=rr==null?null:(String)rr.get("label_value");
+            if("EXACT".equals(comparisonType(lv,rv))&&count("SELECT count(*) FROM review_field_decisions WHERE review_case_id=? AND field_key=?",reviewCaseId,key)==0)
+                db.update("INSERT INTO review_field_decisions(review_case_id,field_key,field_name,comparison_type,left_value,right_value,final_value,selected_source,reviewed_by,reviewed_at) VALUES (?,?,?,'EXACT',?,?,?,'LEFT',?,CURRENT_TIMESTAMP)",reviewCaseId,key,l.get("label_name"),lv,rv,lv,a.id());
+        }
+        state(count("SELECT count(*) FROM review_field_decisions WHERE review_case_id=? AND final_value IS NOT NULL AND btrim(final_value)<>''",reviewCaseId)==keys.size(),"Cần xác nhận giá trị cuối cùng cho tất cả section khác nhau");
+        db.update("UPDATE review_cases SET status='COMPLETED',started_at=COALESCE(started_at,CURRENT_TIMESTAMP),completed_at=CURRENT_TIMESTAMP WHERE id=?",reviewCaseId);
+        db.update("UPDATE annotation_tasks SET status='APPROVED' WHERE id IN (?,?) AND status='SUBMITTED'",leftId,rightId);
+        db.update("UPDATE task_section_progress SET status='REVIEWED',reviewed_at=CURRENT_TIMESTAMP WHERE task_id IN (?,?)",leftId,rightId);
+        audit(a,"COMPLETE","REVIEW_CASE",reviewCaseId);return reviewCase(reviewCaseId);
+    }
+
+    public Map<String,Object> sessionCompletion(Long sessionId) {
+        var a=actor();
+        return switch(a.role()) {
+            case "AI_LABELER", "MANUAL_LABELER" -> labelerCompletion(a,sessionId);
+            case "REVIEWER" -> reviewerCompletion(a);
+            case "RESULT_ANALYST" -> analystCompletion(a,sessionId);
+            default -> throw error(HttpStatus.FORBIDDEN,"Vai trò không hỗ trợ trạng thái hoàn thành session");
+        };
+    }
+
+    private Map<String,Object> labelerCompletion(Actor a,Long sessionId) {
+        var params=new ArrayList<Object>();params.add(a.id());
+        String sessionFilter;
+        if(sessionId==null) sessionFilter=" AND t.session_id IS NULL";
+        else {sessionFilter=" AND t.session_id=?";params.add(sessionId);}
+        var tasks=db.queryForList("""
+                SELECT t.id,t.status,d.title AS document_title
+                FROM annotation_tasks t JOIN documents d ON d.id=t.document_id
+                WHERE t.assigned_to=?"""+sessionFilter+" ORDER BY t.id",params.toArray());
+        var documents=new ArrayList<Map<String,Object>>();
+        for(var task:tasks) {
+            long taskId=id(task,"id");
+            var labels=new HashMap<String,Map<String,Object>>();
+            for(var row:db.queryForList("SELECT label_name,label_value,source_page FROM annotations WHERE task_id=?",taskId))
+                labels.put(fieldKey(String.valueOf(row.get("label_name"))),row);
+            var missing=new ArrayList<String>();
+            for(String required:REQUIRED_FINANCIAL_FIELDS) {
+                var row=labels.get(required);
+                if(row==null||row.get("label_value")==null||String.valueOf(row.get("label_value")).isBlank()) missing.add(required);
+                else if(row.get("source_page")==null) missing.add(required+" (Source Page)");
+            }
+            String status=missing.isEmpty()?"done":labels.isEmpty()?"pending":"processing";
+            documents.add(completionDocument(taskId,String.valueOf(task.get("document_title")),status,missing));
+        }
+        return completionResult(documents);
+    }
+
+    private Map<String,Object> reviewerCompletion(Actor a) {
+        var documents=new ArrayList<Map<String,Object>>();
+        for(var summary:reviewCases(null)) {
+            long caseId=id(summary,"id");
+            var detail=reviewCase(caseId);
+            @SuppressWarnings("unchecked") var fields=(List<Map<String,Object>>)detail.getOrDefault("fields",List.of());
+            var missing=new ArrayList<String>();int decided=0;
+            for(var field:fields) {
+                if(!"EXACT".equals(field.get("comparisonType"))) {
+                    Object finalValue=field.get("finalValue"),selected=field.get("selectedSource");
+                    if(finalValue==null||String.valueOf(finalValue).isBlank()||selected==null) missing.add(String.valueOf(field.get("fieldName")));
+                    else decided++;
+                }
+            }
+            String status=missing.isEmpty()?"done":decided>0||"IN_PROGRESS".equals(summary.get("status"))?"processing":"pending";
+            var row=completionDocument(caseId,String.valueOf(summary.get("document_title")),status,missing);
+            row.put("missingCount",missing.size());documents.add(row);
+        }
+        return completionResult(documents);
+    }
+
+    private Map<String,Object> analystCompletion(Actor a,Long sessionId) {
+        var args=new ArrayList<Object>();String filter="";
+        if(sessionId!=null){filter=" AND t.session_id=?";args.add(sessionId);}
+        var tasks=db.queryForList("SELECT t.id,d.title AS document_title FROM annotation_tasks t JOIN documents d ON d.id=t.document_id WHERE t.task_type='AI'"+filter+" ORDER BY t.id",args.toArray());
+        var documents=new ArrayList<Map<String,Object>>();
+        for(var task:tasks) {
+            long taskId=id(task,"id");
+            var runs=db.queryForList("""
+                    SELECT run_id,max(created_at) AS created_at FROM ai_labeler_results
+                    WHERE task_id=? GROUP BY run_id ORDER BY max(created_at) DESC LIMIT 2
+                    """,taskId);
+            var missing=new ArrayList<String>();int handled=0;
+            if(runs.size()<2) missing.add("Chưa có đủ 2 lần chạy AI để so sánh");
+            else {
+                Object leftRun=runs.get(0).get("run_id"),rightRun=runs.get(1).get("run_id");
+                var left=aiRunMap(taskId,leftRun);
+                var right=aiRunMap(taskId,rightRun);
+                var keys=new TreeSet<String>();keys.addAll(left.keySet());keys.addAll(right.keySet());
+                for(String key:keys) {
+                    var l=left.get(key);var r=right.get(key);
+                    String lv=l==null||l.get("indicator_value")==null?null:String.valueOf(l.get("indicator_value"));
+                    String rv=r==null||r.get("indicator_value")==null?null:String.valueOf(r.get("indicator_value"));
+                    if("EXACT".equals(comparisonType(lv,rv))) continue;
+                    var actions=db.queryForList("SELECT note,redo_confirmed FROM result_analysis_actions WHERE task_id=? AND field_key=?",taskId,key);
+                    boolean done=!actions.isEmpty()&&((actions.getFirst().get("note")!=null&&!String.valueOf(actions.getFirst().get("note")).isBlank())||Boolean.TRUE.equals(actions.getFirst().get("redo_confirmed")));
+                    if(done)handled++;else missing.add(key);
+                }
+            }
+            String status=missing.isEmpty()?"done":handled>0?"processing":"pending";
+            documents.add(completionDocument(taskId,String.valueOf(task.get("document_title")),status,missing));
+        }
+        return completionResult(documents);
+    }
+
+    private Map<String,Map<String,Object>> aiRunMap(long taskId,Object runId) {
+        var result=new LinkedHashMap<String,Map<String,Object>>();
+        for(var row:db.queryForList("SELECT indicator_name,indicator_value FROM ai_labeler_results WHERE task_id=? AND run_id=?",taskId,runId))
+            result.put(fieldKey(String.valueOf(row.get("indicator_name"))),row);
+        return result;
+    }
+
+    private Map<String,Object> completionDocument(long id,String name,String status,List<String> missing) {
+        var row=new LinkedHashMap<String,Object>();row.put("id",id);row.put("name",name);row.put("status",status);row.put("missingDetail",missing);return row;
+    }
+    private Map<String,Object> completionResult(List<Map<String,Object>> documents) {
+        var missingItems=new ArrayList<Map<String,Object>>();
+        for(var document:documents) if(!"done".equals(document.get("status"))) {
+            var item=new LinkedHashMap<String,Object>();item.put("id",document.get("id"));item.put("fileName",document.get("name"));item.put("detail",document.get("missingDetail"));missingItems.add(item);
+        }
+        var result=new LinkedHashMap<String,Object>();result.put("documents",documents);result.put("missingItems",missingItems);result.put("allDone",!documents.isEmpty()&&missingItems.isEmpty());return result;
+    }
+    private void requireAllDone(Map<String,Object> completion,String title) {
+        if(Boolean.TRUE.equals(completion.get("allDone")))return;
+        @SuppressWarnings("unchecked") var items=(List<Map<String,Object>>)completion.getOrDefault("missingItems",List.of());
+        String detail=items.stream().map(item->item.get("fileName")+" — thiếu: "+item.get("detail")).reduce((a,b)->a+"; "+b).orElse("Không có file hợp lệ");
+        throw error(HttpStatus.CONFLICT,title+". "+detail);
+    }
+
+    public Map<String,Object> saveAnalysisField(long taskId,String requestedFieldKey,AnalysisFieldAction request) {
+        var a=actor();require(a,"RESULT_ANALYST");
+        state(canReadTask(a,taskId),"Bạn không được phân tích task này");
+        String key=fieldKey(requestedFieldKey);
+        valid((request.note()!=null&&!request.note().isBlank())||Boolean.TRUE.equals(request.redoConfirmed()),"Cần nhập NOTE hoặc xác nhận kết quả redo");
+        var row=one("""
+                INSERT INTO result_analysis_actions(task_id,field_key,note,redo_run_id,redo_confirmed,updated_by)
+                VALUES (?,?,?,?,?,?)
+                ON CONFLICT (task_id,field_key) DO UPDATE SET note=COALESCE(EXCLUDED.note,result_analysis_actions.note),redo_run_id=COALESCE(EXCLUDED.redo_run_id,result_analysis_actions.redo_run_id),redo_confirmed=EXCLUDED.redo_confirmed,updated_by=EXCLUDED.updated_by,updated_at=CURRENT_TIMESTAMP
+                RETURNING *
+                """,taskId,key,request.note(),request.redoRunId(),request.redoConfirmed(),a.id());
+        audit(a,"RESOLVE_FIELD","RESULT_ANALYSIS",taskId);return row;
+    }
+
+    public Map<String,Object> completeAnalysis(Long sessionId) {
+        var a=actor();require(a,"RESULT_ANALYST");var completion=analystCompletion(a,sessionId);requireAllDone(completion,"Chưa thể Complete Analysis");
+        var taskIds=new ArrayList<Long>();
+        @SuppressWarnings("unchecked") var documents=(List<Map<String,Object>>)completion.get("documents");
+        for(var document:documents){long taskId=((Number)document.get("id")).longValue();taskIds.add(taskId);db.update("INSERT INTO result_analysis_completions(task_id,completed_by) VALUES (?,?) ON CONFLICT (task_id) DO UPDATE SET completed_by=EXCLUDED.completed_by,completed_at=CURRENT_TIMESTAMP",taskId,a.id());audit(a,"COMPLETE","RESULT_ANALYSIS",taskId);}
+        var result=new LinkedHashMap<String,Object>();result.put("completedTaskIds",taskIds);result.put("completion",completion);return result;
+    }
+    private Map<String,Object> normalizeTerm(Map<String,Object> source) {
+        var row = new LinkedHashMap<String,Object>(source);
+        row.put("synonyms", readJson(source.get("synonyms"), List.class, List.of()));
+        row.put("related_term_ids", readJson(source.get("related_term_ids"), List.class, List.of()));
+        return row;
+    }
+    public List<Map<String,Object>> terms() { actor();return db.queryForList("SELECT id,term,definition,category,status,abbreviation,synonyms::text AS synonyms,related_term_ids::text AS related_term_ids,example_usage,created_by,created_at,updated_at FROM terminology_entries ORDER BY term").stream().map(this::normalizeTerm).toList(); }
     public Map<String,Object> saveTerm(Long termId,Term r) {
         var a=actor();require(a,"TERMINOLOGY");valid(Set.of("ACTIVE","INACTIVE").contains(r.status()),"Trạng thái thuật ngữ không hợp lệ");
+        var synonyms = r.synonyms() == null ? List.<String>of() : r.synonyms().stream().map(String::trim).filter(s -> !s.isBlank()).distinct().toList();
+        var related = r.relatedTermIds() == null ? List.<Long>of() : r.relatedTermIds().stream().distinct().toList();
+        for (Long relatedId : related) { valid(!Objects.equals(termId, relatedId), "Thuật ngữ không thể liên kết với chính nó"); valid(count("SELECT count(*) FROM terminology_entries WHERE id=?", relatedId) > 0, "Thuật ngữ liên quan không tồn tại"); }
+        Map<String,Object> old = termId == null ? null : normalizeTerm(one("SELECT id,term,definition,category,status,abbreviation,synonyms::text AS synonyms,related_term_ids::text AS related_term_ids,example_usage,created_by,created_at,updated_at FROM terminology_entries WHERE id=? FOR UPDATE", termId));
         Map<String,Object> row;
-        if(termId==null) row=one("INSERT INTO terminology_entries(term,definition,category,status,created_by) VALUES (?,?,?,?,?) RETURNING *",r.term().trim(),r.definition(),r.category(),r.status(),a.id());
-        else row=one("UPDATE terminology_entries SET term=?,definition=?,category=?,status=?,updated_at=CURRENT_TIMESTAMP WHERE id=? RETURNING *",r.term().trim(),r.definition(),r.category(),r.status(),termId);
+        if(termId==null) row=one("INSERT INTO terminology_entries(term,definition,category,status,abbreviation,synonyms,related_term_ids,example_usage,created_by) VALUES (?,?,?,?,?,CAST(? AS jsonb),CAST(? AS jsonb),?,?) RETURNING *",r.term().trim(),r.definition(),r.category(),r.status(),r.abbreviation(),jsonValue(synonyms),jsonValue(related),r.exampleUsage(),a.id());
+        else row=one("UPDATE terminology_entries SET term=?,definition=?,category=?,status=?,abbreviation=?,synonyms=CAST(? AS jsonb),related_term_ids=CAST(? AS jsonb),example_usage=?,updated_at=CURRENT_TIMESTAMP WHERE id=? RETURNING *",r.term().trim(),r.definition(),r.category(),r.status(),r.abbreviation(),jsonValue(synonyms),jsonValue(related),r.exampleUsage(),termId);
+        row=normalizeTerm(row);
+        db.update("INSERT INTO term_audit_logs(term_id,term_name,actor_id,action,old_values,new_values) VALUES (?,?,?,?,CAST(? AS jsonb),CAST(? AS jsonb))",id(row,"id"),row.get("term"),a.id(),termId==null?"CREATED":"UPDATED",old==null?null:jsonValue(old),jsonValue(row));
         audit(a,termId==null?"CREATE":"UPDATE","TERM",id(row,"id"));return row;
     }
     public void deleteTerm(long termId) {
-        var a=actor();require(a,"TERMINOLOGY");one("DELETE FROM terminology_entries WHERE id=? RETURNING id",termId);audit(a,"DELETE","TERM",termId);
+        var a=actor();require(a,"TERMINOLOGY");var old=normalizeTerm(one("SELECT id,term,definition,category,status,abbreviation,synonyms::text AS synonyms,related_term_ids::text AS related_term_ids,example_usage,created_by,created_at,updated_at FROM terminology_entries WHERE id=? FOR UPDATE",termId));
+        db.update("INSERT INTO term_audit_logs(term_id,term_name,actor_id,action,old_values,new_values) VALUES (?,?,?,?,CAST(? AS jsonb),CAST(? AS jsonb))",termId,old.get("term"),a.id(),"DELETED",jsonValue(old),null);
+        one("DELETE FROM terminology_entries WHERE id=? RETURNING id",termId);audit(a,"DELETE","TERM",termId);
+    }
+    public List<Map<String,Object>> termAuditLogs(Long userId,Long termId) {
+        var a=actor();require(a,"TERMINOLOGY","ADMIN");var sql=new StringBuilder("SELECT l.id,l.term_id,l.term_name,l.action,l.old_values::text AS old_values,l.new_values::text AS new_values,l.created_at,u.id AS actor_id,u.username FROM term_audit_logs l LEFT JOIN users u ON u.id=l.actor_id WHERE 1=1");var args=new ArrayList<Object>();
+        if(userId!=null){sql.append(" AND l.actor_id=?");args.add(userId);}if(termId!=null){sql.append(" AND l.term_id=?");args.add(termId);}sql.append(" ORDER BY l.created_at DESC,l.id DESC LIMIT 500");
+        return db.queryForList(sql.toString(),args.toArray()).stream().map(source->{var row=new LinkedHashMap<String,Object>(source);row.put("old_values",readJson(source.get("old_values"),Map.class,Map.of()));row.put("new_values",readJson(source.get("new_values"),Map.class,Map.of()));return (Map<String,Object>)row;}).toList();
     }
     public List<Map<String,Object>> prompts() {
         var a=actor();require(a,"AI_LABELER");return db.queryForList("SELECT * FROM prompt_templates WHERE created_by=? ORDER BY id DESC",a.id());
+    }
+    public List<Map<String,Object>> promptOptions() {
+        var a=actor();require(a,"AI_LABELER","MANUAL_LABELER");
+        return db.queryForList("SELECT id,name,description,content,model,is_active,created_by,created_at,updated_at FROM prompt_templates WHERE is_active=true ORDER BY model NULLS LAST, id DESC");
     }
     public Map<String,Object> savePrompt(Long promptId,Prompt r) {
         var a=actor();require(a,"AI_LABELER");Map<String,Object> row;
@@ -446,12 +939,50 @@ public class WorkspaceService {
         }
         return data;
     }
-    public Map<String,Object> statistics() {
+    public Map<String,Object> statistics() { return statistics(null,null,null); }
+    public Map<String,Object> statistics(Long sessionId,LocalDateTime from,LocalDateTime to) {
         var a=actor();require(a,"MANAGER","RESULT_ANALYST");
         if (a.role().equals("MANAGER")) requirePermission(a, "STATISTICS", "READ");
+        if(from!=null&&to!=null) valid(!from.isAfter(to),"Khoảng thời gian thống kê không hợp lệ");
+        StringBuilder where=new StringBuilder(taskScope(a));var args=new ArrayList<Object>();
+        if(sessionId!=null){where.append(" AND t.session_id=?");args.add(sessionId);}
+        if(from!=null){where.append(" AND t.created_at>=?");args.add(from);}
+        if(to!=null){where.append(" AND t.created_at<=?");args.add(to);}
+        String scope=where.toString();Object[] values=args.toArray();
         var data=new LinkedHashMap<String,Object>();
-        data.put("statuses",db.queryForList("SELECT t.status,count(*) AS total FROM annotation_tasks t WHERE "+taskScope(a)+" GROUP BY t.status ORDER BY t.status"));
-        data.put("labels",db.queryForList("SELECT n.label_name,count(*) AS total,avg(n.confidence) AS average_confidence FROM annotations n JOIN annotation_tasks t ON t.id=n.task_id WHERE "+taskScope(a)+" GROUP BY n.label_name ORDER BY total DESC"));
-        data.put("assignees",db.queryForList("SELECT u.username,count(*) AS total,count(*) FILTER (WHERE t.status='APPROVED') AS approved FROM annotation_tasks t LEFT JOIN users u ON u.id=t.assigned_to WHERE "+taskScope(a)+" GROUP BY u.username ORDER BY total DESC"));return data;
+        data.put("statuses",db.queryForList("SELECT t.status,count(*) AS total FROM annotation_tasks t WHERE "+scope+" GROUP BY t.status ORDER BY t.status",values));
+        data.put("labels",db.queryForList("SELECT n.label_name,count(*) AS total,avg(n.confidence) AS average_confidence FROM annotations n JOIN annotation_tasks t ON t.id=n.task_id WHERE "+scope+" GROUP BY n.label_name ORDER BY total DESC",values));
+        data.put("assignees",db.queryForList("SELECT u.username,count(*) AS total,count(*) FILTER (WHERE t.status='APPROVED') AS approved,count(*) FILTER (WHERE t.due_at<CURRENT_TIMESTAMP AND t.status NOT IN ('APPROVED','REJECTED')) AS overdue FROM annotation_tasks t LEFT JOIN users u ON u.id=t.assigned_to WHERE "+scope+" GROUP BY u.username ORDER BY total DESC",values));
+        data.put("sectionProgress",db.queryForList("""
+                SELECT t.id AS task_id,t.session_id,d.title AS document_title,u.username,t.assistance_mode,
+                       sp.field_key,sp.field_name,sp.status AS section_status,t.status AS task_status,t.due_at,
+                       CASE WHEN t.status='APPROVED' THEN 'COMPLETED'
+                            WHEN t.due_at<CURRENT_TIMESTAMP AND t.status NOT IN ('APPROVED','REJECTED') THEN 'OVERDUE'
+                            WHEN t.status='PENDING' THEN 'PENDING' ELSE 'IN_PROGRESS' END AS deadline_status
+                FROM annotation_tasks t JOIN documents d ON d.id=t.document_id
+                LEFT JOIN users u ON u.id=t.assigned_to
+                LEFT JOIN task_section_progress sp ON sp.task_id=t.id
+                WHERE """+scope+" ORDER BY t.due_at NULLS LAST,t.id,sp.field_name",values));
+        data.put("userProductivity",db.queryForList("""
+                SELECT u.id AS user_id,u.username,count(DISTINCT t.id) AS assigned_tasks,
+                       count(DISTINCT t.id) FILTER (WHERE t.status IN ('SUBMITTED','APPROVED')) AS submitted_tasks,
+                       count(DISTINCT t.id) FILTER (WHERE t.status='APPROVED') AS completed_tasks,
+                       count(sp.id) FILTER (WHERE sp.status='SAVED') AS saved_sections,
+                       count(sp.id) FILTER (WHERE sp.status='SUBMITTED') AS submitted_sections,
+                       count(sp.id) FILTER (WHERE sp.status='REVIEWED') AS reviewed_sections,
+                       count(DISTINCT t.id) FILTER (WHERE t.due_at<CURRENT_TIMESTAMP AND t.status NOT IN ('APPROVED','REJECTED')) AS overdue_tasks
+                FROM annotation_tasks t LEFT JOIN users u ON u.id=t.assigned_to
+                LEFT JOIN task_section_progress sp ON sp.task_id=t.id
+                WHERE """+scope+" GROUP BY u.id,u.username ORDER BY completed_tasks DESC,u.username",values));
+        data.put("timeComparison",db.queryForList("""
+                SELECT t.assistance_mode,count(DISTINCT t.id) AS sample_size,
+                       round(avg(w.total_seconds)::numeric,2) AS average_seconds,
+                       round(percentile_cont(0.5) WITHIN GROUP (ORDER BY w.total_seconds)::numeric,2) AS median_seconds
+                FROM annotation_tasks t
+                JOIN (SELECT task_id,sum(active_seconds) AS total_seconds FROM work_time_entries WHERE task_id IS NOT NULL GROUP BY task_id) w ON w.task_id=t.id
+                WHERE """+scope+" AND t.task_type='MANUAL' AND t.status IN ('SUBMITTED','APPROVED') GROUP BY t.assistance_mode ORDER BY t.assistance_mode",values));
+        data.put("overdueTasks",db.queryForList("SELECT t.id,d.title AS document_title,u.username,t.status,t.due_at,t.assistance_mode FROM annotation_tasks t JOIN documents d ON d.id=t.document_id LEFT JOIN users u ON u.id=t.assigned_to WHERE "+scope+" AND t.due_at<CURRENT_TIMESTAMP AND t.status NOT IN ('APPROVED','REJECTED') ORDER BY t.due_at",values));
+        if(a.role().equals("MANAGER")) data.put("reviewCases",reviewCases(null));
+        return data;
     }
 }

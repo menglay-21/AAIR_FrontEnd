@@ -70,6 +70,15 @@
         }
         return formatted + input.slice(token.length);
     }
+    function splitLabelValue(value, explicitSourceLabel) {
+        const input = String(value ?? '');
+        const marker = input.match(/\n\s*Nhãn nguồn:\s*/i);
+        const sourceLabel = String(explicitSourceLabel ?? (marker ? input.slice(marker.index + marker[0].length) : '')).trim();
+        return {
+            editableValue: marker ? input.slice(0, marker.index).trimEnd() : input,
+            sourceLabel,
+        };
+    }
     function viDateToIso(value) {
         const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value.trim());
         if (!match) throw new Error('Ngày hết hạn phải theo định dạng dd/mm/yyyy.');
@@ -106,6 +115,183 @@
         } else b.textContent=label;
         bind(b, callback); return b;
     }
+    function avatarNode(row, sizeClass = 'w-9 h-9') {
+        const holder=document.createElement('span');
+        holder.className=`${sizeClass} shrink-0 overflow-hidden rounded-full bg-primary/10 text-primary inline-flex items-center justify-center font-bold`;
+        const source=AAIR.assetUrl?.(row.avatar_url||row.avatarUrl);
+        if(source){
+            const image=document.createElement('img');image.src=source;image.alt=`Avatar ${row.username||''}`;
+            image.className='w-full h-full object-cover';image.addEventListener('error',()=>{image.remove();holder.textContent=(row.username||'?').slice(0,2).toUpperCase();});
+            holder.append(image);
+        }else holder.textContent=(row.username||'?').slice(0,2).toUpperCase();
+        return holder;
+    }
+    function userIdentity(row) {
+        const wrap=document.createElement('span');wrap.className='inline-flex items-center gap-3';
+        const name=document.createElement('span');name.textContent=row.username;name.className='font-medium text-on-surface';
+        wrap.append(avatarNode(row),name);return wrap;
+    }
+    const requestFrame=callback=>typeof window.requestAnimationFrame==='function'
+        ? window.requestAnimationFrame(callback)
+        : window.setTimeout(callback,0);
+    const cancelFrame=id=>{
+        if(typeof window.cancelAnimationFrame==='function')window.cancelAnimationFrame(id);
+        else window.clearTimeout(id);
+    };
+    function setupTaskWorkspace() {
+        const workspace=$('main');
+        const pdfPane=workspace?.children[0];
+        const dataPane=workspace?.children[1];
+        if(!workspace||!pdfPane||!dataPane||!$('#pdfViewer',pdfPane))return;
+
+        const storageKey='aair.taskWorkspace.pdfPaneWidth';
+        const clamp=value=>Math.min(80,Math.max(30,Number(value)||58));
+        let width=clamp(localStorage.getItem(storageKey));
+        let frame=0;
+        pdfPane.classList.add('workspace-pdf-pane');
+        dataPane.classList.add('workspace-data-pane');
+        $('#pdfViewer',pdfPane).parentElement?.classList.add('workspace-pdf-viewport');
+        workspace.style.setProperty('--pdf-pane-width',`${width}%`);
+
+        const splitter=document.createElement('button');
+        splitter.type='button';
+        splitter.className='task-workspace-splitter';
+        splitter.title='Kéo để thay đổi chiều rộng vùng PDF';
+        splitter.setAttribute('role','separator');
+        splitter.setAttribute('aria-label','Thay đổi chiều rộng vùng PDF');
+        splitter.setAttribute('aria-orientation','vertical');
+        splitter.setAttribute('aria-valuemin','30');
+        splitter.setAttribute('aria-valuemax','80');
+        splitter.setAttribute('aria-valuenow',String(Math.round(width)));
+        dataPane.before(splitter);
+
+        const applyWidth=(next,persist=false)=>{
+            width=clamp(next);
+            cancelFrame(frame);
+            frame=requestFrame(()=>{
+                workspace.style.setProperty('--pdf-pane-width',`${width}%`);
+                splitter.setAttribute('aria-valuenow',String(Math.round(width)));
+                window.dispatchEvent(new Event('resize'));
+            });
+            if(persist)localStorage.setItem(storageKey,String(width));
+        };
+        const move=event=>{
+            const bounds=workspace.getBoundingClientRect();
+            applyWidth((event.clientX-bounds.left)/bounds.width*100);
+        };
+        const stop=event=>{
+            if(splitter.hasPointerCapture(event.pointerId))splitter.releasePointerCapture(event.pointerId);
+            document.body.classList.remove('task-workspace-resizing');
+            applyWidth(width,true);
+        };
+        splitter.addEventListener('pointerdown',event=>{
+            splitter.setPointerCapture(event.pointerId);
+            document.body.classList.add('task-workspace-resizing');
+            move(event);
+        });
+        splitter.addEventListener('pointermove',event=>{
+            if(splitter.hasPointerCapture(event.pointerId))move(event);
+        });
+        splitter.addEventListener('pointerup',stop);
+        splitter.addEventListener('pointercancel',stop);
+        splitter.addEventListener('keydown',event=>{
+            if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+            event.preventDefault();
+            const next=event.key==='Home'?30:event.key==='End'?80:width+(event.key==='ArrowLeft'?-2:2);
+            applyWidth(next,true);
+        });
+    }
+    function setupDocumentSidebar(options={}) {
+        const sidebar=options.sidebar||document.querySelector('body > aside');
+        const workspace=options.workspace||$('main');
+        if(!sidebar||!workspace)return;
+
+        const storagePrefix=options.storagePrefix||'aair.taskWorkspace.documentSidebar';
+        const widthKey=`${storagePrefix}Width`;
+        const expandedKey=`${storagePrefix}ExpandedWidth`;
+        const defaultWidth=options.defaultWidth||157;
+        const clamp=value=>Math.min(320,Math.max(80,Number(value)||defaultWidth));
+        const savedRaw=localStorage.getItem(widthKey);
+        const saved=savedRaw===null?defaultWidth:Number(savedRaw);
+        let width=saved===0?0:clamp(saved);
+        let expandedWidth=clamp(localStorage.getItem(expandedKey)||width||defaultWidth);
+        let frame=0;
+        let startX=0;
+        let moved=false;
+
+        const handle=document.createElement('button');
+        handle.type='button';
+        handle.className=`document-sidebar-handle${options.handleClass?` ${options.handleClass}`:''}`;
+        handle.setAttribute('role','separator');
+        handle.setAttribute('aria-label','Thay đổi chiều rộng danh sách tài liệu');
+        handle.setAttribute('aria-orientation','vertical');
+        handle.setAttribute('aria-valuemin','0');
+        handle.setAttribute('aria-valuemax','320');
+        const icon=document.createElement('span');
+        icon.className='material-symbols-outlined';
+        handle.append(icon);
+        document.body.append(handle);
+
+        const render=(next,persist=false)=>{
+            width=next<=40?0:clamp(next);
+            if(width>0)expandedWidth=width;
+            cancelFrame(frame);
+            frame=requestFrame(()=>{
+                document.body.style.setProperty('--document-sidebar-width',`${width}px`);
+                document.body.classList.toggle('document-sidebar-collapsed',width===0);
+                handle.setAttribute('aria-valuenow',String(Math.round(width)));
+                handle.setAttribute('aria-expanded',String(width>0));
+                handle.title=width>0?'Kéo để đổi chiều rộng; bấm để thu gọn':'Bấm để mở danh sách tài liệu';
+                icon.textContent=width>0?'chevron_left':'chevron_right';
+                if(options.toggleButton){
+                    options.toggleButton.setAttribute('aria-expanded',String(width>0));
+                    options.toggleButton.setAttribute('aria-label',width>0?'Thu gọn danh sách tài liệu':'Mở danh sách tài liệu');
+                    options.toggleButton.title=width>0?'Thu gọn danh sách tài liệu':'Mở danh sách tài liệu';
+                    const toggleIcon=$('.material-symbols-outlined',options.toggleButton);
+                    if(toggleIcon)toggleIcon.textContent=width>0?'chevron_left':'chevron_right';
+                }
+                window.dispatchEvent(new Event('resize'));
+            });
+            if(persist){
+                localStorage.setItem(widthKey,String(width));
+                if(width>0)localStorage.setItem(expandedKey,String(expandedWidth));
+            }
+        };
+        const toggle=()=>render(width===0?expandedWidth:0,true);
+        const move=event=>{
+            moved=moved||Math.abs(event.clientX-startX)>3;
+            render(event.clientX);
+        };
+        const stop=event=>{
+            if(handle.hasPointerCapture(event.pointerId))handle.releasePointerCapture(event.pointerId);
+            document.body.classList.remove('document-sidebar-resizing');
+            render(width,true);
+        };
+        handle.addEventListener('pointerdown',event=>{
+            if(event.button!==0)return;
+            startX=event.clientX;moved=false;
+            handle.setPointerCapture(event.pointerId);
+            document.body.classList.add('document-sidebar-resizing');
+        });
+        handle.addEventListener('pointermove',event=>{
+            if(handle.hasPointerCapture(event.pointerId))move(event);
+        });
+        handle.addEventListener('pointerup',event=>{
+            stop(event);
+            if(!moved)toggle();
+        });
+        handle.addEventListener('pointercancel',stop);
+        handle.addEventListener('keydown',event=>{
+            if(['Enter',' '].includes(event.key)){event.preventDefault();toggle();return;}
+            if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+            event.preventDefault();
+            const next=event.key==='Home'?0:event.key==='End'?320:width+(event.key==='ArrowLeft'?-12:12);
+            render(next,true);
+        });
+        options.toggleButton?.addEventListener('click',toggle);
+        render(width);
+        return {toggle,render,get width(){return width;}};
+    }
     // Keep the existing table and its cell styles; replace only its records.
     function table(el, columns, rows, actions) {
         if (!el) return;
@@ -135,7 +321,7 @@
             td.className = 'px-4 py-6 text-center text-on-surface-variant'; td.textContent = 'Chưa có dữ liệu.';
         }
     }
-    function listTable(rows, columns, actions, filterFields = []) {
+    function listTable(rows, columns, actions, filterFields = [], config = {}) {
         const el = $('table');
         const search = $('input[placeholder^="Search"]:not(#modalContent input)');
         const selects = $$('header select');
@@ -146,7 +332,7 @@
         const filterOptions = spec => Array.isArray(spec) && spec[1]
             ? spec[1]
             : [...new Set(rows.map(r => filterValue(spec, r)).filter(Boolean))].sort();
-        let current = 0, folderFilter = '';
+        let current = 0, folderFilter = '', sortIndex = config.defaultSortIndex ?? -1, sortDirection = 1;
         selects.forEach((select, index) => {
             const field = filterFields[index];
             if (field) options(select, filterOptions(field), true);
@@ -173,10 +359,23 @@
                 });
             }
             const query = search?.value.toLocaleLowerCase().trim() || '';
-            const filtered = rows.filter(row => Object.values(row).filter(v => typeof v !== 'object').join(' ').toLocaleLowerCase().includes(query)
+            let filtered = rows.filter(row => Object.values(row).filter(v => typeof v !== 'object').join(' ').toLocaleLowerCase().includes(query)
                 && selects.every((s, i) => !s.value || String(filterValue(filterFields[i], row)) === s.value));
+            if(sortIndex>=0){
+                const key=config.sortKeys?.[sortIndex] ?? columns[sortIndex]?.[1];
+                filtered=[...filtered].sort((left,right)=>{
+                    const a=typeof key==='function'?key(left):left[key],b=typeof key==='function'?key(right):right[key];
+                    return String(a??'').localeCompare(String(b??''),'vi',{numeric:true,sensitivity:'base'})*sortDirection;
+                });
+            }
             const pages = Math.max(1, Math.ceil(filtered.length / 10)); current = Math.min(current, pages - 1);
-            table(el, columns, filtered.slice(current * 10, current * 10 + 10), actions);
+            const visible=filtered.slice(current * 10, current * 10 + 10).map((row,index)=>config.numbered?{...row,__rowNumber:current*10+index+1}:row);
+            table(el, columns, visible, actions);
+            if(config.sortable)$$('thead th',el).forEach((th,index)=>{
+                if(!config.sortKeys?.[index])return;
+                th.style.cursor='pointer';th.title='Sắp xếp cột này';th.setAttribute('aria-sort',sortIndex===index?(sortDirection===1?'ascending':'descending'):'none');
+                th.onclick=()=>{sortDirection=sortIndex===index?-sortDirection:1;sortIndex=index;current=0;render();};
+            });
             pagers.forEach(b => {
                 const label = text(b), number = Number(label);
                 b.hidden = number > pages;
@@ -206,6 +405,7 @@
         return field.value.trim();
     }
     async function termsPage() {
+        if (window.AAIRTerminologyPage) return window.AAIRTerminologyPage({request,notice,user});
         let rows = await request('/terms'), editing = null;
         const term = $('input[placeholder="e.g. Operating Income"]');
         const definition = $('textarea'), category = $('main select');
@@ -254,10 +454,11 @@
     }
     async function promptsPage() {
         let editing = null;
+        const systemPrompt = await request('/prompts/system-default').catch(() => '');
         const modal = $('#modalContent'), name = $('input', modal), [description, content] = $$('textarea', modal), [active, model] = $$('select', modal);
         fieldLabel(active, 'Status'); options(active, [['true','ACTIVE'],['false','INACTIVE']]);
         const save = buttons(/^Create Prompt$/, modal)[0];
-        const reset = () => { editing = null; name.value = ''; description.value = ''; content.value = ''; active.value = 'true'; model.selectedIndex = 0; save.textContent = 'Create Prompt'; };
+        const reset = () => { editing = null; name.value = ''; description.value = ''; content.value = systemPrompt; active.value = 'true'; model.selectedIndex = 0; save.textContent = 'Create Prompt'; };
         const edit = row => {
             editing = row.id; name.value = row.name; description.value = row.description || ''; content.value = row.content;
             active.value = String(row.is_active);
@@ -280,27 +481,41 @@
         const endpoint = canManageUsers ? '/users' : '/assignees';
         const refresh = async () => list.reload(await request(endpoint));
         const roles = canManageUsers ? await request('/roles') : [];
-        const list = listTable(await request(endpoint), [['No.','id'],['Username','username'],['Gmail','email'],['Role','role'],['Status',r=>canManageUsers?status(r):'ACTIVE'],['Created',r=>date(r.created_at)],['Actions','$actions']], row => canManageUsers ? [
+        const list = listTable(await request(endpoint), [['No.',r=>r.__rowNumber],['Username',userIdentity],['Gmail','email'],['Role','role'],['Status',r=>canManageUsers?status(r):'ACTIVE'],['Created',r=>date(r.created_at)],['Actions','$actions']], row => canManageUsers ? [
             action('edit',()=>edit(row)), action(row.is_active?'block':'check_circle',async()=>{
                 if (!confirm(`${row.is_active?'Khóa':'Mở khóa'} tài khoản ${row.username}?`)) return;
                 await request(`/users/${row.id}`,{method:'PUT',json:{role:row.role,active:!row.is_active}}); await refresh();
             }),
-        ] : [], canManageUsers ? [[r=>r.role, roles], r=>status(r)] : ['role', r=>'ACTIVE']);
+        ] : [], canManageUsers ? [[r=>r.role, roles], r=>status(r)] : ['role', r=>'ACTIVE'], {numbered:true,sortable:true,sortKeys:[null,'username','email','role',r=>status(r),'created_at',null]});
         const modal=$('#modalContent'), [username,unused,email] = $$('input:not([type="checkbox"])',modal), role=$('select',modal);
-        let editing=null;
+        let editing=null,avatarFile=null,previewObjectUrl=null;
         fieldLabel(username,'Username'); username.placeholder='e.g. manager02';
         unused.parentElement.hidden=true;
         fieldLabel(email,'Gmail'); email.placeholder='username@gmail.com'; email.type='email';
         fieldLabel(role,'Role'); options(role,roles);
         role.insertBefore(new Option('— Không chọn —',''), role.firstChild);
+        const camera=$$('span',modal).find(node=>text(node)==='add_a_photo');
+        const avatarCircle=camera?.parentElement,avatarTrigger=avatarCircle?.parentElement;
+        const avatarInput=document.createElement('input');avatarInput.type='file';avatarInput.accept='.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp';avatarInput.hidden=true;avatarInput.id='userAvatarInput';modal.append(avatarInput);
+        const avatarPreview=document.createElement('img');avatarPreview.className='absolute inset-0 w-full h-full rounded-full object-cover';avatarPreview.alt='Avatar preview';avatarPreview.hidden=true;avatarCircle?.prepend(avatarPreview);
+        if(avatarTrigger){avatarTrigger.setAttribute('role','button');avatarTrigger.setAttribute('tabindex','0');avatarTrigger.setAttribute('aria-label','Chọn avatar');avatarTrigger.onclick=()=>avatarInput.click();avatarTrigger.onkeydown=event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();avatarInput.click();}};}
+        const showAvatar=(source)=>{avatarPreview.hidden=!source;camera.hidden=Boolean(source);if(source)avatarPreview.src=source;else avatarPreview.removeAttribute('src');};
+        avatarInput.addEventListener('change',()=>run(avatarInput,async()=>{
+            const file=avatarInput.files[0];if(!file)return;
+            if(!['image/jpeg','image/png','image/webp'].includes(file.type)||!/\.(?:jpe?g|png|webp)$/i.test(file.name))throw new Error('Avatar chỉ hỗ trợ JPG, PNG hoặc WEBP.');
+            if(!file.size||file.size>2*1024*1024)throw new Error('Avatar phải có nội dung và không vượt quá 2 MB.');
+            if(previewObjectUrl)URL.revokeObjectURL(previewObjectUrl);previewObjectUrl=URL.createObjectURL(file);avatarFile=file;showAvatar(previewObjectUrl);
+        }));
         const save=buttons(/^Create$/,modal)[0];
-        const reset=()=>{editing=null;username.value='';username.disabled=false;email.value='';email.disabled=false;role.value='MANAGER';save.textContent='Create';$('h3',modal).textContent='Create User';};
-        function edit(row){editing=row;username.value=row.username;username.disabled=true;email.value=row.email||'';email.disabled=true;if(![...role.options].some(o=>o.value===row.role))role.add(new Option(row.role,row.role));role.value=row.role;save.textContent='Save';$('h3',modal).textContent='Edit User';modalOpen();}
+        const reset=()=>{if(previewObjectUrl)URL.revokeObjectURL(previewObjectUrl);previewObjectUrl=null;avatarFile=null;avatarInput.value='';showAvatar('');editing=null;username.value='';username.disabled=false;email.value='';email.disabled=false;role.value='MANAGER';save.textContent='Create';$('h3',modal).textContent='Create User';};
+        function edit(row){reset();editing=row;username.value=row.username;username.disabled=true;email.value=row.email||'';email.disabled=true;if(![...role.options].some(o=>o.value===row.role))role.add(new Option(row.role,row.role));role.value=row.role;showAvatar(AAIR.assetUrl?.(row.avatar_url||row.avatarUrl));save.textContent='Save';$('h3',modal).textContent='Edit User';modalOpen();}
         bindText(/New Manager|New User/,()=>{reset();modalOpen();});
         bind(save,async()=>{
             const isEditing=Boolean(editing);
             const json=editing?{role:role.value,active:editing.is_active}:{username:required(username,'tên tài khoản'),email:required(email,'Gmail'),role:role.value};
-            await request(editing?`/users/${editing.id}`:'/users',{method:editing?'PUT':'POST',json});modalClose();reset();await refresh();
+            const saved=await request(editing?`/users/${editing.id}`:'/users',{method:editing?'PUT':'POST',json});
+            if(avatarFile){const data=new FormData();data.append('file',avatarFile);await request(`/users/${saved.id}/avatar`,{method:'POST',body:data});}
+            modalClose();reset();await refresh();
             notice(isEditing?'Đã cập nhật tài khoản.':'Đã tạo tài khoản, gửi email và làm mới bảng.');
         });
     }
@@ -351,6 +566,13 @@
         const modelSection=typeList.parentElement;
         $('p',modelSection).textContent='Session Type';
         $$('p',modelSection)[1].textContent='Chọn gán nhãn AI, thủ công hoặc cả hai.';
+        const assistanceSection=document.createElement('div');
+        assistanceSection.className='space-y-2';
+        assistanceSection.innerHTML='<label class="block text-[11px] font-semibold text-on-surface">AI assistance</label><select id="taskAssistanceMode" class="w-full rounded-lg border border-outline-variant bg-white px-3 py-2 text-[12px]"><option value="NONE">Không dùng AI hỗ trợ</option><option value="AI_ASSISTED">Có AI hỗ trợ</option></select><p class="text-[10px] text-on-surface-variant">Dùng để so sánh thời gian làm thủ công và có AI hỗ trợ.</p>';
+        modelSection.after(assistanceSection);
+        const assistanceMode=$('#taskAssistanceMode',assistanceSection);
+        const syncAssistance=()=>{const type=selected(typeList)[0];if(type==='AI'){assistanceMode.value='AI_ASSISTED';assistanceMode.disabled=true;}else assistanceMode.disabled=false;};
+        typeList.addEventListener('change',syncAssistance);
         const modelSearch=$('input[placeholder="Search AI models..."]',modal);modelSearch.parentElement.hidden=true;
         checkList(memberList,assignees.map(u=>({id:u.id,name:`${u.username} — ${u.role}`})),'members');
         const selected=container=>$$('input:checked',container).map(i=>i.value);
@@ -376,11 +598,13 @@
             editing=null;createdId=null;pendingTasks=[];name.value='';description.value='';dueDate.value='';name.disabled=false;description.disabled=false;
             $$('input',documentList).forEach(i=>i.checked=false);$$('input',memberList).forEach(i=>i.checked=false);
             documentList.parentElement.hidden=false;typeList.parentElement.hidden=false;dueDate.parentElement.parentElement.hidden=false;
+            assistanceSection.hidden=false;assistanceMode.value='NONE';syncAssistance();
             save.textContent='Create Session';$('h3',modal).textContent='Create Session';
         };
         const edit=row=>{
             reset();editing=row;name.value=row.name;description.value=row.description||'';name.disabled=true;description.disabled=true;
             documentList.parentElement.hidden=true;typeList.parentElement.hidden=true;dueDate.parentElement.parentElement.hidden=true;
+            assistanceSection.hidden=true;
             $$('input',memberList).forEach(i=>i.checked=row.members.some(m=>String(m.id)===i.value));save.textContent='Save Members';$('h3',modal).textContent='Assign Users';modalOpen();
         };
         const refresh=async()=>list.reload(await request('/sessions'));
@@ -409,7 +633,7 @@
                 const types=[type];
                 const labelers=assignees.filter(u=>userIds.includes(u.id)&&['AI_LABELER','MANUAL_LABELER'].includes(u.role));
                 if(docIds.length && types.some(t=>!labelers.some(u=>u.role===(t==='AI'?'AI_LABELER':'MANUAL_LABELER'))))throw new Error('Chọn người gán nhãn đúng vai trò cho mỗi loại tác vụ.');
-                pendingTasks=docIds.flatMap(documentId=>types.flatMap(taskType=>labelers.filter(u=>u.role===(taskType==='AI'?'AI_LABELER':'MANUAL_LABELER')).map(u=>({documentId,taskType,assignedTo:u.id,dueAt:sessionDue.iso}))));
+                pendingTasks=docIds.flatMap(documentId=>types.flatMap(taskType=>labelers.filter(u=>u.role===(taskType==='AI'?'AI_LABELER':'MANUAL_LABELER')).map(u=>({documentId,taskType,assignedTo:u.id,dueAt:sessionDue.iso,assistanceMode:taskType==='AI'?'AI_ASSISTED':assistanceMode.value}))));
                 const sessionDueAt=sessionDue.iso;
                 const created=await request('/sessions',{method:'POST',json:{name:name.value.trim(),description:description.value,sessionType:type,dueAt:sessionDueAt}});createdId=created.id;
             }
@@ -427,12 +651,178 @@
             action('Open',()=>go(`Task.html?id=${row.id}`)),
         ],['session_name','status']);
     }
+    async function legacyResultAnalysisPage() {
+        setupDocumentSidebar({
+            sidebar:$('#raDocuments'),
+            workspace:$('.ra-layout'),
+            storagePrefix:'aair.resultAnalysis.documentSidebar',
+            defaultWidth:156,
+            handleClass:'document-sidebar-handle--analysis',
+            toggleButton:$('#raToggleDocuments')
+        });
+        const qs=new URLSearchParams(location.search);
+        const requestedId=qs.get('id');
+        const tasks=await request('/tasks');
+        const taskSelect=$('#raTaskSelect');
+        const documents=$('#raDocumentList');
+        const modelASelect=$('#raModelA');
+        const modelBSelect=$('#raModelB');
+        const resultsA=$('#raResultsA');
+        const resultsB=$('#raResultsB');
+        const note=$('#raNote');
+        const noteCompare=$('#raNoteCompare');
+        const correctionPrompt=$('#raCorrectionPrompt');
+        const originalPrompt=$('#raOriginalPrompt');
+        const correctionResult=$('#raCorrectionResult');
+        const pdf=$('#raPdf');
+        const pdfEmpty=$('#raPdfEmpty');
+        const state={tasks,task:null,rows:[],models:[],modelA:'',modelB:'',analyzed:false,page:1,pdfUrl:null,noteRow:null,noteCompare:null,redoRunId:null,completionGuard:null};
+        const value=row=>row?.indicator_value??row?.label_value??row?.value??'Chưa có giá trị';
+        const key=row=>String(row?.indicator_name??row?.label_name??row?.term??'').trim().toLowerCase();
+        const modelKey=row=>row?.run_id?`run::${row.run_id}`:`saved::${row?.provider||'AI'}::${row?.model||row?.provider||'Model'}`;
+        const pct=row=>{const n=Number(row?.confidence);return Number.isFinite(n)?`${Math.round(n<=1?n*100:n)}%`:'—';};
+        const name=task=>task?.document_title||task?.title||`Tài liệu #${task?.id||''}`;
+        const setMessage=message=>{const el=$('#raMessage');if(el)el.textContent=message||'';};
+        const selectTask=(id)=>{
+            const next=tasks.find(row=>String(row.id)===String(id))||tasks[0];
+            if(!next)return;
+            state.task=next;state.analyzed=false;state.page=1;
+            taskSelect.value=String(next.id);
+            $('#raSession').textContent=next.session_name||'Kết quả AI';
+            $('#raType').textContent=next.task_type||'AI';
+            $('#raDocumentTitle').textContent=name(next);
+            renderDocuments();
+            loadTaskResults();
+        };
+        const renderDocuments=()=>{
+            documents.replaceChildren();
+            tasks.forEach(row=>{
+                const button=document.createElement('button');
+                button.type='button';button.className=state.task?.id===row.id?'active':'';button.dataset.taskId=String(row.id);
+                button.title=name(row);
+                const icon=document.createElement('span');icon.className='material-symbols-outlined';icon.textContent='picture_as_pdf';
+                const label=document.createElement('span');label.textContent=name(row);
+                button.append(icon,label);button.onclick=()=>selectTask(row.id);documents.append(button);
+            });
+        };
+        const renderModels=()=>{
+            const fill=select=>{select.replaceChildren(...state.models.map(model=>new Option(`${model.provider} · ${model.model}${model.runId?` · ${String(model.runId).slice(0,8)}`:''}`,model.key)));select.disabled=state.models.length<1;};
+            fill(modelASelect);fill(modelBSelect);
+            state.modelA=state.modelA||state.models[0]?.key||'';state.modelB=state.modelB||state.models[1]?.key||state.models[0]?.key||'';
+            if(state.modelA===state.modelB&&state.models[1])state.modelB=state.models[1].key;
+            modelASelect.value=state.modelA;modelBSelect.value=state.modelB;
+        };
+        const rowsFor=model=>state.rows.filter(row=>modelKey(row)===model);
+        const rowFor=(rows,indicator)=>rows.find(row=>key(row)===indicator);
+        const draw=(target,rows,other,side)=>{
+            target.replaceChildren();
+            if(!rows.length){const empty=document.createElement('p');empty.className='ra-empty-results';empty.textContent='Chưa có kết quả cho model này.';target.append(empty);return;}
+            rows.forEach(row=>{
+                const compare=rowFor(other,key(row));
+                const different=state.analyzed&&(!compare||String(value(row))!==String(value(compare)));
+                const card=document.createElement('article');card.className=`ra-result${different?' different':''}`;
+                const top=document.createElement('div');top.className='ra-result__top';
+                const title=document.createElement('div');const label=document.createElement('span');label.className='ra-label';label.textContent='Chỉ tiêu';
+                const strong=document.createElement('strong');strong.textContent=row.indicator_name||row.label_name||'Chưa đặt tên';title.append(label,strong);top.append(title);
+                if(different){const badge=document.createElement('span');badge.className='ra-difference';badge.textContent='Khác nhau';top.append(badge);}
+                const valueLabel=document.createElement('span');valueLabel.className='ra-label';valueLabel.textContent=`Giá trị ${side}`;
+                const valueText=document.createElement('div');valueText.className='ra-value';valueText.textContent=String(value(row));
+                const meta=document.createElement('div');meta.className='ra-meta';
+                const confidence=document.createElement('span');confidence.textContent=`Độ tin cậy ${pct(row)}`;
+                const source=document.createElement('button');source.className='ra-source';source.type='button';source.textContent=`Trang ${row.source_page||'—'}`;
+                source.onclick=event=>{event.stopPropagation();openPage(row.source_page);};
+                const pageInput=document.createElement('input');pageInput.type='number';pageInput.min='1';pageInput.value=row.source_page||'';pageInput.setAttribute('aria-label','Source Page');pageInput.className='ra-source-page';pageInput.onchange=()=>openPage(pageInput.value);
+                meta.append(confidence,source,pageInput);card.append(top,valueLabel,valueText,meta);
+                card.onclick=()=>openNote(row,compare);target.append(card);
+            });
+        };
+        const renderResults=()=>{
+            const a=rowsFor(state.modelA),b=rowsFor(state.modelB);
+            draw(resultsA,a,b,'A');draw(resultsB,b,a,'B');
+            const all=[...new Set([...a,...b].map(key).filter(Boolean))];
+            const differences=state.analyzed?all.filter(indicator=>{const left=rowFor(a,indicator),right=rowFor(b,indicator);return !left||!right||String(value(left))!==String(value(right));}):[];
+            $('#raDifferenceCount').textContent=String(differences.length);
+        };
+        const openPage=page=>{
+            const next=Number(page);if(!Number.isInteger(next)||next<1)return;
+            state.page=next;$('#raPageLabel').textContent=`Trang ${next}`;
+            if(state.pdfUrl)pdf.src=`${state.pdfUrl}#page=${next}`;
+        };
+        const loadPdf=async()=>{
+            if(state.pdfUrl)URL.revokeObjectURL(state.pdfUrl);state.pdfUrl=null;
+            pdf.removeAttribute('src');pdf.hidden=true;pdfEmpty.hidden=false;
+            if(!state.task?.document_id)return;
+            const blob=await request(`/documents/${state.task.document_id}/file`,{blob:true});
+            state.pdfUrl=URL.createObjectURL(blob);pdf.src=`${state.pdfUrl}#page=${state.page}`;pdf.hidden=false;pdfEmpty.hidden=true;
+        };
+        const loadTaskResults=async()=>{
+            const taskId=state.task.id;
+            const [detail,aiRows]=await Promise.all([
+                request(`/tasks/${taskId}`),
+                request(`/tasks/${taskId}/ai-results`,{suppressAuthRedirect:true}).catch(()=>[]),
+            ]);
+            if(state.task.id!==taskId)return;
+            state.task=Object.assign(state.task,detail);
+            const savedProvider=state.task.task_type==='MANUAL'?'Manual Labeler':'AI Labeler';
+            const savedModel=state.task.assignee?`Saved result · ${state.task.assignee}`:'Saved result';
+            const savedRows=Array.isArray(detail.labels)?detail.labels.map(row=>({
+                provider:savedProvider,model:savedModel,indicator_name:row.label_name,
+                indicator_value:row.label_value,source_page:row.source_page,confidence:row.confidence,
+            })):[];
+            state.rows=[...aiRows,...savedRows];
+            state.models=[...new Map(state.rows.map(row=>[modelKey(row),{key:modelKey(row),provider:row.provider||'AI',model:row.model||row.provider||'Model',runId:row.run_id||null}])).values()];
+            state.modelA='';state.modelB='';renderModels();renderResults();setMessage('');
+            try{await loadPdf();}catch(error){setMessage(error.message); }
+            await state.completionGuard?.refresh();
+        };
+        const openNote=(row,compare)=>{
+            state.noteRow=row;state.noteCompare=compare;state.redoRunId=null;note.hidden=false;
+            noteCompare.replaceChildren();
+            [[state.modelA,value(row)],[state.modelB,compare?value(compare):'Thiếu kết quả']].forEach(([model,result])=>{const box=document.createElement('div');const provider=document.createElement('span');provider.textContent=model||'Model';const content=document.createElement('b');content.textContent=String(result);box.append(provider,content);noteCompare.append(box);});
+            correctionPrompt.value=`Hãy kiểm tra chỉ tiêu ${row.indicator_name||row.label_name||''} ở trang ${row.source_page||''}. Đọc đúng nhãn nguồn, không suy diễn và trả về JSON có value, unit, source_page, source_label, confidence.`;
+            originalPrompt.value='Trích xuất các chỉ tiêu tài chính trong báo cáo, luôn kèm source_page, source_label và confidence.';
+            correctionResult.textContent='';
+        };
+        taskSelect.replaceChildren(...tasks.map(row=>new Option(`${name(row)} · Task #${row.id}`,String(row.id))));
+        const initial=tasks.find(row=>String(row.id)===String(requestedId))||tasks[0];
+        if(!initial){setMessage('Chưa có task được phân công.');return;}
+        taskSelect.onchange=()=>selectTask(taskSelect.value);
+        modelASelect.onchange=()=>{state.modelA=modelASelect.value;state.analyzed=false;renderResults();};
+        modelBSelect.onchange=()=>{state.modelB=modelBSelect.value;state.analyzed=false;renderResults();};
+        $('#raAnalyze').onclick=()=>{state.analyzed=Boolean(state.modelA&&state.modelB&&state.modelA!==state.modelB);renderResults();setMessage(state.analyzed?'Đã phân tích sự khác biệt giữa hai model.':'Hãy chọn hai model khác nhau.');};
+        const saveNote=document.createElement('button');saveNote.type='button';saveNote.className='ra-secondary-button';saveNote.innerHTML='<span class="material-symbols-outlined">save</span>Lưu NOTE';correctionResult.after(saveNote);
+        const confirmRedo=document.createElement('button');confirmRedo.type='button';confirmRedo.className='ra-secondary-button';confirmRedo.hidden=true;confirmRedo.innerHTML='<span class="material-symbols-outlined">verified</span>Xác nhận kết quả redo';saveNote.after(confirmRedo);
+        saveNote.onclick=async()=>{if(!state.task||!state.noteRow)return;const noteText=correctionPrompt.value.trim();if(!noteText){setMessage('Hãy nhập NOTE giải thích lỗi.');return;}await request(`/analysis/tasks/${state.task.id}/fields/${encodeURIComponent(key(state.noteRow))}`,{method:'PUT',json:{note:noteText,redoRunId:null,redoConfirmed:false}});await state.completionGuard?.refresh();setMessage('Đã lưu NOTE cho field.');};
+        confirmRedo.onclick=async()=>{if(!state.task||!state.noteRow||!state.redoRunId)return;await request(`/analysis/tasks/${state.task.id}/fields/${encodeURIComponent(key(state.noteRow))}`,{method:'PUT',json:{note:null,redoRunId:state.redoRunId,redoConfirmed:true}});confirmRedo.hidden=true;await state.completionGuard?.refresh();setMessage('Đã xác nhận kết quả redo.');};
+        $('#raCloseNote').onclick=()=>{note.hidden=true;};
+        $('#raLogout').onclick=()=>AAIR.logout();
+        $('#raRunCorrection').onclick=async()=>{
+            if(!state.task||!correctionPrompt.value.trim())return;
+            const button=$('#raRunCorrection');button.disabled=true;correctionResult.textContent='Đang chạy lại AI…';
+            try{const selected=state.models.find(model=>model.key===state.modelA);const provider=selected?.provider||'Gemini';const response=await request(`/tasks/${state.task.id}/run-ai`,{method:'POST',json:{provider,prompt:correctionPrompt.value}});state.redoRunId=response?.runId||null;confirmRedo.hidden=!state.redoRunId;correctionResult.textContent=`AI đã chạy lại ${response?.labels?.length||0} chỉ tiêu bằng ${response?.provider||provider}. Hãy kiểm tra rồi xác nhận kết quả redo.`;}catch(error){correctionResult.textContent=error.message;}finally{button.disabled=false;}
+        };
+        $('#raImprovePrompt').onclick=()=>{originalPrompt.value=`${originalPrompt.value.trim()} Với mỗi chỉ tiêu, đối chiếu nhãn nguồn trong cùng ngữ cảnh; không suy diễn số liệu; bắt buộc trả về value, unit, source_page, source_label và confidence.`;};
+        window.addEventListener('pagehide',()=>{if(state.pdfUrl)URL.revokeObjectURL(state.pdfUrl);});
+        state.completionGuard=AAIR.SessionCompletion?.create({button:$('#raCompleteAnalysis'),loadStatus:()=>request(`/session-completion${state.task?.session_id?`?sessionId=${state.task.session_id}`:''}`),findItem:item=>$(`[data-task-id="${item.id}"]`,documents),blockedTitle:'Cần xử lý mọi khác biệt của tất cả tài liệu trước khi Complete Analysis'});
+        $('#raCompleteAnalysis').onclick=async()=>{if(state.completionGuard&&!await state.completionGuard.ensure('Chưa thể Complete Analysis'))return;await request('/analysis/complete',{method:'POST',json:{sessionId:state.task?.session_id||null}});await state.completionGuard?.refresh();setMessage('Đã hoàn tất phân tích session.');};
+        selectTask(initial.id);
+    }
     async function taskPage() {
+        if(document.body.matches('.ai-task-page,.manual-task-page')){
+            setupDocumentSidebar();
+            setupTaskWorkspace();
+        }
+        if(user?.role==='RESULT_ANALYST'&&document.body.classList.contains('result-analysis-page')){await legacyResultAnalysisPage();return;}
         // The old processing strip contained static demo values, not live API progress.
         $('#processingPanel')?.remove();
-        const [tasks,prompts]=await Promise.all([
+        const [tasks,prompts,systemPrompt]=await Promise.all([
             request('/tasks'),
-            user.role==='AI_LABELER'?request('/prompts'):Promise.resolve([]),
+            ['AI_LABELER','MANUAL_LABELER'].includes(user.role)
+                ?request('/prompts/options',{suppressAuthRedirect:true}).catch(()=>[])
+                :Promise.resolve([]),
+            ['AI_LABELER','MANUAL_LABELER'].includes(user.role)
+                ?request('/prompts/system-default',{suppressAuthRedirect:true}).catch(()=> '')
+                :Promise.resolve(''),
         ]);
         const id=new URLSearchParams(location.search).get('id');
         const initial=id?tasks.find(t=>String(t.id)===id):tasks.find(t=>user.role==='REVIEWER'?t.status==='SUBMITTED':!['APPROVED','SUBMITTED'].includes(t.status))||tasks[0];
@@ -445,7 +835,7 @@
                 b.replaceChildren();
                 const icon=document.createElement('span');icon.className='material-symbols-outlined text-[16px]';icon.textContent='picture_as_pdf';
                 const label=document.createElement('span');label.className='truncate';label.textContent=row.document_title;
-                b.append(icon,label);b.title=`Mở ${row.document_title}`;b.setAttribute('aria-label',`Mở tài liệu ${row.document_title}`);
+                b.append(icon,label);b.title=row.document_title;b.setAttribute('aria-label',`Mở tài liệu ${row.document_title}`);
                 bind(b,()=>loadTask(row));documentButtons.set(row.id,b);container.append(b);
             }
         }
@@ -466,12 +856,13 @@
         }else cardTemplate=panel.firstElementChild.cloneNode(true);
         let readonly=!labeler;
         const cards=[];
+        let pdfPageCount=null,queueAutoSave=()=>{},flushAutoSave=async()=>{};
         const clearCards=()=>{
             cards.length=0;
             if(heading){const keep=[...panel.children].find(c=>c===heading||c.contains(heading));[...panel.children].filter(c=>c!==keep).forEach(c=>c.remove());}
             else panel.replaceChildren();
         };
-        function addLabel(row={labelName:'',labelValue:'',sourcePage:null,confidence:null}){
+        function addLabel(row={labelName:'',labelValue:'',sourceLabel:'',sourcePage:null,confidence:null}){
             const card=cardTemplate.cloneNode(true);
             let nameNode, valueNode;
             const labels=$$('label',card);
@@ -479,26 +870,33 @@
             else{nameNode=$('span',card);valueNode=$('p',card);}
             if(!nameNode||!valueNode)throw new Error('Thiếu vùng Term / Definition trong mẫu nhãn.');
             $$('button,input',card).forEach(el=>el.remove());
-            nameNode.textContent=row.labelName;valueNode.textContent=formattedLabelValue(row.labelName,row.labelValue);
-            for(const [node,label] of [[nameNode,'Term'],[valueNode,'Definition']]){
-                node.setAttribute('contenteditable',String(!readonly));node.setAttribute('role',readonly?'text':'textbox');node.setAttribute('aria-label',label);
-                node.style.minHeight='1.5em';node.style.whiteSpace='pre-wrap';
-            }
+            const parts=splitLabelValue(row.labelValue,row.sourceLabel);
+            const termInput=document.createElement('input');termInput.type='text';termInput.value=row.labelName||'';termInput.maxLength=150;termInput.setAttribute('aria-label','Term');
+            termInput.className='annotation-term-input';termInput.disabled=readonly;nameNode.replaceWith(termInput);
+            const valueInput=document.createElement('textarea');valueInput.value=parts.editableValue;valueInput.maxLength=20000;valueInput.rows=4;valueInput.setAttribute('aria-label','Definition');
+            valueInput.className='annotation-definition-input';valueInput.disabled=readonly;valueNode.replaceWith(valueInput);
+            const source=document.createElement('div');source.className='annotation-source-label';
+            source.innerHTML='<span>Nhãn nguồn</span><p></p>';source.querySelector('p').textContent=parts.sourceLabel||'Chưa có nhãn nguồn từ AI';valueInput.after(source);
             $$('span',card).filter(e=>/%$/.test(text(e))).forEach(e=>e.textContent=row.confidence==null?'—':`${Math.round(row.confidence*100)}%`);
             const pageWrap=document.createElement('label');pageWrap.className='mt-3 flex items-center gap-3 border-t border-outline-variant pt-3 text-sm font-medium';
             const pageText=document.createElement('span');pageText.textContent='Source Page';
-            const pageInput=document.createElement('input');pageInput.type='number';pageInput.min='1';pageInput.step='1';pageInput.required=true;
+            const pageInput=document.createElement('input');pageInput.type='number';pageInput.min='1';pageInput.max=String(pdfPageCount||9999);pageInput.step='1';pageInput.required=true;
             pageInput.value=row.sourcePage==null?'':String(row.sourcePage);pageInput.placeholder='Số trang';pageInput.setAttribute('aria-label','Source Page');
             pageInput.className='ml-auto w-28 rounded-lg border border-outline-variant bg-white px-3 py-1.5 text-sm';pageInput.disabled=readonly;
-            pageWrap.append(pageText,pageInput);card.append(pageWrap);
-            cards.push({nameNode,valueNode,pageInput,confidence:row.confidence});panel.append(card);return nameNode;
+            const hasSavedValue=Boolean(row.labelName||row.labelValue||row.sourcePage);
+            const saveState=document.createElement('span');saveState.className='annotation-save-state';saveState.textContent=readonly?'Chỉ đọc':hasSavedValue?'Đã lưu':'Chưa nhập';
+            pageWrap.append(pageText,pageInput,saveState);card.append(pageWrap);
+            const cardState={termInput,valueInput,pageInput,sourceLabel:parts.sourceLabel,confidence:row.confidence,saveState,dirty:false,saved:hasSavedValue};
+            const changed=()=>{if(readonly)return;cardState.dirty=true;saveState.dataset.state='dirty';saveState.textContent='Chưa lưu';queueAutoSave(cardState);};
+            termInput.addEventListener('input',changed);valueInput.addEventListener('input',changed);pageInput.addEventListener('input',changed);
+            cards.push(cardState);panel.append(card);return termInput;
         }
         const editor={
-            get value(){return JSON.stringify(cards.map(c=>({labelName:text(c.nameNode),labelValue:c.valueNode.textContent,sourcePage:c.pageInput.value?Number(c.pageInput.value):null,confidence:c.confidence})).filter(c=>c.labelName||c.labelValue));},
+            get value(){return JSON.stringify(cards.map(c=>{const editableValue=c.valueInput.value;return {labelName:c.termInput.value.trim(),labelValue:c.sourceLabel?`${editableValue}\nNhãn nguồn: ${c.sourceLabel}`:editableValue,sourcePage:c.pageInput.value?Number(c.pageInput.value):null,confidence:c.confidence};}).filter(c=>c.labelName||c.labelValue));},
             set value(value){clearCards();const rows=JSON.parse(value);rows.forEach(addLabel);if(!rows.length&&labeler)addLabel();},
             get readOnly(){return readonly;},
-            set readOnly(value){readonly=value;cards.forEach(c=>{[c.nameNode,c.valueNode].forEach(n=>{n.setAttribute('contenteditable',String(!readonly));n.setAttribute('role',readonly?'text':'textbox');});c.pageInput.disabled=readonly;});},
-            focus(){cards[0]?.nameNode.focus();},
+            set readOnly(value){readonly=value;cards.forEach(c=>{c.termInput.disabled=readonly;c.valueInput.disabled=readonly;c.pageInput.disabled=readonly;c.saveState.textContent=readonly?'Chỉ đọc':c.dirty?'Chưa lưu':c.saved?'Đã lưu':'Chưa nhập';});},
+            focus(){cards[0]?.termInput.focus();},
         };
         editor.value='[]';
         reviewBodies.slice(1).forEach(body=>body.replaceChildren());
@@ -512,17 +910,41 @@
             while(h.nextSibling)h.nextSibling.remove();const p=document.createElement('p');p.textContent='Kết quả tác vụ được hiển thị trong vùng nhãn bên cạnh.';h.parentElement.append(p);
         });
         const modelSelect=$('header select');
+        const aiHeader=$$('main h2').find(h=>text(h)==='AI Extraction')?.parentElement;
+        const aiContent=aiHeader?.parentElement?.querySelector('.overflow-y-auto');
+        const promptSelect=$('#aiPromptSelect');
         if(modelSelect && ['AI_LABELER','MANUAL_LABELER'].includes(user.role)){
-            const models=user.role==='MANUAL_LABELER'?['Gemini']:['ALL','Gemini','Groq','ChatGPT','Claude'];
+            const models=user.role==='MANUAL_LABELER'?['Gemini']:['Gemini','Claude','ChatGPT','Groq'];
             options(modelSelect,models.map(model=>[model,model]));
             modelSelect.insertBefore(new Option('Choose Model',''),modelSelect.firstChild);modelSelect.value=user.role==='MANUAL_LABELER'?'Gemini':'';modelSelect.disabled=false;
-            modelSelect.addEventListener('change',()=>{if(modelSelect.value)notice(`Đã chọn model ${modelSelect.value}.`);});
+            const updatePrompts=()=>{
+                if(!promptSelect)return;
+                const rows=prompts.filter(row=>row.is_active!==false && ['Gemini','Claude','ChatGPT','Groq'].includes(String(row.model||'')));
+                promptSelect.replaceChildren(new Option('System default prompt','__default__'),...rows.map(row=>new Option(`${row.name} · ${row.model||'Any model'}`,String(row.id))));
+                if(!rows.some(row=>String(row.id)===promptSelect.value))promptSelect.value='__default__';
+            };
+            updatePrompts();
+            promptSelect?.addEventListener('change',()=>{
+                const row=prompts.find(item=>String(item.id)===promptSelect.value);
+                if(!row?.model)return;
+                const model=String(row.model);
+                if([...modelSelect.options].some(option=>option.value===model))modelSelect.value=model;
+                updatePrompts();
+                promptSelect.value=String(row.id);
+                const runButton=buttons(/Run AI/)[0];
+                if(runButton){
+                    runButton.disabled=false;
+                    runButton.style.opacity='';
+                    runButton.title='';
+                }
+            });
+            modelSelect.addEventListener('change',()=>{updatePrompts();if(modelSelect.value)notice(`Đã chọn model ${modelSelect.value}.`);});
         }else if(modelSelect){options(modelSelect,[],true);modelSelect.disabled=true;}
         if(!initial){
             buttons(/Save|Submit|Approve|Validate|^Edit$|Analyze/).forEach(b=>unavailable(b,'Chưa được phân công tác vụ.'));
             notice(id?'Không tìm thấy tác vụ hoặc bạn không có quyền truy cập.':'Chưa có tác vụ được phân công.',Boolean(id));return;
         }
-        let task, fileUrl;
+        let task, fileUrl, workTimer, completionGuard;
         const title=$('header:nth-of-type(2) .truncate');
         const type=$$('header:nth-of-type(2) .truncate')[1];
         const docHeading=$$('main h3').find(h=>text(h)==='Document Information');
@@ -535,7 +957,10 @@
         };
         const refresh=async()=>{task=await request(`/tasks/${task.id}`);renderTask();};
         async function loadTask(row){
+            if(task&&task.id!==row.id)await flushAutoSave();
+            if(workTimer)await workTimer.stop('MANUAL');
             task=await request(`/tasks/${row.id}`);
+            pdfPageCount=null;
             history.replaceState(null,'',`?id=${row.id}`);
             if(title)title.textContent=row.session_name||task.document_title;
             if(type)type.textContent=task.task_type;
@@ -552,54 +977,125 @@
                 const blob=await request(`/documents/${task.document_id}/file`,{blob:true});
                 if(fileUrl)URL.revokeObjectURL(fileUrl);
                 fileUrl=URL.createObjectURL(blob);
-                if(iframe){iframe.removeAttribute('srcdoc');iframe.src=fileUrl;iframe.title=task.document_title;}
+                if(iframe){
+                    const viewerUrl=`/resource/pdfjs/viewer.html?file=${encodeURIComponent(fileUrl)}&title=${encodeURIComponent(task.document_title)}#page=1&zoom=100`;
+                    const openedTaskId=task.id;
+                    iframe.onload=()=>{
+                        let attempts=0;
+                        const syncPageCount=()=>{
+                            if(task.id!==openedTaskId)return;
+                            const count=Number(iframe.contentWindow?.PDFViewerApplication?.pdfDocument?.numPages||0);
+                            if(count>0){pdfPageCount=count;cards.forEach(card=>{card.pageInput.max=String(count);card.pageInput.title=`Trang hợp lệ: 1-${count}`;});return;}
+                            if(++attempts<30)setTimeout(syncPageCount,200);
+                        };
+                        syncPageCount();
+                    };
+                    iframe.removeAttribute('srcdoc');iframe.src=viewerUrl;iframe.title=task.document_title;
+                }
+                if(labeler && !['SUBMITTED','APPROVED'].includes(task.status) && AAIR.createWorkTimer) workTimer=AAIR.createWorkTimer({taskId:task.id});
                 notice(`Đã mở tài liệu ${task.document_title}.`);
+                if(completionGuard)await completionGuard.refresh();
             } catch(error) {
                 if(iframe)iframe.srcdoc=`<p style="font-family:sans-serif;padding:24px;color:#b91c1c">Không tải được tài liệu PDF.</p>`;
                 throw error;
             }
         }
         await loadTask(initial);
+        const submitTaskButton=buttons(/^Submit Task$/)[0];
+        if(window.AAIR.SessionCompletion&&submitTaskButton){
+            completionGuard=AAIR.SessionCompletion.create({
+                button:submitTaskButton,
+                loadStatus:()=>request(`/session-completion${task?.session_id?`?sessionId=${task.session_id}`:''}`),
+                findItem:documentStatus=>documentButtons.get(Number(documentStatus.id)),
+                blockedTitle:status=>`Còn ${(status.missingItems||[]).length} tài liệu chưa hoàn tất`,
+                onStatus:status=>{
+                    const total=(status.documents||[]).length,done=(status.documents||[]).filter(item=>item.status==='done').length;
+                    const percent=total?Math.round(done/total*100):0;
+                    const progress=$('#sessionProgressTrack'),bar=$('#sessionProgressBar'),label=$('#sessionProgressText');
+                    if(progress)progress.setAttribute('aria-valuenow',String(percent));
+                    if(bar)bar.style.width=`${percent}%`;
+                    if(label)label.textContent=`${done}/${total} tài liệu`;
+                }
+            });
+            await completionGuard.refresh();
+        }
         window.addEventListener('pagehide',()=>{if(fileUrl)URL.revokeObjectURL(fileUrl);});
         const runAiButton=buttons(/Run AI/)[0];
         if(runAiButton && ['AI_LABELER','MANUAL_LABELER'].includes(user.role)){
             const updateRunAiState=()=>{
-                runAiButton.disabled=!modelSelect?.value;
+                const blocked=task?.task_type==='MANUAL'&&task?.assistance_mode==='NONE';
+                runAiButton.disabled=blocked||!modelSelect?.value;
                 runAiButton.style.opacity=runAiButton.disabled?'0.5':'';
-                runAiButton.title=runAiButton.disabled?'Vui lòng chọn model trước khi chạy AI.':'';
+                runAiButton.title=blocked?'Task này được cấu hình không dùng AI hỗ trợ.':runAiButton.disabled?'Vui lòng chọn model trước khi chạy AI.':'';
             };
             modelSelect?.addEventListener('change',updateRunAiState);updateRunAiState();
             bind(runAiButton,async()=>{
                 if(!modelSelect?.value)throw new Error('Vui lòng chọn model trước khi chạy AI.');
-                const oldText=runAiButton.textContent;runAiButton.textContent='Running AI...';
+                const oldMarkup=runAiButton.innerHTML;
+                runAiButton.textContent='Running AI...';
                 try{
-                    const result=await request(`/tasks/${task.id}/run-ai`,{method:'POST',json:{provider:modelSelect.value}});
+                    const selectedPrompt=prompts.find(item=>String(item.id)===promptSelect?.value);
+                    const prompt=selectedPrompt?.content||systemPrompt;
+                    const result=await request(`/tasks/${task.id}/run-ai`,{method:'POST',json:{provider:modelSelect.value,prompt:prompt||null}});
                     editor.value=JSON.stringify(result.labels||[]);editor.readOnly=false;
+                    cards.forEach(card=>{card.dirty=true;card.saveState.dataset.state='dirty';card.saveState.textContent='Chưa lưu';});
+                    queueAutoSave();
                     notice(`Đã rút trích ${result.labels?.length||0} chỉ tiêu bằng ${result.provider}. Hãy kiểm tra rồi nhấn Save.`);
-                }finally{runAiButton.textContent=oldText;}
+                }finally{runAiButton.innerHTML=oldMarkup;}
             });
         }else if(runAiButton)unavailable(runAiButton,'Chỉ AI Labeler được chạy mô hình AI.');
         function labels(){
             let data;try{data=JSON.parse(editor.value);}catch{throw new Error('Nhãn phải là JSON hợp lệ.');}
-            if(!Array.isArray(data)||data.length>500||data.some(l=>!l||typeof l.labelName!=='string'||!l.labelName.trim()||l.labelName.length>150||!(l.labelValue==null||typeof l.labelValue==='string')||(l.labelValue?.length||0)>20000||!Number.isInteger(l.sourcePage)||l.sourcePage<1||!(l.confidence==null||typeof l.confidence==='number'&&l.confidence>=0&&l.confidence<=1)))throw new Error('Mỗi chỉ tiêu cần Term, Definition, Source Page là số nguyên dương và confidence từ 0 đến 1 (hoặc null); tối đa 500 chỉ tiêu.');
+            if(!Array.isArray(data)||data.length>500||data.some(l=>!l||typeof l.labelName!=='string'||!l.labelName.trim()||l.labelName.length>150||!(l.labelValue==null||typeof l.labelValue==='string')||(l.labelValue?.length||0)>20000||!Number.isInteger(l.sourcePage)||l.sourcePage<1||(pdfPageCount&&l.sourcePage>pdfPageCount)||!(l.confidence==null||typeof l.confidence==='number'&&l.confidence>=0&&l.confidence<=1)))throw new Error(`Mỗi chỉ tiêu cần Term, Definition, Source Page từ 1${pdfPageCount?`-${pdfPageCount}`:''} và confidence từ 0 đến 1 (hoặc null); tối đa 500 chỉ tiêu.`);
             return data;
         }
-        const save=async(showNotice=true)=>{
+        const save=async(showNotice=true,track=true,refreshAfter=true)=>{
             const data=labels();
             if(['PENDING','REJECTED'].includes(task.status)){await request(`/tasks/${task.id}/start`,{method:'POST'});task.status='IN_PROGRESS';}
-            await request(`/tasks/${task.id}/labels`,{method:'PUT',json:{labels:data}});await refresh();
+            await request(`/tasks/${task.id}/labels`,{method:'PUT',json:{labels:data}});if(refreshAfter)await refresh();
+            if(completionGuard)await completionGuard.refresh();
+            if(track&&workTimer)await workTimer.stop('SAVE',true);
             if(showNotice)notice('Lưu dữ liệu thành công.');
         };
-        bindText(/^save Save JSON$|^Save$/,async()=>{await save();if(user.role==='MANUAL_LABELER')exportJson(labels(),`task-${task.id}-labels.json`);});
-        bindText(/^Submit Task$/,async()=>{if(!labels().length)throw new Error('Cần ít nhất một nhãn trước khi nộp.');await save(false);await request(`/tasks/${task.id}/submit`,{method:'POST'});await refresh();notice('Submit task thành công.');});
+        let autoSaveTimer=null,autoSavePromise=Promise.resolve();
+        const setSaveState=(state,message)=>cards.filter(card=>card.dirty).forEach(card=>{card.saveState.dataset.state=state;card.saveState.textContent=message;});
+        const performAutoSave=async()=>{
+            if(readonly||!cards.some(card=>card.dirty))return false;
+            setSaveState('saving','Đang lưu…');
+            try{
+                await save(false,false,false);
+                cards.forEach(card=>{if(card.dirty){card.dirty=false;card.saved=true;card.saveState.dataset.state='saved';card.saveState.textContent='Đã lưu';}});
+                return true;
+            }catch(error){setSaveState('error','Lỗi lưu');notice(error.message,true);throw error;}
+        };
+        flushAutoSave=async()=>{
+            if(autoSaveTimer){clearTimeout(autoSaveTimer);autoSaveTimer=null;}
+            autoSavePromise=autoSavePromise.then(performAutoSave,performAutoSave);return autoSavePromise;
+        };
+        queueAutoSave=()=>{
+            if(autoSaveTimer)clearTimeout(autoSaveTimer);
+            autoSaveTimer=setTimeout(()=>{autoSaveTimer=null;autoSavePromise=autoSavePromise.then(performAutoSave,performAutoSave);},1000);
+        };
+        buttons(/^Save$/).forEach(button=>button.remove());
+        bindText(/^Submit Task$/,async()=>{if(!labels().length)throw new Error('Cần ít nhất một nhãn trước khi nộp.');await flushAutoSave();if(['PENDING','REJECTED'].includes(task.status))await save(false,false,false);if(completionGuard&&!await completionGuard.ensure('Chưa thể Submit Task'))return;await request(`/tasks/${task.id}/submit`,{method:'POST'});if(workTimer)await workTimer.stop('SUBMIT');await refresh();if(completionGuard)await completionGuard.refresh();notice('Submit task thành công.');});
         bindText(/^Validate$/,()=>{labels();notice('Định dạng nhãn hợp lệ.');});
-        bindText(/^Edit$|^edit$/,()=>{if(editor.readOnly)throw new Error('Tác vụ hiện chỉ được xem.');addLabel().focus();});
-        if(user.role==='AI_LABELER'){
-            const saveButton=buttons(/^Save$/)[0];
-            const submit=saveButton.cloneNode(true);submit.textContent='Submit Task';saveButton.after(submit);
-            bind(submit,async()=>{if(!labels().length)throw new Error('Cần ít nhất một nhãn.');await save(false);await request(`/tasks/${task.id}/submit`,{method:'POST'});await refresh();notice('Submit task thành công.');});
+        buttons(/^Edit$/).forEach(button=>{
+            button.innerHTML='<span class="material-symbols-outlined text-[16px]">add</span>Add Field';
+            bind(button,()=>{if(editor.readOnly)throw new Error('Tác vụ hiện chỉ được xem.');addLabel().focus();});
+        });
+        if(aiContent){
+            const topHeader=$$('header')[1];
+            buttons(/^Edit$/,topHeader).forEach(button=>button.remove());
+            const saveWrap=document.createElement('div');
+            saveWrap.className='mt-6 flex justify-end border-t border-outline-variant pt-4';
+            const saveButton=document.createElement('button');
+            saveButton.type='button';
+            saveButton.className='ai-save-results px-4 py-2 rounded-lg text-[12px] bg-button-active text-text-active hover:opacity-85 transition-opacity flex items-center gap-2 shadow-sm';
+            saveButton.innerHTML='<span class="material-symbols-outlined text-[16px]">save</span>Save';
+            saveWrap.append(saveButton);
+            aiContent.append(saveWrap);
+            bind(saveButton,async()=>{await save();if(user.role==='MANUAL_LABELER')exportJson(labels(),`task-${task.id}-labels.json`);});
         }
-        if(labeler)buttons(/^Edit$/).forEach(b=>b.textContent='Add Label');
         if(reviewBodies.length){
             const firstHeader=reviewBodies[0].previousElementSibling;if(firstHeader)firstHeader.textContent=`${initial.assignee||'Annotator'} — ${task.task_type}`;
             const history=reviewBodies[1];
@@ -616,7 +1112,7 @@
         });
         bindText(/^Analyze$/,()=>{exportJson({taskId:task.id,status:task.status,labels:task.labels,reviews:task.reviews},`task-${task.id}-analysis.json`);notice(`Đã xuất ${task.labels.length} nhãn và ${task.reviews.length} quyết định kiểm duyệt.`);});
         if(!labeler)buttons(/^Edit$|^edit$|^Validate$/).forEach(b=>unavailable(b,'Vai trò này chỉ xem nhãn.'));
-        notice(`${task.document_title} — ${task.status}${labeler?' · Sửa Term/Definition trực tiếp; nút Add Label thêm nhãn, xóa nội dung cả hai ô để bỏ nhãn.':''}`);
+        notice(`${task.document_title} — ${task.status}`);
     }
     async function logsPage() {
         let pageIndex=0,rows=await request('/audit-logs');
@@ -644,6 +1140,7 @@
         buttons(/Block IP|Related Activities/).forEach(b=>unavailable(b));
     }
     async function permissionsPage() {
+        if (window.AAIRPermissionsPage) return window.AAIRPermissionsPage({request,notice,user});
         const [roles,users]=await Promise.all([request('/roles'),request('/users')]);
         const roleNames={ADMIN:'Administrator',MANAGER:'Manager'};
         const roleFeatures={
@@ -657,8 +1154,13 @@
             const role=name==='Administrator'?'ADMIN':name==='Manager'?'MANAGER':'USER';
             roleCards.set(role,card);
             const count=$$('p',card).find(p=>/Members/.test(text(p)));
-            const members=role==='USER'?users.filter(u=>!roles.includes(u.role)).length:users.filter(u=>u.role===role).length;
-            if(count) count.textContent=`${members} Members`;
+            const assigned=role==='USER'?users.filter(u=>!roles.includes(u.role)):users.filter(u=>u.role===role);
+            if(count) count.textContent=`${assigned.length} Members`;
+            const footer=count?.parentElement?.parentElement,avatars=footer?.firstElementChild;
+            if(avatars){
+                avatars.replaceChildren(...assigned.slice(0,3).map(member=>avatarNode(member,'w-6 h-6')));
+                if(assigned.length>3){const more=document.createElement('span');more.className='w-6 h-6 rounded-full bg-surface-container-highest border-2 border-white inline-flex items-center justify-center text-[8px] font-bold';more.textContent=`+${assigned.length-3}`;avatars.append(more);}
+            }
             if(role!=='USER') card.onclick=()=>selectRole(role);
         });
         const summary=$$('h3').find(h=>/Permission Summary|User Roles/.test(text(h)));
@@ -785,26 +1287,34 @@
         for(const line of lines.length?lines:['Chưa có dữ liệu.']){const p=document.createElement('p');p.textContent=line;content.append(p);}container.append(content);
     }
     async function statisticsPage() {
-        const data=await request('/statistics');
-        const total=data.statuses.reduce((n,r)=>n+Number(r.total),0);
-        const metrics=[['Tác vụ',total],['Đã duyệt',data.statuses.find(r=>r.status==='APPROVED')?.total||0],['Nhãn',data.labels.reduce((n,r)=>n+Number(r.total),0)],['Người được phân công',data.assignees.filter(r=>r.username).length]];
-        [...$('main .grid').children].forEach((card,i)=>{
-            const value=$('div.font-headline-md',card);if(!value||!metrics[i])return;
-            value.textContent=String(metrics[i][1]);value.previousElementSibling.textContent=metrics[i][0];
-            $$('span',card).filter(s=>!s.classList.contains('material-symbols-outlined')).forEach(s=>s.textContent='');
-            $$('[style*="width"]',card).forEach(el=>el.style.width='0');
-        });
-        const groups={
-            'Annotation Progress':data.statuses.map(r=>`${r.status}: ${r.total}`),
-            'User Productivity':data.assignees.map(r=>`${r.username||'Chưa phân công'}: ${r.approved}/${r.total} đã duyệt`),
-            'Task Distribution':data.labels.map(r=>`${r.label_name}: ${r.total} nhãn; độ tin cậy ${r.average_confidence==null?'—':Number(r.average_confidence).toFixed(3)}`),
-            'AI Accuracy Trend':['Chưa có dữ liệu độ chính xác theo thời gian.'],
-            'Daily Activity Intensity':['Chưa có dữ liệu hoạt động theo ngày.'],
+        const [data,tasks,assignees,sessions]=await Promise.all([request('/statistics'),request('/tasks'),request('/assignees'),request('/sessions')]);
+        const main=$('main');
+        main.className='manager-workflow';
+        main.innerHTML=`<section class="manager-workflow__head"><div><p>WORKFLOW CONTROL</p><h2>Tiến độ gán nhãn và kiểm duyệt</h2></div><div class="manager-filters"><label>Session<select id="statsSession"><option value="">Tất cả session</option></select></label><label>AI assistance<select id="statsMode"><option value="">Tất cả chế độ</option><option value="NONE">NONE</option><option value="AI_ASSISTED">AI_ASSISTED</option></select></label></div></section><section id="statsKpis" class="manager-kpis"></section><section class="manager-grid"><div class="manager-panel manager-panel--wide"><div class="manager-panel__head"><div><span>TEAM DELIVERY</span><h3>Tiến độ theo người và section</h3></div><button id="exportStatistics" class="manager-icon-button" type="button" title="Xuất dữ liệu"><span class="material-symbols-outlined">download</span></button></div><div class="manager-table-wrap"><table><thead><tr><th>Người thực hiện</th><th>Task</th><th>Section</th><th>Tiến độ</th><th>Trễ hạn</th></tr></thead><tbody id="productivityBody"></tbody></table></div></div><div class="manager-panel"><div class="manager-panel__head"><div><span>TIME STUDY</span><h3>AI hỗ trợ và thủ công</h3></div></div><div id="timeComparison" class="time-comparison"></div></div><div class="manager-panel manager-panel--wide"><div class="manager-panel__head"><div><span>DEADLINES</span><h3>Task cần chú ý</h3></div><span id="overdueCount" class="danger-count"></span></div><div class="manager-table-wrap"><table><thead><tr><th>Tài liệu</th><th>Người thực hiện</th><th>Chế độ</th><th>Trạng thái</th><th>Deadline</th></tr></thead><tbody id="overdueBody"></tbody></table></div></div><div class="manager-panel"><div class="manager-panel__head"><div><span>PAIR REVIEW</span><h3>Tạo review case</h3></div></div><form id="reviewCaseForm" class="review-case-form"><label>Nguồn A<select id="reviewLeft" required></select></label><label>Nguồn B<select id="reviewRight" required></select></label><label>Reviewer<select id="reviewerSelect" required></select></label><label>Deadline<input id="reviewDue" type="datetime-local" required></label><button type="submit"><span class="material-symbols-outlined">compare_arrows</span>Tạo review case</button><p id="reviewCaseMessage"></p></form></div></section>`;
+        const sessionSelect=$('#statsSession'),modeSelect=$('#statsMode');
+        sessions.forEach(row=>sessionSelect.add(new Option(row.name,String(row.id))));
+        const eligible=tasks.filter(row=>['SUBMITTED','APPROVED'].includes(row.status));
+        const taskLabel=row=>`${row.document_title} · ${row.assignee||'Chưa gán'} · #${row.id}`;
+        const fillTaskSelect=(select,rows)=>select.replaceChildren(new Option('Chọn task',''),...rows.map(row=>new Option(taskLabel(row),String(row.id))));
+        fillTaskSelect($('#reviewLeft'),eligible);fillTaskSelect($('#reviewRight'),eligible);
+        assignees.filter(row=>row.role==='REVIEWER').forEach(row=>$('#reviewerSelect').add(new Option(row.username,String(row.id))));
+        $('#reviewLeft').addEventListener('change',event=>{const left=eligible.find(row=>String(row.id)===event.target.value);fillTaskSelect($('#reviewRight'),left?eligible.filter(row=>row.id!==left.id&&row.document_id===left.document_id):eligible);});
+        const statusTotals=Object.fromEntries(data.statuses.map(row=>[row.status,Number(row.total)]));
+        const render=()=>{
+            const sessionId=sessionSelect.value,mode=modeSelect.value;
+            const sections=(data.sectionProgress||[]).filter(row=>(!sessionId||String(row.session_id)===sessionId)&&(!mode||row.assistance_mode===mode));
+            const taskIds=new Set(sections.map(row=>row.task_id));
+            const people=(data.userProductivity||[]).filter(row=>!sessionId||sections.some(section=>section.username===row.username));
+            const reviewed=sections.filter(row=>row.section_status==='REVIEWED').length,totalSections=sections.filter(row=>row.field_key).length;
+            $('#statsKpis').innerHTML=[['Tổng task',taskIds.size||data.statuses.reduce((n,row)=>n+Number(row.total),0),'assignment'],['Đã duyệt',statusTotals.APPROVED||0,'task_alt'],['Section hoàn tất',`${reviewed}/${totalSections}`,'view_week'],['Task trễ hạn',(data.overdueTasks||[]).length,'warning']].map(([label,value,icon])=>`<article><span class="material-symbols-outlined">${icon}</span><small>${label}</small><strong>${value}</strong></article>`).join('');
+            $('#productivityBody').innerHTML=people.length?people.map(row=>{const total=Number(row.saved_sections||0)+Number(row.submitted_sections||0)+Number(row.reviewed_sections||0),done=Number(row.reviewed_sections||0),percent=total?Math.round(done/total*100):0;return `<tr><td><b>${row.username||'Chưa phân công'}</b></td><td>${row.completed_tasks}/${row.assigned_tasks}</td><td>${done}/${total}</td><td><div class="progress-cell"><span style="width:${percent}%"></span></div><small>${percent}%</small></td><td><span class="${Number(row.overdue_tasks)?'status-overdue':'status-ok'}">${row.overdue_tasks||0}</span></td></tr>`;}).join(''):'<tr><td colspan="5">Chưa có dữ liệu phù hợp.</td></tr>';
         };
-        $$('main h3,main h4').forEach(h=>{if(groups[text(h)])replacePanel(h,groups[text(h)]);});
-        buttons(/Last 30 Days/).forEach(b=>{b.textContent='All Time';unavailable(b);});
-        bindText(/View All|analytics/,()=>exportJson(data,'statistics.json'));
-        notice(`Thống kê từ ${total} tác vụ.`);
+        const comparisons=data.timeComparison||[];const maxTime=Math.max(1,...comparisons.map(row=>Number(row.average_seconds)||0));
+        $('#timeComparison').innerHTML=comparisons.length?comparisons.map(row=>`<div><header><b>${row.assistance_mode}</b><span>${Math.round(Number(row.average_seconds||0)/60)} phút TB · n=${row.sample_size}</span></header><span class="time-bar"><i style="width:${Number(row.average_seconds||0)/maxTime*100}%"></i></span><small>Trung vị ${Math.round(Number(row.median_seconds||0)/60)} phút</small></div>`).join(''):'<p>Chưa đủ task hoàn thành để so sánh thời gian.</p>';
+        const overdue=data.overdueTasks||[];$('#overdueCount').textContent=`${overdue.length} quá hạn`;$('#overdueBody').innerHTML=overdue.length?overdue.map(row=>`<tr><td>${row.document_title}</td><td>${row.username||'—'}</td><td>${row.assistance_mode}</td><td><span class="status-overdue">${row.status}</span></td><td>${date(row.due_at)}</td></tr>`).join(''):'<tr><td colspan="5"><span class="status-ok">Không có task trễ hạn.</span></td></tr>';
+        sessionSelect.addEventListener('change',render);modeSelect.addEventListener('change',render);render();
+        bind($('#exportStatistics'),()=>exportJson(data,'aair-manager-statistics.json'));
+        $('#reviewCaseForm').addEventListener('submit',event=>{event.preventDefault();run(event.submitter,async()=>{const leftId=Number($('#reviewLeft').value),rightId=Number($('#reviewRight').value),assignedTo=Number($('#reviewerSelect').value),due=$('#reviewDue').value;if(!leftId||!rightId||!assignedTo||!due)throw new Error('Vui lòng chọn đủ hai nguồn, Reviewer và deadline.');await request('/review-cases',{method:'POST',json:{leftTaskId:leftId,rightTaskId:rightId,assignedTo,dueAt:`${due}:00`}});$('#reviewCaseMessage').textContent='Đã tạo review case và giao Reviewer.';});});
     }
     async function monitoringPage() {
         const logs=await request('/audit-logs');
@@ -830,9 +1340,19 @@
         // Clear sample rows immediately so network failures never look like real data.
         $$('tbody').forEach(body=>{const el=body.closest('table');tableStyles.set(el,$$('tr:first-child td',body).map(c=>c.className));const columns=$$('thead th',el).length;body.replaceChildren();const td=body.insertRow().insertCell();td.colSpan=columns||1;td.className='p-4';td.textContent='Đang tải dữ liệu…';});
         user=await AAIR.guard();if(!user)return;
+        if(['RESULT_ANALYST','REVIEWER'].includes(user.role) && !window.AAIRGuidelineModal && !document.querySelector('a[href$="aair-labeling-guidelines.pdf"]')){
+            const nav=document.querySelector('header nav');
+            if(nav){
+                const guide=document.createElement('a');
+                guide.href='/resource/guidelines/aair-labeling-guidelines.pdf';guide.target='_blank';guide.rel='noopener';
+                guide.className='flex items-center gap-2 px-4 h-full text-on-surface-variant hover:text-text-hover hover:bg-button-hover transition-colors duration-200';
+                guide.innerHTML='<span class="material-symbols-outlined">menu_book</span><span class="font-body-md text-[12px]">Hướng dẫn</span>';
+                nav.append(guide);
+            }
+        }
         const profile=$('header .hidden.md\\:block');
         if(profile){const ps=$$('p',profile);if(ps[0])ps[0].textContent=user.username;if(ps[1])ps[1].textContent=user.role;
-            const avatar=profile.previousElementSibling;if(avatar)avatar.textContent=user.username.slice(0,2).toUpperCase();
+            const avatar=profile.previousElementSibling;if(avatar){avatar.replaceChildren();const node=avatarNode(user,'w-full h-full');avatar.append(node);}
             const logout=document.createElement('button');
             logout.type='button';logout.setAttribute('aria-label','Đăng xuất');logout.title='Đăng xuất khỏi hệ thống';
             logout.className='ml-2 inline-flex min-h-9 items-center gap-2 rounded-lg border border-white/40 bg-white/15 px-3 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-white/70';
@@ -847,6 +1367,7 @@
         else if(page==='DocumentManagement.html')await documentsPage();
         else if(page==='Session.html')await sessionsPage();
         else if(page==='ViewAll.html')await taskList();
+        else if(page==='Task.html'&&document.body.classList.contains('review-page')) await request('/tasks').catch(()=>[]);
         else if(page==='Task.html')await taskPage();
         else if(page==='LogView.html')await logsPage();
         else if(page==='PermissionManagement.html')await permissionsPage();

@@ -16,6 +16,7 @@ import vn.edu.aair.dto.WorkspaceRequests.Session;
 import vn.edu.aair.exception.AuthException;
 import vn.edu.aair.exception.GlobalExceptionHandler;
 import vn.edu.aair.service.AiExtractionService;
+import vn.edu.aair.service.AvatarStorage;
 import vn.edu.aair.service.DocumentStorage;
 import vn.edu.aair.service.WorkspaceService;
 
@@ -43,9 +44,12 @@ class WorkspaceControllerSessionTest {
     @Mock
     private AiExtractionService aiExtractionService;
 
+    @Mock
+    private AvatarStorage avatarStorage;
+
     @BeforeEach
     void setUp() {
-        WorkspaceController controller = new WorkspaceController(workspaceService, documentStorage, aiExtractionService);
+        WorkspaceController controller = new WorkspaceController(workspaceService, documentStorage, aiExtractionService, avatarStorage);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();

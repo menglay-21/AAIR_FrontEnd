@@ -1,0 +1,12 @@
+BEGIN;
+CREATE TABLE IF NOT EXISTS user_permission_overrides (user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,feature VARCHAR(40) NOT NULL,action VARCHAR(20) NOT NULL,enabled BOOLEAN NOT NULL,updated_by BIGINT REFERENCES users(id),updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY (user_id,feature,action),CHECK (feature IN ('DASHBOARD','USER_MANAGEMENT','PERMISSION_MANAGEMENT','AUDIT_LOGS','DOCUMENTS','SESSIONS','TASKS','STATISTICS')),CHECK (action IN ('READ','WRITE','EXECUTE','DELETE')));
+ALTER TABLE terminology_entries ADD COLUMN IF NOT EXISTS abbreviation VARCHAR(100);
+ALTER TABLE terminology_entries ADD COLUMN IF NOT EXISTS synonyms JSONB NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE terminology_entries ADD COLUMN IF NOT EXISTS related_term_ids JSONB NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE terminology_entries ADD COLUMN IF NOT EXISTS example_usage TEXT;
+CREATE TABLE IF NOT EXISTS term_audit_logs (id BIGSERIAL PRIMARY KEY,term_id BIGINT REFERENCES terminology_entries(id) ON DELETE SET NULL,term_name VARCHAR(200) NOT NULL,actor_id BIGINT REFERENCES users(id),action VARCHAR(20) NOT NULL CHECK (action IN ('CREATED','UPDATED','DELETED')),old_values JSONB,new_values JSONB,created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE INDEX IF NOT EXISTS idx_user_permission_overrides_user ON user_permission_overrides(user_id);
+CREATE INDEX IF NOT EXISTS idx_term_audit_logs_created ON term_audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_term_audit_logs_actor ON term_audit_logs(actor_id);
+CREATE INDEX IF NOT EXISTS idx_term_audit_logs_term ON term_audit_logs(term_id);
+COMMIT;

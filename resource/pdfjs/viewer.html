@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PDF Viewer</title>
+    <link rel="stylesheet" href="./pdf_viewer.css">
+    <link rel="stylesheet" href="./viewer.css">
+</head>
+<body>
+    <header class="pdf-toolbar" aria-label="Thanh công cụ PDF">
+        <div class="document-title" id="documentTitle">Tài liệu PDF</div>
+        <div class="page-controls">
+            <label for="pageNumber" class="sr-only">Trang hiện tại</label>
+            <input id="pageNumber" type="number" min="1" value="1" inputmode="numeric">
+            <span>/</span>
+            <span id="pageCount">0</span>
+        </div>
+        <div class="zoom-controls">
+            <button id="zoomOut" type="button" aria-label="Thu nhỏ" title="Thu nhỏ">−</button>
+            <output id="zoomValue" aria-live="polite">100%</output>
+            <button id="zoomIn" type="button" aria-label="Phóng to" title="Phóng to">+</button>
+        </div>
+    </header>
+
+    <div id="viewerContainer" class="pdf-viewport" role="main" tabindex="0">
+        <div id="viewer" class="pdfViewer"></div>
+        <p id="viewerMessage" class="viewer-message">Đang tải tài liệu PDF…</p>
+    </div>
+
+    <script type="module" src="./viewer.mjs"></script>
+</body>
+</html>

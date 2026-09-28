@@ -113,7 +113,7 @@ export default function DashboardPage() {
                   <span className="action-grid__icon material-symbols-outlined">{icon}</span>
                   <h3>{title}</h3>
                   <p>{text}</p>
-                  <Link to={`${config.route}/data`}>Mở phân hệ <span className="material-symbols-outlined">arrow_forward</span></Link>
+                  <Link to={user.role === 'RESULT_ANALYST' ? '/user/result-analysis/analysis' : `${config.route}/data`}>Mở phân hệ <span className="material-symbols-outlined">arrow_forward</span></Link>
                 </article>
               ))}
             </div>

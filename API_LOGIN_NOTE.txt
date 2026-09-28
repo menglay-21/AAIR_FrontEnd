@@ -1,4 +1,162 @@
 ================================================================================
+
+5. LƯU Ý DATABASE TRƯỚC KHI CHẠY BACKEND
+------------------------------------------
+Migration cho assistance_mode, task_section_progress, work_time_entries,
+review_cases, review_field_decisions và source_bbox KHÔNG được backend tự chạy.
+Phải chạy migration thủ công trong pgAdmin 4 trước khi khởi động Spring Boot.
+Không chạy lại migration nếu database hiện tại đã có đủ các bảng/cột trên.
+
+
+6. TASK, ASSISTANCE MODE VÀ SECTION ĐỘNG
+-----------------------------------------
+Tạo task (mở rộng API cũ):
+POST /api/tasks
+Authorization: Bearer <JWT>
+Body:
+{
+  "documentId": <document_id>,
+  "sessionId": <session_id>,
+  "taskType": "MANUAL",
+  "assignedTo": <user_id>,
+  "dueAt": "2030-01-31T17:00:00",
+  "assistanceMode": "NONE"
+}
+
+assistanceMode chỉ nhận NONE hoặc AI_ASSISTED. Task AI luôn dùng AI_ASSISTED.
+Backend từ chối chạy AI cho manual task có assistanceMode = NONE.
+
+Đánh dấu bắt đầu một section động:
+PATCH /api/tasks/<task_id>/sections/<field_key>
+Body: { "status": "IN_PROGRESS" }
+
+Section được sinh từ annotations.label_name; field_key là tên đã chuẩn hóa để ghép
+kết quả A/B, còn field_name giữ tên gốc để hiển thị. Khi lưu labels, section tự
+chuyển SAVED; khi submit task, section tự chuyển SUBMITTED.
+
+
+7. WORK TIME TRACKING
+----------------------
+Tất cả API cần Authorization: Bearer <JWT>.
+
+Bắt đầu lượt làm việc (chỉ được truyền đúng một ID):
+POST /api/work-time/start
+Body task:        { "taskId": <task_id> }
+Body review case: { "reviewCaseId": <review_case_id> }
+
+Response data mẫu:
+{
+  "id": <work_time_entry_id>,
+  "task_id": <task_id>,
+  "review_case_id": null,
+  "active_seconds": 0,
+  "started_at": "2030-01-20T08:00:00",
+  "last_heartbeat_at": "2030-01-20T08:00:00"
+}
+
+Heartbeat:
+POST /api/work-time/<work_time_entry_id>/heartbeat
+Body: không có. Mỗi lần chỉ cộng tối đa 45 giây và lượt mở được tái sử dụng để
+không nhân đôi thời gian khi mở nhiều tab.
+
+Dừng lượt:
+POST /api/work-time/<work_time_entry_id>/stop
+Body: { "reason": "SAVE" }
+reason: SAVE, SUBMIT, COMPLETE, PAGE_HIDDEN, IDLE, MANUAL hoặc STALE.
+
+Lỗi thường gặp:
+- HTTP 400: truyền cả taskId và reviewCaseId, không truyền ID nào, hoặc reason sai.
+- HTTP 403: task/case không được phân công cho tài khoản hiện tại.
+- HTTP 404: task, review case hoặc work-time entry không tồn tại.
+- HTTP 409: đối tượng đã hoàn thành hoặc trạng thái không cho phép ghi thời gian.
+
+
+8. REVIEW CASE
+---------------
+Manager tạo case từ hai task đã submit của cùng một PDF:
+POST /api/review-cases
+Body:
+{
+  "leftTaskId": <left_task_id>,
+  "rightTaskId": <right_task_id>,
+  "assignedTo": <reviewer_user_id>,
+  "dueAt": "2030-02-01T17:00:00"
+}
+
+Danh sách case:
+GET /api/review-cases
+GET /api/review-cases?status=PENDING
+
+Chi tiết case, nguồn A/B, section động, bbox và quyết định:
+GET /api/review-cases/<review_case_id>
+
+Các comparisonType trả về: EXACT, FORMAT_ONLY, VALUE_DIFFERENT, MISSING.
+FORMAT_ONLY chỉ cho biết hai giá trị tương đương về số nhưng khác cách viết;
+Reviewer vẫn phải chọn hoặc nhập giá trị cuối cùng.
+
+Lưu quyết định một field:
+PUT /api/review-cases/<review_case_id>/fields/<field_key>
+Body chọn A:
+{
+  "selectedSource": "LEFT",
+  "finalValue": "1.000",
+  "feedback": "Giữ định dạng theo báo cáo"
+}
+
+selectedSource nhận LEFT, RIGHT hoặc CUSTOM. finalValue luôn bắt buộc.
+
+Hoàn thành case:
+POST /api/review-cases/<review_case_id>/complete
+Body: không có.
+
+Lỗi thường gặp:
+- HTTP 400: cùng task, khác document/PDF, deadline quá khứ hoặc payload sai.
+- HTTP 403: không phải Manager khi tạo case, hoặc không phải Reviewer được giao.
+- HTTP 404: task/case/field không tồn tại.
+- HTTP 409: source task chưa submit, field khác biệt chưa chốt, hoặc case đã đóng.
+
+
+9. MANAGER STATISTICS
+----------------------
+GET /api/statistics
+GET /api/statistics?sessionId=<session_id>&from=2030-01-01T00:00:00&to=2030-01-31T23:59:59
+
+Response giữ nguyên các trường cũ và bổ sung:
+- sectionProgress: tiến độ task/section động.
+- userProductivity: khối lượng và section theo người.
+- timeComparison: trung bình, trung vị và cỡ mẫu theo NONE/AI_ASSISTED.
+- overdueTasks: task quá hạn.
+- reviewCases: số case theo trạng thái/deadline.
+
+
+10. VÍ DỤ POWERSHELL CHO WORKFLOW MỚI
+--------------------------------------
+$headers = @{ Authorization = "Bearer <JWT>" }
+$base = "http://localhost:8080/api"
+
+$timer = Invoke-RestMethod -Method Post -Uri "$base/work-time/start" `
+  -Headers $headers -ContentType "application/json" `
+  -Body (@{ taskId = <task_id> } | ConvertTo-Json)
+
+$entryId = $timer.data.id
+Invoke-RestMethod -Method Post -Uri "$base/work-time/$entryId/heartbeat" `
+  -Headers $headers
+Invoke-RestMethod -Method Post -Uri "$base/work-time/$entryId/stop" `
+  -Headers $headers -ContentType "application/json" `
+  -Body (@{ reason = "SAVE" } | ConvertTo-Json)
+
+$caseBody = @{
+  leftTaskId = <left_task_id>
+  rightTaskId = <right_task_id>
+  assignedTo = <reviewer_user_id>
+  dueAt = "2030-02-01T17:00:00"
+} | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri "$base/review-cases" `
+  -Headers $headers -ContentType "application/json" -Body $caseBody
+
+Invoke-RestMethod -Method Get `
+  -Uri "$base/statistics?sessionId=<session_id>" -Headers $headers
+================================================================================
 AAIR - NOTE API PHÂN HỆ ĐĂNG NHẬP
 Backend: Spring Boot (Java 21 LTS)
 Base URL mặc định: http://localhost:8080/api
@@ -133,4 +291,58 @@ Invoke-RestMethod `
   -Method Get `
   -Uri "http://localhost:8080/api/auth/me" `
   -Headers @{ Authorization = "Bearer $token" }
+
+
+11. USER AVATAR
+---------------
+Trước khi khởi động backend có hỗ trợ avatar, chạy thủ công file sau trong
+pgAdmin 4 (Query Tool) trên đúng database của hệ thống:
+
+database/add_user_avatar.sql
+
+Migration này idempotent và chỉ thêm users.avatar_url. Không lưu nội dung ảnh
+trong PostgreSQL. Ảnh được lưu tại <app.storage.directory>/avatars; cấu hình mặc
+định tương ứng với thư mục uploads/avatars của backend.
+
+API tạo/cập nhật user dạng JSON được giữ nguyên. Sau khi đã có user ID, upload
+avatar bằng endpoint riêng:
+
+Method: POST
+URL: /api/users/<user_id>/avatar
+Authorization: Bearer <JWT>
+Content-Type: multipart/form-data
+Form field: file
+
+Quy tắc kiểm tra:
+- Chỉ nhận JPG/JPEG, PNG hoặc WEBP.
+- Dung lượng tối đa 2 MB.
+- Backend kiểm tra phần mở rộng, MIME type và chữ ký thực của tệp.
+- Chỉ ADMIN hoặc MANAGER có quyền WRITE User Management mới được cập nhật.
+
+Response thành công - HTTP 200:
+{
+  "success": true,
+  "message": "Thành công",
+  "data": {
+    "id": <user_id>,
+    "username": "<username>",
+    "avatar_url": "/uploads/avatars/<generated-file-name>.png"
+  }
+}
+
+Ảnh được đọc trực tiếp tại:
+GET /uploads/avatars/<generated-file-name>.png
+
+Ví dụ PowerShell:
+$avatar = Get-Item "<path-to-avatar.png>"
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://localhost:8080/api/users/<user_id>/avatar" `
+  -Headers @{ Authorization = "Bearer $token" } `
+  -Form @{ file = $avatar }
+
+Lỗi thường gặp:
+- HTTP 400: file rỗng, lớn hơn 2 MB, sai phần mở rộng/MIME/chữ ký ảnh.
+- HTTP 403: không có quyền cập nhật User Management.
+- HTTP 404: user ID không tồn tại.
 ================================================================================

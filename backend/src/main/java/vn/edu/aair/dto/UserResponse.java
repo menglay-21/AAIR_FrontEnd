@@ -8,6 +8,7 @@ public record UserResponse(
         Long id,
         String username,
         String role,
+        String avatarUrl,
         Boolean isActive,
         LocalDateTime createdAt,
         String redirectPath
@@ -17,6 +18,7 @@ public record UserResponse(
                 user.getId(),
                 user.getUsername(),
                 user.getRole(),
+                user.getAvatarUrl(),
                 user.getIsActive(),
                 user.getCreatedAt(),
                 routeFor(user.getRole())

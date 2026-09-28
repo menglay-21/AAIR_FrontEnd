@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -60,12 +59,15 @@ public class AiExtractionService {
                 "Claude", new Provider(claudeKey, claudeModel));
     }
 
-    public Map<String, Object> run(long taskId, String providerName) {
+    public Map<String, Object> run(long taskId, String providerName, String promptOverride) {
         var actor = workspace.actor();
-        workspace.require(actor, "AI_LABELER", "MANUAL_LABELER");
+        workspace.require(actor, "AI_LABELER", "MANUAL_LABELER", "RESULT_ANALYST");
         var task = workspace.task(taskId);
         if (!Set.of("AI", "MANUAL").contains(String.valueOf(task.get("task_type"))))
             throw WorkspaceService.error(HttpStatus.BAD_REQUEST, "Loại tác vụ này không hỗ trợ chạy mô hình");
+        if ("MANUAL".equals(String.valueOf(task.get("task_type")))
+                && "NONE".equals(String.valueOf(task.get("assistance_mode"))))
+            throw WorkspaceService.error(HttpStatus.FORBIDDEN, "Tác vụ này được cấu hình không sử dụng AI hỗ trợ");
         if (List.of("SUBMITTED", "APPROVED").contains(String.valueOf(task.get("status"))))
             throw WorkspaceService.error(HttpStatus.CONFLICT, "Tác vụ đã nộp nên không thể chạy lại AI");
 
@@ -74,7 +76,9 @@ public class AiExtractionService {
             throw WorkspaceService.error(HttpStatus.CONFLICT, "Tài liệu chưa có dữ liệu PDF");
 
         PdfContent pdfContent = extractPdfText(pdf);
-        String promptTemplate = actor.role().equals("MANUAL_LABELER")
+        String promptTemplate = promptOverride != null && !promptOverride.isBlank()
+                ? promptOverride
+                : actor.role().equals("MANUAL_LABELER") || actor.role().equals("RESULT_ANALYST")
                 ? defaultPrompt() : configuredPrompt(providerName);
         String reportInput = pdfContent.searchable() ? pdfContent.text()
                 : "Báo cáo nằm trong tệp PDF đính kèm. Hãy đọc từng trang bằng khả năng xử lý tài liệu/OCR và dùng số trang PDF làm source_page.";
@@ -82,60 +86,22 @@ public class AiExtractionService {
         byte[] attachedPdf = pdfContent.searchable() ? null : pdf;
         Map<String, Object> result;
         List<Map<String, Object>> labels;
-        if ("ALL".equals(providerName)) {
-            result = runAll(prompt, attachedPdf);
-            labels = resultLabels(result);
-        } else {
-            var provider = providers.get(providerName);
-            if (provider == null) throw WorkspaceService.error(HttpStatus.BAD_REQUEST, "Nhà cung cấp AI không hợp lệ");
-            if (provider.apiKey() == null || provider.apiKey().isBlank())
-                throw WorkspaceService.error(HttpStatus.CONFLICT, "Chưa cấu hình API key cho " + providerName);
-            labels = runSingle(providerName, provider, prompt, attachedPdf);
-            if (labels.isEmpty())
-                throw WorkspaceService.error(HttpStatus.BAD_GATEWAY, "AI không rút trích được chỉ tiêu nào từ tài liệu");
-            result = new LinkedHashMap<>();
-            result.put("provider", providerName);
-            result.put("model", provider.model());
-            result.put("labels", labels);
-        }
+        var provider = providers.get(providerName);
+        if (provider == null) throw WorkspaceService.error(HttpStatus.BAD_REQUEST, "Nhà cung cấp AI không hợp lệ");
+        if (provider.apiKey() == null || provider.apiKey().isBlank())
+            throw WorkspaceService.error(HttpStatus.CONFLICT, "Chưa cấu hình API key cho " + providerName);
+        labels = runSingle(providerName, provider, prompt, attachedPdf);
+        if (labels.isEmpty())
+            throw WorkspaceService.error(HttpStatus.BAD_GATEWAY, "AI không rút trích được chỉ tiêu nào từ tài liệu");
+        result = new LinkedHashMap<>();
+        result.put("provider", providerName);
+        result.put("model", provider.model());
+        result.put("labels", labels);
 
         UUID runId = saveResults(taskId, WorkspaceService.id(document, "id"), actor, labels);
         result.put("runId", runId.toString());
         result.put("savedResults", labels.size());
         result.put("createdByUsername", actor.username());
-        return result;
-    }
-
-    private Map<String, Object> runAll(String prompt, byte[] pdf) {
-        var bestLabels = new LinkedHashMap<String, Map<String, Object>>();
-        var usedProviders = new ArrayList<String>();
-        var errors = new LinkedHashMap<String, String>();
-        for (String name : List.of("Gemini", "Groq", "ChatGPT", "Claude")) {
-            Provider provider = providers.get(name);
-            if (provider.apiKey() == null || provider.apiKey().isBlank()) {
-                errors.put(name, "Chưa cấu hình API key");
-                continue;
-            }
-            try {
-                for (var label : runSingle(name, provider, prompt, pdf)) {
-                    String key = String.valueOf(label.get("labelName")).toLowerCase(Locale.ROOT);
-                    var current = bestLabels.get(key);
-                    if (current == null || confidence(label).compareTo(confidence(current)) > 0)
-                        bestLabels.put(key, label);
-                }
-                usedProviders.add(name);
-            } catch (vn.edu.aair.exception.AuthException error) {
-                errors.put(name, error.getMessage());
-            }
-        }
-        if (usedProviders.isEmpty() || bestLabels.isEmpty())
-            throw WorkspaceService.error(HttpStatus.BAD_GATEWAY,
-                    "Không model nào chạy thành công. Hãy kiểm tra API key và model đã cấu hình");
-        var result = new LinkedHashMap<String, Object>();
-        result.put("provider", "ALL");
-        result.put("models", usedProviders);
-        result.put("labels", new ArrayList<>(bestLabels.values()));
-        result.put("warnings", errors);
         return result;
     }
 
@@ -146,11 +112,6 @@ public class AiExtractionService {
             label.put("model", provider.model());
         });
         return labels;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static List<Map<String, Object>> resultLabels(Map<String, Object> result) {
-        return (List<Map<String, Object>>) result.get("labels");
     }
 
     private UUID saveResults(long taskId, long documentId, WorkspaceService.Actor actor,
@@ -218,6 +179,11 @@ public class AiExtractionService {
         }
     }
 
+    public String systemPrompt() {
+        workspace.require(workspace.actor(), "AI_LABELER", "MANUAL_LABELER");
+        return defaultPrompt();
+    }
+
     private String configuredPrompt(String providerName) {
         var prompts = workspace.prompts();
         for (var prompt : prompts) {
@@ -239,7 +205,7 @@ public class AiExtractionService {
                 case "Gemini" -> callGemini(provider, prompt, pdf);
                 case "Groq" -> {
                     if (pdf != null) throw WorkspaceService.error(HttpStatus.UNPROCESSABLE_ENTITY,
-                            "Groq không xử lý trực tiếp PDF scan; hãy chọn Gemini, ChatGPT, Claude hoặc ALL");
+                            "Groq không xử lý trực tiếp PDF scan; hãy chọn Gemini, ChatGPT hoặc Claude");
                     yield callOpenAiCompatible("https://api.groq.com/openai/v1/chat/completions", provider, prompt);
                 }
                 case "ChatGPT" -> callOpenAi(provider, prompt, pdf);

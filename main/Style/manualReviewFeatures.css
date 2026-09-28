@@ -1,0 +1,47 @@
+.review-workspace {
+  grid-template-columns: minmax(430px, 1fr) minmax(620px, 1.55fr);
+}
+
+.review-workspace .comparison-panel {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.review-workspace .pdf-panel {
+  grid-column: 1;
+  grid-row: 1;
+  border-right: 1px solid #cbd5dd;
+  border-left: 0;
+}
+
+.review-workspace .history-panel {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.comparison-status--missing {
+  background: #f8f5fb;
+}
+
+.comparison-status--missing .field-name em {
+  color: #6f4a98;
+  background: #eadff5;
+}
+
+.missing-value {
+  color: #8665a4;
+  font-style: italic;
+}
+
+.value-cell small {
+  display: block;
+  margin-top: 5px;
+  color: #718392;
+  font-size: 9px;
+}
+
+@media (max-width: 1250px) {
+  .review-workspace {
+    grid-template-columns: minmax(360px, .95fr) minmax(600px, 1.55fr);
+  }
+}

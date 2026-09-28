@@ -24,11 +24,13 @@
     <script src="../../../JavaScript/tailwind.js"></script>
 
     <link href="../../../Style/basic.css" rel="stylesheet" />
+    <link href="../../../Style/taskWorkspace.css" rel="stylesheet" />
+    <link href="../../../Style/sessionCompletion.css" rel="stylesheet" />
 
 </head>
 
 <body
-    class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container overflow-hidden">
+    class="ai-task-page bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container overflow-hidden">
 
     <!-- Fixed Header -->
     <header
@@ -117,10 +119,10 @@
     </header>
 
     <!-- TopNavBar -->
-    <header class="ml-[157px] w-[calc(100%-157px)] h-12
+    <header class="mt-[50px] ml-[157px] w-[calc(100%-157px)] h-12
            flex items-center gap-2 px-lg
            bg-text-active border-b border-outline-variant
-           shadow-sm sticky top-[50px] z-30 gap-4 mb-6">
+           shadow-sm sticky top-[50px] z-30 gap-4">
 
         <div class="flex flex-col min-w-0 leading-tight">
 
@@ -149,16 +151,18 @@
             <div class="flex items-center gap-2">
                 <label class="text-label-md text-on-surface-variant">Model:</label>
                 <select
-                    class="w-[130px] bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-body-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary">
-                    <option>Choose AI</option>
-                    <option>GPT 1.0</option>
-                    <option>Germini 1.0</option>
+                    class="w-[170px] bg-surface border border-outline-variant rounded-lg px-4 py-2 text-body-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary">
+                    <option>Choose Model</option>
+                    <option>Gemini</option>
+                    <option>Claude</option>
+                    <option>ChatGPT</option>
+                    <option>Groq</option>
                 </select>
             </div>
 
             <div class="w-px h-6 bg-outline-variant mx-2"></div>
 
-            <button class="px-4 py-2
+            <button type="button" class="px-4 py-2
                        rounded-lg
                        text-[12px]
                        bg-button-active
@@ -166,38 +170,20 @@
                        hover:opacity-85
                        transition-opacity
                        flex items-center gap-2 shadow-sm">
-                <span>Edit</span>
-            </button>
-
-            <button class="px-4 py-2
-                       rounded-lg
-                       text-[12px]
-                       bg-button-active
-                       text-text-active
-                       hover:opacity-85
-                       transition-opacity
-                       flex items-center gap-2 shadow-sm">
-                <span>
-                    Save
-                </span>
+                <span>Submit Task</span>
             </button>
 
             <div class="w-px h-6 bg-outline-variant mx-2"></div>
 
-            <button class="px-4 py-2
+            <button id="runAiButton" type="button" class="px-4 py-2
                        rounded-lg
                        text-[12px]
                        bg-button-active
                        text-text-active
                        hover:opacity-85
                        transition-opacity
-                       flex items-center gap-2 shadow-sm"
-                       onclick="">
-                <span class="material-symbols-outlined"
-                    style="font-size: 20px;">play_arrow</span>
-
+                       flex items-center gap-2 shadow-sm">
                 <span>Run AI</span>
-                
             </button>
 
         </div>
@@ -267,8 +253,8 @@
     <!-- Main Workspace -->
     <main class="ml-[157px] w-[calc(100%-157px)]
             h-[calc(100vh-98px)]
-            mt-[98px]
-            grid grid-cols-[70%_30%]
+            mt-0
+            grid grid-cols-[62%_38%]
             overflow-hidden">
 
         <!-- ================================================= -->
@@ -303,7 +289,7 @@
 
         <div class="min-w-0 min-h-0
                 grid grid-cols-1
-                grid-rows-[75%_25%]
+                grid-rows-[100%]
                 overflow-hidden"> 
                 
             <section class="min-w-0 min-h-0
@@ -323,7 +309,7 @@
                 border-b border-outline-variant
                 bg-surface-container-low/30">
 
-                    <div class="flex items-center gap-2">
+                    <div class="flex min-w-0 flex-1 items-center gap-2">
 
                         <span class="material-symbols-outlined
                          text-primary text-[20px]">
@@ -334,6 +320,13 @@
                             AI Extraction
                         </h2>
 
+                    </div>
+
+                    <div id="aiPromptControls" class="ml-auto flex min-w-0 items-center gap-2">
+                        <label for="aiPromptSelect" class="shrink-0 text-[11px] font-semibold text-on-surface-variant">Prompt</label>
+                        <select id="aiPromptSelect" class="min-w-0 max-w-[230px] rounded-lg border border-outline-variant bg-white px-2 py-1.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-primary">
+                            <option value="__default__">System default prompt</option>
+                        </select>
                     </div>
 
                 </div>
@@ -348,7 +341,6 @@
                 overflow-x-hidden
                 p-5
                 custom-scrollbar">
-
 
                     <!-- ============================================= -->
                     <!-- EXTRACTION STATUS -->
@@ -1129,6 +1121,8 @@
 
     </main>
     <script src="../../../JavaScript/api.js"></script>
+    <script src="../../../JavaScript/timeTracking.js"></script>
+    <script src="../../../JavaScript/sessionCompletion.js"></script>
     <script src="../../../JavaScript/workspace.js"></script>
 </body>
 

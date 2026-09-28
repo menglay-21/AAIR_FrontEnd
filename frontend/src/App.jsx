@@ -4,6 +4,7 @@ import DashboardPage from './pages/DashboardPage'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
+import ResultAnalysisPage from './pages/ResultAnalysisPage'
 import WorkspaceDataPage from './pages/WorkspaceDataPage'
 
 const roleRoutes = [
@@ -35,6 +36,10 @@ export default function App() {
       {roleRoutes.map(([path, role]) => (
         <Route element={<ProtectedRoute allowedRoles={[role]}><WorkspaceDataPage /></ProtectedRoute>} key={`${path}-data`} path={`${path}/data`} />
       ))}
+      <Route
+        element={<ProtectedRoute allowedRoles={['RESULT_ANALYST']}><ResultAnalysisPage /></ProtectedRoute>}
+        path="/user/result-analysis/analysis"
+      />
       <Route path="/home" element={<Navigate to="/" replace />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
     id          BIGSERIAL PRIMARY KEY,
     username    VARCHAR(50)  NOT NULL,
     email       VARCHAR(254),
+    avatar_url  VARCHAR(500),
     password    VARCHAR(255) NOT NULL,
     role        VARCHAR(20)  NOT NULL,
     is_active   BOOLEAN      NOT NULL DEFAULT TRUE,
@@ -24,12 +25,14 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE UNIQUE INDEX IF NOT EXISTS uk_users_username_lower ON users (LOWER(username));
 ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(254);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(500);
 CREATE UNIQUE INDEX IF NOT EXISTS uk_users_email_lower
     ON users (LOWER(email)) WHERE email IS NOT NULL;
 
 COMMENT ON TABLE users IS 'Tài khoản đăng nhập của hệ thống AAIR';
 COMMENT ON COLUMN users.password IS 'Mật khẩu đã băm BCrypt, tuyệt đối không lưu mật khẩu gốc';
 COMMENT ON COLUMN users.email IS 'Email nhận thông tin đăng nhập khi Admin tạo tài khoản';
+COMMENT ON COLUMN users.avatar_url IS 'Relative URL của avatar lưu trên server';
 COMMENT ON COLUMN users.role IS 'Vai trò dùng để phân quyền và điều hướng sau đăng nhập';
 
 -- Khi bảng cũ đã tồn tại, cập nhật role constraint để bổ sung ADMIN và MANAGER.

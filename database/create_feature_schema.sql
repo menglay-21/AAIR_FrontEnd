@@ -63,6 +63,10 @@ CREATE TABLE IF NOT EXISTS terminology_entries (
     term VARCHAR(200) NOT NULL UNIQUE,
     definition TEXT NOT NULL,
     category VARCHAR(100),
+    abbreviation VARCHAR(100),
+    synonyms JSONB NOT NULL DEFAULT '[]'::jsonb,
+    related_term_ids JSONB NOT NULL DEFAULT '[]'::jsonb,
+    example_usage TEXT,
     status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE'
         CHECK (status IN ('ACTIVE', 'INACTIVE')),
     created_by BIGINT NOT NULL REFERENCES users(id),
@@ -139,6 +143,34 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS user_permission_overrides (
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    feature VARCHAR(40) NOT NULL,
+    action VARCHAR(20) NOT NULL,
+    enabled BOOLEAN NOT NULL,
+    updated_by BIGINT REFERENCES users(id),
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, feature, action),
+    CHECK (feature IN ('DASHBOARD','USER_MANAGEMENT','PERMISSION_MANAGEMENT','AUDIT_LOGS','DOCUMENTS','SESSIONS','TASKS','STATISTICS')),
+    CHECK (action IN ('READ','WRITE','EXECUTE','DELETE'))
+);
+
+CREATE TABLE IF NOT EXISTS term_audit_logs (
+    id BIGSERIAL PRIMARY KEY,
+    term_id BIGINT REFERENCES terminology_entries(id) ON DELETE SET NULL,
+    term_name VARCHAR(200) NOT NULL,
+    actor_id BIGINT REFERENCES users(id),
+    action VARCHAR(20) NOT NULL CHECK (action IN ('CREATED','UPDATED','DELETED')),
+    old_values JSONB,
+    new_values JSONB,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_permission_overrides_user ON user_permission_overrides(user_id);
+CREATE INDEX IF NOT EXISTS idx_term_audit_logs_created ON term_audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_term_audit_logs_actor ON term_audit_logs(actor_id);
+CREATE INDEX IF NOT EXISTS idx_term_audit_logs_term ON term_audit_logs(term_id);
+
 CREATE INDEX IF NOT EXISTS idx_tasks_assigned_to ON annotation_tasks(assigned_to);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON annotation_tasks(status);
 CREATE INDEX IF NOT EXISTS idx_documents_status ON documents(status);
@@ -152,3 +184,23 @@ CREATE INDEX IF NOT EXISTS idx_manual_results_task_created ON manual_labeler_res
 CREATE INDEX IF NOT EXISTS idx_manual_results_created_by_username ON manual_labeler_results(created_by_username);
 CREATE INDEX IF NOT EXISTS idx_terminology_entries_status ON terminology_entries(status);
 CREATE INDEX IF NOT EXISTS idx_terminology_entries_category ON terminology_entries(category);
+
+CREATE TABLE IF NOT EXISTS result_analysis_actions (
+    id BIGSERIAL PRIMARY KEY,
+    task_id BIGINT NOT NULL REFERENCES annotation_tasks(id) ON DELETE CASCADE,
+    field_key VARCHAR(150) NOT NULL,
+    note TEXT,
+    redo_run_id UUID,
+    redo_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
+    updated_by BIGINT NOT NULL REFERENCES users(id),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (task_id, field_key),
+    CHECK (note IS NOT NULL OR redo_confirmed)
+);
+
+CREATE TABLE IF NOT EXISTS result_analysis_completions (
+    task_id BIGINT PRIMARY KEY REFERENCES annotation_tasks(id) ON DELETE CASCADE,
+    completed_by BIGINT NOT NULL REFERENCES users(id),
+    completed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

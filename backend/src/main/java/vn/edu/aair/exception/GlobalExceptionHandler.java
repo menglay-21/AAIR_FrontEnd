@@ -53,6 +53,6 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(java.io.IOException.class)
     public ResponseEntity<ApiError> handleStorage() {
-        return ResponseEntity.internalServerError().body(ApiError.of("STORAGE_ERROR", "Không thể đọc hoặc lưu tệp tài liệu"));
+        return ResponseEntity.internalServerError().body(ApiError.of("STORAGE_ERROR", "Không thể đọc hoặc lưu tệp trên máy chủ"));
     }
 }
