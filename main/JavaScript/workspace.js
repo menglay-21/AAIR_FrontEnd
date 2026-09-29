@@ -118,12 +118,7 @@
     function avatarNode(row, sizeClass = 'w-9 h-9') {
         const holder=document.createElement('span');
         holder.className=`${sizeClass} shrink-0 overflow-hidden rounded-full bg-primary/10 text-primary inline-flex items-center justify-center font-bold`;
-        const source=AAIR.assetUrl?.(row.avatar_url||row.avatarUrl);
-        if(source){
-            const image=document.createElement('img');image.src=source;image.alt=`Avatar ${row.username||''}`;
-            image.className='w-full h-full object-cover';image.addEventListener('error',()=>{image.remove();holder.textContent=(row.username||'?').slice(0,2).toUpperCase();});
-            holder.append(image);
-        }else holder.textContent=(row.username||'?').slice(0,2).toUpperCase();
+        holder.textContent=(row.username||'?').slice(0,2).toUpperCase();
         return holder;
     }
     function userIdentity(row) {
@@ -488,33 +483,20 @@
             }),
         ] : [], canManageUsers ? [[r=>r.role, roles], r=>status(r)] : ['role', r=>'ACTIVE'], {numbered:true,sortable:true,sortKeys:[null,'username','email','role',r=>status(r),'created_at',null]});
         const modal=$('#modalContent'), [username,unused,email] = $$('input:not([type="checkbox"])',modal), role=$('select',modal);
-        let editing=null,avatarFile=null,previewObjectUrl=null;
+        let editing=null;
         fieldLabel(username,'Username'); username.placeholder='e.g. manager02';
         unused.parentElement.hidden=true;
         fieldLabel(email,'Gmail'); email.placeholder='username@gmail.com'; email.type='email';
         fieldLabel(role,'Role'); options(role,roles);
         role.insertBefore(new Option('— Không chọn —',''), role.firstChild);
-        const camera=$$('span',modal).find(node=>text(node)==='add_a_photo');
-        const avatarCircle=camera?.parentElement,avatarTrigger=avatarCircle?.parentElement;
-        const avatarInput=document.createElement('input');avatarInput.type='file';avatarInput.accept='.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp';avatarInput.hidden=true;avatarInput.id='userAvatarInput';modal.append(avatarInput);
-        const avatarPreview=document.createElement('img');avatarPreview.className='absolute inset-0 w-full h-full rounded-full object-cover';avatarPreview.alt='Avatar preview';avatarPreview.hidden=true;avatarCircle?.prepend(avatarPreview);
-        if(avatarTrigger){avatarTrigger.setAttribute('role','button');avatarTrigger.setAttribute('tabindex','0');avatarTrigger.setAttribute('aria-label','Chọn avatar');avatarTrigger.onclick=()=>avatarInput.click();avatarTrigger.onkeydown=event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();avatarInput.click();}};}
-        const showAvatar=(source)=>{avatarPreview.hidden=!source;camera.hidden=Boolean(source);if(source)avatarPreview.src=source;else avatarPreview.removeAttribute('src');};
-        avatarInput.addEventListener('change',()=>run(avatarInput,async()=>{
-            const file=avatarInput.files[0];if(!file)return;
-            if(!['image/jpeg','image/png','image/webp'].includes(file.type)||!/\.(?:jpe?g|png|webp)$/i.test(file.name))throw new Error('Avatar chỉ hỗ trợ JPG, PNG hoặc WEBP.');
-            if(!file.size||file.size>2*1024*1024)throw new Error('Avatar phải có nội dung và không vượt quá 2 MB.');
-            if(previewObjectUrl)URL.revokeObjectURL(previewObjectUrl);previewObjectUrl=URL.createObjectURL(file);avatarFile=file;showAvatar(previewObjectUrl);
-        }));
         const save=buttons(/^Create$/,modal)[0];
-        const reset=()=>{if(previewObjectUrl)URL.revokeObjectURL(previewObjectUrl);previewObjectUrl=null;avatarFile=null;avatarInput.value='';showAvatar('');editing=null;username.value='';username.disabled=false;email.value='';email.disabled=false;role.value='MANAGER';save.textContent='Create';$('h3',modal).textContent='Create User';};
-        function edit(row){reset();editing=row;username.value=row.username;username.disabled=true;email.value=row.email||'';email.disabled=true;if(![...role.options].some(o=>o.value===row.role))role.add(new Option(row.role,row.role));role.value=row.role;showAvatar(AAIR.assetUrl?.(row.avatar_url||row.avatarUrl));save.textContent='Save';$('h3',modal).textContent='Edit User';modalOpen();}
+        const reset=()=>{editing=null;username.value='';username.disabled=false;email.value='';email.disabled=false;role.value='MANAGER';save.textContent='Create';$('h3',modal).textContent='Create User';};
+        function edit(row){reset();editing=row;username.value=row.username;username.disabled=true;email.value=row.email||'';email.disabled=true;if(![...role.options].some(o=>o.value===row.role))role.add(new Option(row.role,row.role));role.value=row.role;save.textContent='Save';$('h3',modal).textContent='Edit User';modalOpen();}
         bindText(/New Manager|New User/,()=>{reset();modalOpen();});
         bind(save,async()=>{
             const isEditing=Boolean(editing);
             const json=editing?{role:role.value,active:editing.is_active}:{username:required(username,'tên tài khoản'),email:required(email,'Gmail'),role:role.value};
-            const saved=await request(editing?`/users/${editing.id}`:'/users',{method:editing?'PUT':'POST',json});
-            if(avatarFile){const data=new FormData();data.append('file',avatarFile);await request(`/users/${saved.id}/avatar`,{method:'POST',body:data});}
+            await request(editing?`/users/${editing.id}`:'/users',{method:editing?'PUT':'POST',json});
             modalClose();reset();await refresh();
             notice(isEditing?'Đã cập nhật tài khoản.':'Đã tạo tài khoản, gửi email và làm mới bảng.');
         });
@@ -551,6 +533,7 @@
         const modal=$('#modalContent'), name=$('input[placeholder^="e.g."]',modal), description=$('textarea',modal);
         const lists=$$('div.max-h-48',modal);
         const [documentList,typeList,memberList]=lists;
+        const selected=container=>$$('input:checked',container).map(i=>i.value);
         let editing=null, createdId=null, pendingTasks=[];
         const save=buttons(/^Create Session$/,modal)[0];
         function checkList(container,rows,key,radio=false){
@@ -571,18 +554,235 @@
         assistanceSection.innerHTML='<label class="block text-[11px] font-semibold text-on-surface">AI assistance</label><select id="taskAssistanceMode" class="w-full rounded-lg border border-outline-variant bg-white px-3 py-2 text-[12px]"><option value="NONE">Không dùng AI hỗ trợ</option><option value="AI_ASSISTED">Có AI hỗ trợ</option></select><p class="text-[10px] text-on-surface-variant">Dùng để so sánh thời gian làm thủ công và có AI hỗ trợ.</p>';
         modelSection.after(assistanceSection);
         const assistanceMode=$('#taskAssistanceMode',assistanceSection);
-        const syncAssistance=()=>{const type=selected(typeList)[0];if(type==='AI'){assistanceMode.value='AI_ASSISTED';assistanceMode.disabled=true;}else assistanceMode.disabled=false;};
-        typeList.addEventListener('change',syncAssistance);
         const modelSearch=$('input[placeholder="Search AI models..."]',modal);modelSearch.parentElement.hidden=true;
         checkList(memberList,assignees.map(u=>({id:u.id,name:`${u.username} — ${u.role}`})),'members');
-        const selected=container=>$$('input:checked',container).map(i=>i.value);
+        const userSection=memberList.parentElement;
+        const userSearchRow=memberList.previousElementSibling;
+        const userCountSpan=$$('span',userSection).find(s=>/Selected$/.test(text(s)));
+
+        const manualAssignContainer=document.createElement('div');
+        manualAssignContainer.id='manualAssignContainer';
+        manualAssignContainer.className='space-y-4';
+        manualAssignContainer.innerHTML=`
+            <div class="space-y-1.5">
+                <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
+                    Manual Labeler 1 <span class="text-error font-normal">*</span>
+                </label>
+                <select id="manualLabeler1" class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-body-md cursor-pointer">
+                    <option value="">Select user...</option>
+                </select>
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
+                    Manual Labeler 2 <span class="font-normal normal-case text-on-surface-variant">(Optional)</span>
+                </label>
+                <select id="manualLabeler2" class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-body-md cursor-pointer">
+                    <option value="">Select user (optional)...</option>
+                </select>
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
+                    Reviewer <span class="text-error font-normal">*</span>
+                </label>
+                <select id="manualReviewer" class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-body-md cursor-pointer">
+                    <option value="">Select user...</option>
+                </select>
+            </div>
+        `;
+        userSection.appendChild(manualAssignContainer);
+
+        const aiAssignContainer=document.createElement('div');
+        aiAssignContainer.id='aiAssignContainer';
+        aiAssignContainer.className='space-y-4';
+        aiAssignContainer.innerHTML=`
+            <div class="space-y-1.5">
+                <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
+                    AI Labeler <span class="text-error font-normal">*</span>
+                </label>
+                <select id="aiLabeler" class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-body-md cursor-pointer">
+                    <option value="">Select user...</option>
+                </select>
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-label-md text-on-surface-variant uppercase tracking-wider font-bold">
+                    Reviewer <span class="text-error font-normal">*</span>
+                </label>
+                <select id="aiReviewer" class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-body-md cursor-pointer">
+                    <option value="">Select user...</option>
+                </select>
+            </div>
+        `;
+        userSection.appendChild(aiAssignContainer);
+
+        const m1Select=$('#manualLabeler1',manualAssignContainer);
+        const m2Select=$('#manualLabeler2',manualAssignContainer);
+        const reviewerSelect=$('#manualReviewer',manualAssignContainer);
+
+        const aiLabelerSelect=$('#aiLabeler',aiAssignContainer);
+        const aiReviewerSelect=$('#aiReviewer',aiAssignContainer);
+
+        let currentAssignees=assignees;
+        let manualLabelers=currentAssignees.filter(u=>u.role==='MANUAL_LABELER');
+        let aiLabelers=currentAssignees.filter(u=>u.role==='AI_LABELER');
+        let reviewers=currentAssignees.filter(u=>u.role==='REVIEWER');
+
+        function populateSelect(select,users,defaultLabel){
+            const currentVal=select.value;
+            select.replaceChildren();
+            const defaultOpt=document.createElement('option');
+            defaultOpt.value='';
+            defaultOpt.textContent=defaultLabel;
+            select.appendChild(defaultOpt);
+            for(const u of users){
+                const opt=document.createElement('option');
+                opt.value=String(u.id);
+                opt.textContent=u.username;
+                if(String(u.id)===currentVal)opt.selected=true;
+                select.appendChild(opt);
+            }
+        }
+
+        function populateManualOptions(){
+            populateSelect(m1Select,manualLabelers,'Select user...');
+            populateSelect(m2Select,manualLabelers,'Select user (optional)...');
+            populateSelect(reviewerSelect,reviewers,'Select user...');
+            syncAssignmentOptions();
+        }
+
+        function populateAiOptions(){
+            populateSelect(aiLabelerSelect,aiLabelers,'Select user...');
+            populateSelect(aiReviewerSelect,reviewers,'Select user...');
+            syncAiAssignmentOptions();
+        }
+
+        function syncAssignmentOptions(){
+            const val1=m1Select.value;
+            const val2=m2Select.value;
+            const valRev=reviewerSelect.value;
+
+            $$('option',m1Select).forEach(opt=>{
+                if(!opt.value)return;
+                const taken=(opt.value===val2 && val2!=='')||(opt.value===valRev && valRev!=='');
+                opt.disabled=taken;
+                const user=manualLabelers.find(u=>String(u.id)===opt.value);
+                if(user)opt.textContent=taken?`${user.username} (Selected)`:user.username;
+            });
+
+            $$('option',m2Select).forEach(opt=>{
+                if(!opt.value)return;
+                const taken=(opt.value===val1 && val1!=='')||(opt.value===valRev && valRev!=='');
+                opt.disabled=taken;
+                const user=manualLabelers.find(u=>String(u.id)===opt.value);
+                if(user)opt.textContent=taken?`${user.username} (Selected)`:user.username;
+            });
+
+            $$('option',reviewerSelect).forEach(opt=>{
+                if(!opt.value)return;
+                const taken=(opt.value===val1 && val1!=='')||(opt.value===val2 && val2!=='');
+                opt.disabled=taken;
+                const user=reviewers.find(u=>String(u.id)===opt.value);
+                if(user)opt.textContent=taken?`${user.username} (Selected)`:user.username;
+            });
+
+            const count=[val1,val2,valRev].filter(Boolean).length;
+            if(userCountSpan && !manualAssignContainer.hidden)userCountSpan.textContent=`${count} Selected`;
+        }
+
+        function syncAiAssignmentOptions(){
+            const valAi=aiLabelerSelect.value;
+            const valRev=aiReviewerSelect.value;
+
+            $$('option',aiLabelerSelect).forEach(opt=>{
+                if(!opt.value)return;
+                const taken=(opt.value===valRev && valRev!=='');
+                opt.disabled=taken;
+                const user=aiLabelers.find(u=>String(u.id)===opt.value);
+                if(user)opt.textContent=taken?`${user.username} (Selected)`:user.username;
+            });
+
+            $$('option',aiReviewerSelect).forEach(opt=>{
+                if(!opt.value)return;
+                const taken=(opt.value===valAi && valAi!=='');
+                opt.disabled=taken;
+                const user=reviewers.find(u=>String(u.id)===opt.value);
+                if(user)opt.textContent=taken?`${user.username} (Selected)`:user.username;
+            });
+
+            const count=[valAi,valRev].filter(Boolean).length;
+            if(userCountSpan && !aiAssignContainer.hidden)userCountSpan.textContent=`${count} Selected`;
+        }
+
+        m1Select.addEventListener('change',()=>{
+            if(m1Select.value && m1Select.value===m2Select.value)m2Select.value='';
+            if(m1Select.value && m1Select.value===reviewerSelect.value)reviewerSelect.value='';
+            syncAssignmentOptions();
+        });
+        m2Select.addEventListener('change',()=>{
+            if(m2Select.value && m2Select.value===m1Select.value)m1Select.value='';
+            if(m2Select.value && m2Select.value===reviewerSelect.value)reviewerSelect.value='';
+            syncAssignmentOptions();
+        });
+        reviewerSelect.addEventListener('change',()=>{
+            if(reviewerSelect.value && reviewerSelect.value===m1Select.value)m1Select.value='';
+            if(reviewerSelect.value && reviewerSelect.value===m2Select.value)m2Select.value='';
+            syncAssignmentOptions();
+        });
+
+        aiLabelerSelect.addEventListener('change',()=>{
+            if(aiLabelerSelect.value && aiLabelerSelect.value===aiReviewerSelect.value)aiReviewerSelect.value='';
+            syncAiAssignmentOptions();
+        });
+        aiReviewerSelect.addEventListener('change',()=>{
+            if(aiReviewerSelect.value && aiReviewerSelect.value===aiLabelerSelect.value)aiLabelerSelect.value='';
+            syncAiAssignmentOptions();
+        });
+
+        populateManualOptions();
+        populateAiOptions();
+
+        let previousType='MANUAL';
+        const syncSessionType=()=>{
+            const type=selected(typeList)[0]||'MANUAL';
+            if(type!==previousType){
+                if(type==='AI'){
+                    m1Select.value='';
+                    m2Select.value='';
+                    reviewerSelect.value='';
+                    syncAssignmentOptions();
+                }else{
+                    aiLabelerSelect.value='';
+                    aiReviewerSelect.value='';
+                    syncAiAssignmentOptions();
+                }
+                previousType=type;
+            }
+            if(type==='AI'){
+                assistanceMode.value='AI_ASSISTED';
+                assistanceMode.disabled=true;
+                manualAssignContainer.hidden=true;
+                aiAssignContainer.hidden=false;
+                if(userSearchRow)userSearchRow.hidden=true;
+                memberList.hidden=true;
+                syncAiAssignmentOptions();
+            }else{
+                assistanceMode.disabled=false;
+                manualAssignContainer.hidden=false;
+                aiAssignContainer.hidden=true;
+                if(userSearchRow)userSearchRow.hidden=true;
+                memberList.hidden=true;
+                syncAssignmentOptions();
+            }
+        };
+        typeList.addEventListener('change',syncSessionType);
+        syncSessionType();
+
         for(const container of lists){
             const section=container.parentElement, search=$('input[placeholder^="Search"]',section);
             search?.addEventListener('input',()=>$$('label',container).forEach(l=>l.hidden=!text(l).toLowerCase().includes(search.value.toLowerCase())));
             bindText(/^Select All$/,()=>$$('input[type="checkbox"]',container).forEach(i=>i.checked=true),section);
             if(container===typeList)buttons(/^Select All$/,section).forEach(b=>b.hidden=true);
             container.addEventListener('change',()=>{
-                const counter=$$('span',section).find(s=>/Selected$/.test(text(s)));if(counter)counter.textContent=`${selected(container).length} Selected`;
+                const counter=$$('span',section).find(s=>/Selected$/.test(text(s)));if(counter && container!==memberList)counter.textContent=`${selected(container).length} Selected`;
             });
         }
         const startDate=$('#sessionStartDate',modal), dueDate=$('#sessionDueDate',modal);
@@ -595,19 +795,36 @@
         });
         const dueLabel=$('label',dueDate.parentElement.parentElement);if(dueLabel)dueLabel.textContent='Session Due Date *';
         const reset=()=>{
-            editing=null;createdId=null;pendingTasks=[];name.value='';description.value='';dueDate.value='';name.disabled=false;description.disabled=false;
+            editing=null;name.value='';description.value='';dueDate.value='';name.disabled=false;description.disabled=false;
             $$('input',documentList).forEach(i=>i.checked=false);$$('input',memberList).forEach(i=>i.checked=false);
             documentList.parentElement.hidden=false;typeList.parentElement.hidden=false;dueDate.parentElement.parentElement.hidden=false;
-            assistanceSection.hidden=false;assistanceMode.value='NONE';syncAssistance();
+            assistanceSection.hidden=false;assistanceMode.value='NONE';
+            m1Select.value='';m2Select.value='';reviewerSelect.value='';
+            aiLabelerSelect.value='';aiReviewerSelect.value='';
+            const typeInputs=$$('input',typeList);if(typeInputs[0])typeInputs[0].checked=true;
+            previousType='MANUAL';
+            syncSessionType();
             save.textContent='Create Session';$('h3',modal).textContent='Create Session';
         };
         const edit=row=>{
             reset();editing=row;name.value=row.name;description.value=row.description||'';name.disabled=true;description.disabled=true;
             documentList.parentElement.hidden=true;typeList.parentElement.hidden=true;dueDate.parentElement.parentElement.hidden=true;
             assistanceSection.hidden=true;
+            manualAssignContainer.hidden=true;aiAssignContainer.hidden=true;if(userSearchRow)userSearchRow.hidden=false;memberList.hidden=false;
             $$('input',memberList).forEach(i=>i.checked=row.members.some(m=>String(m.id)===i.value));save.textContent='Save Members';$('h3',modal).textContent='Assign Users';modalOpen();
         };
-        const refresh=async()=>list.reload(await request('/sessions'));
+        const reloadAssignees=async()=>{
+            try{
+                currentAssignees=await request('/assignees');
+                manualLabelers=currentAssignees.filter(u=>u.role==='MANUAL_LABELER');
+                aiLabelers=currentAssignees.filter(u=>u.role==='AI_LABELER');
+                reviewers=currentAssignees.filter(u=>u.role==='REVIEWER');
+                populateManualOptions();
+                populateAiOptions();
+                checkList(memberList,currentAssignees.map(u=>({id:u.id,name:`${u.username} — ${u.role}`})),'members');
+            }catch{}
+        };
+        const refresh=async()=>{list.reload(await request('/sessions'));await reloadAssignees();};
         const list=listTable(await request('/sessions'),[['No.','id'],['Session','name'],['Type','session_type'],['Assigned Users',r=>r.members.map(m=>m.username).join(', ')],['Due Date',r=>date(r.due_at)],['Status','status'],['Created',r=>date(r.created_at)],['Actions','$actions']],row=>[
             action('edit',()=>edit(row)),action('Tasks',async()=>{
                 const tasks=(await request('/tasks')).filter(t=>t.session_id===row.id);
@@ -619,30 +836,94 @@
         ],['status']);
         // Hide the static empty-state card; the actual table supplies its empty state.
         $$('h3').filter(h=>/No AI sessions/.test(text(h))).forEach(h=>h.parentElement.hidden=true);
-        bindText(/New Session|Create First Session/,()=>{reset();modalOpen();});
+        bindText(/New Session|Create First Session/,async()=>{reset();modalOpen();await reloadAssignees();});
         bind(save,async()=>{
             const userIds=selected(memberList).map(Number);
             if(editing){await request(`/sessions/${editing.id}/members`,{method:'PUT',json:{userIds}});modalClose();await refresh();notice('Đã cập nhật thành viên.');return;}
-            const type=selected(typeList)[0], docIds=selected(documentList).map(Number);
-            if(!createdId){
+            const type=selected(typeList)[0]||'MANUAL', docIds=selected(documentList).map(Number);
+
+            if(type==='MANUAL'){
                 required(name,'tên phiên');
                 required(dueDate,'ngày hết hạn');
                 const sessionDue=viDateToIso(dueDate.value);
                 if(sessionDue.parsed<=new Date())throw new Error('Ngày hết hạn phải ở tương lai.');
                 if(!docIds.length)throw new Error('Vui lòng chọn ít nhất một tài liệu PDF.');
-                const types=[type];
-                const labelers=assignees.filter(u=>userIds.includes(u.id)&&['AI_LABELER','MANUAL_LABELER'].includes(u.role));
-                if(docIds.length && types.some(t=>!labelers.some(u=>u.role===(t==='AI'?'AI_LABELER':'MANUAL_LABELER'))))throw new Error('Chọn người gán nhãn đúng vai trò cho mỗi loại tác vụ.');
-                pendingTasks=docIds.flatMap(documentId=>types.flatMap(taskType=>labelers.filter(u=>u.role===(taskType==='AI'?'AI_LABELER':'MANUAL_LABELER')).map(u=>({documentId,taskType,assignedTo:u.id,dueAt:sessionDue.iso,assistanceMode:taskType==='AI'?'AI_ASSISTED':assistanceMode.value}))));
-                const sessionDueAt=sessionDue.iso;
-                const created=await request('/sessions',{method:'POST',json:{name:name.value.trim(),description:description.value,sessionType:type,dueAt:sessionDueAt}});createdId=created.id;
+
+                if(!m1Select.value)throw new Error('Vui lòng chọn Manual Labeler 1.');
+                if(!reviewerSelect.value)throw new Error('Vui lòng chọn Reviewer.');
+
+                const m1Id=Number(m1Select.value);
+                const m2Id=m2Select.value?Number(m2Select.value):null;
+                const revId=Number(reviewerSelect.value);
+
+                const chosenIds=[m1Id,m2Id,revId].filter(Boolean);
+                if(new Set(chosenIds).size!==chosenIds.length)throw new Error('Không được chọn trùng người dùng giữa các vai trò.');
+
+                const m1User=currentAssignees.find(u=>u.id===m1Id);
+                const m2User=m2Id?currentAssignees.find(u=>u.id===m2Id):null;
+                const revUser=currentAssignees.find(u=>u.id===revId);
+
+                if(!m1User || m1User.role!=='MANUAL_LABELER')throw new Error('Manual Labeler 1 phải có vai trò MANUAL_LABELER.');
+                if(m2User && m2User.role!=='MANUAL_LABELER')throw new Error('Manual Labeler 2 phải có vai trò MANUAL_LABELER.');
+                if(!revUser || revUser.role!=='REVIEWER')throw new Error('Reviewer phải có vai trò REVIEWER.');
+
+                const manualLabelerIds=[m1Id];
+                if(m2Id)manualLabelerIds.push(m2Id);
+
+                const payload={
+                    name:name.value.trim(),
+                    description:description.value?description.value.trim():null,
+                    sessionType:'MANUAL',
+                    dueAt:sessionDue.iso,
+                    documents:docIds,
+                    manualLabelerIds,
+                    aiLabelerId:null,
+                    reviewerId:revId,
+                    assistanceMode:assistanceMode.value
+                };
+
+                await request('/sessions',{method:'POST',json:payload});
+                modalClose();reset();await refresh();notice('Đã tạo session thành công');
+                return;
             }
-            // Preserve the created ID and unfinished requests if any later step fails.
-            try{
-                await request(`/sessions/${createdId}/members`,{method:'PUT',json:{userIds}});
-                while(pendingTasks.length){await request('/tasks',{method:'POST',json:{...pendingTasks[0],sessionId:createdId}});pendingTasks.shift();}
-            }catch(error){await refresh();throw new Error(`Phiên #${createdId} đã tạo. Còn ${pendingTasks.length} tác vụ; bấm lưu để tiếp tục. ${error.message}`);}
-            modalClose();reset();await refresh();notice('Đã tạo session thành công');
+
+            if(type==='AI'){
+                required(name,'tên phiên');
+                required(dueDate,'ngày hết hạn');
+                const sessionDue=viDateToIso(dueDate.value);
+                if(sessionDue.parsed<=new Date())throw new Error('Ngày hết hạn phải ở tương lai.');
+                if(!docIds.length)throw new Error('Vui lòng chọn ít nhất một tài liệu PDF.');
+
+                if(!aiLabelerSelect.value)throw new Error('Vui lòng chọn AI Labeler.');
+                if(!aiReviewerSelect.value)throw new Error('Vui lòng chọn Reviewer.');
+
+                const aiId=Number(aiLabelerSelect.value);
+                const revId=Number(aiReviewerSelect.value);
+
+                if(aiId===revId)throw new Error('Không được chọn trùng người dùng giữa các vai trò.');
+
+                const aiUser=currentAssignees.find(u=>u.id===aiId);
+                const revUser=currentAssignees.find(u=>u.id===revId);
+
+                if(!aiUser || aiUser.role!=='AI_LABELER')throw new Error('AI Labeler phải có vai trò AI_LABELER.');
+                if(!revUser || revUser.role!=='REVIEWER')throw new Error('Reviewer phải có vai trò REVIEWER.');
+
+                const payload={
+                    name:name.value.trim(),
+                    description:description.value?description.value.trim():null,
+                    sessionType:'AI',
+                    dueAt:sessionDue.iso,
+                    documents:docIds,
+                    manualLabelerIds:[],
+                    aiLabelerId:aiId,
+                    reviewerId:revId,
+                    assistanceMode:assistanceMode.value
+                };
+
+                await request('/sessions',{method:'POST',json:payload});
+                modalClose();reset();await refresh();notice('Đã tạo session thành công');
+                return;
+            }
         });
     }
     async function taskList() {

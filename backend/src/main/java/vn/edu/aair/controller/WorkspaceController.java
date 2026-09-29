@@ -9,7 +9,6 @@ import org.springframework.web.multipart.MultipartFile;
 import vn.edu.aair.dto.ApiResponse;
 import vn.edu.aair.dto.WorkspaceRequests.*;
 import vn.edu.aair.service.AiExtractionService;
-import vn.edu.aair.service.AvatarStorage;
 import vn.edu.aair.service.DocumentStorage;
 import vn.edu.aair.service.WorkspaceService;
 import java.io.IOException;
@@ -23,9 +22,8 @@ public class WorkspaceController {
     private final WorkspaceService service;
     private final DocumentStorage storage;
     private final AiExtractionService aiExtraction;
-    private final AvatarStorage avatarStorage;
-    public WorkspaceController(WorkspaceService service,DocumentStorage storage,AiExtractionService aiExtraction,AvatarStorage avatarStorage) {
-        this.service=service;this.storage=storage;this.aiExtraction=aiExtraction;this.avatarStorage=avatarStorage;
+    public WorkspaceController(WorkspaceService service,DocumentStorage storage,AiExtractionService aiExtraction) {
+        this.service=service;this.storage=storage;this.aiExtraction=aiExtraction;
     }
     private ApiResponse<?> ok(Object data) { return ApiResponse.success("Thành công",data); }
     @GetMapping("/dashboard") public ApiResponse<?> dashboard() { return ok(service.dashboard()); }
@@ -39,18 +37,6 @@ public class WorkspaceController {
     @PutMapping("/permissions/users/{id}") public ApiResponse<?> updateUserPermissions(@PathVariable long id,@Valid @RequestBody UpdateUserPermissions r) { return ok(service.updateUserPermissions(id,r)); }
     @PostMapping("/users") @ResponseStatus(HttpStatus.CREATED) public ApiResponse<?> createUser(@Valid @RequestBody CreateUser r) { return ok(service.createUser(r)); }
     @PutMapping("/users/{id}") public ApiResponse<?> updateUser(@PathVariable long id,@Valid @RequestBody UpdateUser r) { return ok(service.updateUser(id,r)); }
-    @PostMapping(value="/users/{id}/avatar",consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ApiResponse<?> updateUserAvatar(@PathVariable long id,@RequestPart("file") MultipartFile file) throws IOException {
-        var stored=avatarStorage.store(file);
-        try {
-            var change=service.updateUserAvatar(id,stored.url());
-            avatarStorage.delete(change.previousUrl());
-            return ok(change.user());
-        } catch(RuntimeException exception) {
-            avatarStorage.delete(stored);
-            throw exception;
-        }
-    }
     @GetMapping("/audit-logs") public ApiResponse<?> logs(@RequestParam(defaultValue="0") int page) { return ok(service.logs(page)); }
     @GetMapping("/assignees") public ApiResponse<?> assignees() { return ok(service.assignees()); }
     @GetMapping("/documents") public ApiResponse<?> documents() { return ok(service.documents()); }

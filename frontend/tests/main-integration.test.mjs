@@ -11,7 +11,7 @@ const roleDirs = { ADMIN: 'Admin', MANAGER: 'Manager', AI_LABELER: 'User/AILabel
 const task = { id: 31, document_id: 11, session_id: 21, document_title: 'API Document', session_name: 'API Session', task_type: 'MANUAL', assigned_to: 4, assignee: 'manual_labeler01', status: 'PENDING', labels: [{ label_name: 'Revenue', label_value: '<b>100</b>', source_page: 5, confidence: 0.8 }], reviews: [] }
 const fixtures = {
   '/dashboard': { 'Tác vụ': 1, 'Chờ duyệt': 0, 'Đã duyệt': 0 },
-  '/users': [{ id: 8, username: 'api_user', email: 'api@example.com', avatar_url: '/uploads/avatars/api.png', role: 'MANUAL_LABELER', is_active: true }],
+  '/users': [{ id: 8, username: 'api_user', email: 'api@example.com', role: 'MANUAL_LABELER', is_active: true }],
   '/roles': ['ADMIN', 'MANAGER'],
   '/permissions?role=ADMIN': {
     role: 'ADMIN',
@@ -63,7 +63,10 @@ const fixtures = {
 async function setup(role, page, overrides = {}) {
   const path = `/main/HTML/${roleDirs[role]}/${page}`
   const dom = new JSDOM(readFileSync(resolve(root, path.slice(1)), 'utf8'), { url: `http://localhost:5173${path}`, runScripts: 'outside-only' })
-  const w = dom.window, calls = [], state = structuredClone({...fixtures,...overrides})
+  const w = dom.window, calls = [], state = structuredClone(fixtures)
+  for (const [k, v] of Object.entries(overrides)) {
+    if (typeof v !== 'function') state[k] = structuredClone(v)
+  }
   w.confirm = () => true
   w.prompt = () => null
   w.URL.createObjectURL = () => 'blob:test'
@@ -72,6 +75,7 @@ async function setup(role, page, overrides = {}) {
     calls.push({path,...options})
     if(options.blob) return new w.Blob(['%PDF-'])
     if(path.startsWith('/session-completion')) return {allDone:true,missingItems:[],documents:[{id:31,name:'Report.pdf',status:'done',missingDetail:[]}]}
+    if(options.method && typeof overrides[`${options.method}:${path}`] === 'function') return overrides[`${options.method}:${path}`](path, options)
     if(options.method) {
       if(/^\/users\/\d+$/.test(path)&&options.method==='PUT') return {id:Number(path.split('/')[2]),...options.json}
       if(path.endsWith('/run-ai')) return {provider:options.json.provider,model:'test-model',labels:[{labelName:'revenue',labelValue:'1000000 VND',sourceLabel:'Doanh thu thuần',sourcePage:7,confidence:0.95}]}
@@ -145,20 +149,265 @@ test('term editor sends API field names and keeps content as text',async()=>{
     assert.equal(call.path,'/terms');assert.equal(call.json.term,'Test term');assert.equal(call.json.status,'INACTIVE')
   } finally {c.dom.window.close()}
 })
-test('manager session form creates members and correctly assigned tasks',async()=>{
+test('manager session form creates manual session via single atomic POST /sessions',async()=>{
   const c=await setup('MANAGER','Session.html')
   try {
+    const m1Select=c.w.document.querySelector('#manualLabeler1')
+    const m2Select=c.w.document.querySelector('#manualLabeler2')
+    const revSelect=c.w.document.querySelector('#manualReviewer')
+
+    // Verify role filtering
+    const m1Values=[...m1Select.options].map(o=>o.value).filter(Boolean)
+    const revValues=[...revSelect.options].map(o=>o.value).filter(Boolean)
+    assert.deepEqual(m1Values,['4'],'Manual Labeler must only include MANUAL_LABELER')
+    assert.deepEqual(revValues,['5'],'Reviewer must only include REVIEWER')
+    assert.ok(!m1Values.includes('3'),'AI_LABELER must not appear in manual labelers')
+    assert.ok(!revValues.includes('3'),'AI_LABELER must not appear in reviewers')
+
     c.w.document.querySelector('input[placeholder^="e.g."]').value='New Session'
     c.w.document.querySelector('input[name="documents"]').checked=true
-    c.w.document.querySelector('input[name="members"][value="4"]').checked=true
     c.w.document.querySelector('[aria-label="Session due date"]').value='31/12/2099'
+
+    m1Select.value='4'
+    m1Select.dispatchEvent(new c.w.Event('change'))
+
+    // Verify duplicate user prevention: user 4 is disabled in m2Select
+    const m2Option4=[...m2Select.options].find(o=>o.value==='4')
+    assert.ok(m2Option4?.disabled,'User 4 selected in M1 must be disabled in M2')
+
+    revSelect.value='5'
+    revSelect.dispatchEvent(new c.w.Event('change'))
+
     c.button('Create Session').click();await c.settle()
     assert.deepEqual(c.errors(),[])
     const mutations=c.calls.filter(x=>x.method)
-    assert.deepEqual(mutations.map(x=>x.path),['/sessions','/sessions/99/members','/tasks'])
-    assert.equal(mutations[0].json.dueAt,'2099-12-31T23:59:00')
-    assert.equal(mutations[2].json.assignedTo,4);assert.equal(mutations[2].json.sessionId,99);assert.equal(mutations[2].json.documentId,11)
+    // Exactly ONE atomic POST /sessions request, NO /members or /tasks calls
+    assert.deepEqual(mutations.map(x=>x.path),['/sessions'])
+    assert.deepEqual(JSON.parse(JSON.stringify(mutations[0].json)),{
+      name:'New Session',
+      description:null,
+      sessionType:'MANUAL',
+      dueAt:'2099-12-31T23:59:00',
+      documents:[11],
+      manualLabelerIds:[4],
+      aiLabelerId:null,
+      reviewerId:5,
+      assistanceMode:'NONE'
+    })
     assert.equal(c.w.document.querySelector('#apiNotice'),null,'non-Save/Submit actions must not show a popup')
+  } finally {c.dom.window.close()}
+})
+test('manager session form creates manual session with 2 manual labelers and validates requirements',async()=>{
+  const c=await setup('MANAGER','Session.html',{
+    '/assignees': [
+      {id: 4, username: 'manual_labeler01', role: 'MANUAL_LABELER'},
+      {id: 6, username: 'manual_labeler02', role: 'MANUAL_LABELER'},
+      {id: 5, username: 'reviewer01', role: 'REVIEWER'}
+    ]
+  })
+  try {
+    const m1Select=c.w.document.querySelector('#manualLabeler1')
+    const m2Select=c.w.document.querySelector('#manualLabeler2')
+    const revSelect=c.w.document.querySelector('#manualReviewer')
+
+    c.w.document.querySelector('input[placeholder^="e.g."]').value='Dual Labeler Session'
+    c.w.document.querySelector('input[name="documents"]').checked=true
+    c.w.document.querySelector('[aria-label="Session due date"]').value='31/12/2099'
+
+    // Block when reviewer missing
+    m1Select.value='4'
+    m1Select.dispatchEvent(new c.w.Event('change'))
+    c.button('Create Session').click();await c.settle()
+    assert.deepEqual(c.errors(),['Vui lòng chọn Reviewer.'])
+    assert.equal(c.calls.filter(x=>x.method).length,0,'No API call when validation fails')
+
+    // Clear previous error notification before valid submission
+    c.w.document.querySelectorAll('#apiNotice').forEach(e=>e.remove())
+
+    // Add optional Manual Labeler 2 and Reviewer
+    m2Select.value='6'
+    m2Select.dispatchEvent(new c.w.Event('change'))
+    revSelect.value='5'
+    revSelect.dispatchEvent(new c.w.Event('change'))
+
+    c.button('Create Session').click();await c.settle()
+    assert.deepEqual(c.errors(),[])
+    const mutations=c.calls.filter(x=>x.method)
+    assert.deepEqual(mutations.map(x=>x.path),['/sessions'])
+    assert.deepEqual([...mutations[0].json.manualLabelerIds],[4,6])
+    assert.equal(mutations[0].json.reviewerId,5)
+    assert.equal(mutations[0].json.aiLabelerId,null)
+  } finally {c.dom.window.close()}
+})
+test('manager session form creates AI session via single atomic POST /sessions and validates requirements',async()=>{
+  const c=await setup('MANAGER','Session.html')
+  try {
+    const aiRadio=[...c.w.document.querySelectorAll('input[name="sessionType"]')].find(r=>r.value==='AI')
+    const aiLabelerSelect=c.w.document.querySelector('#aiLabeler')
+    const aiReviewerSelect=c.w.document.querySelector('#aiReviewer')
+    const assistanceMode=c.w.document.querySelector('#taskAssistanceMode')
+
+    // Switch to AI
+    aiRadio.click()
+
+    // Verify AI assistance is locked to AI_ASSISTED
+    assert.equal(assistanceMode.value,'AI_ASSISTED')
+    assert.ok(assistanceMode.disabled,'AI assistance must be disabled for AI session')
+
+    // Verify role filtering
+    const aiValues=[...aiLabelerSelect.options].map(o=>o.value).filter(Boolean)
+    const revValues=[...aiReviewerSelect.options].map(o=>o.value).filter(Boolean)
+    assert.deepEqual(aiValues,['3'],'AI Labeler must only include AI_LABELER')
+    assert.deepEqual(revValues,['5'],'Reviewer must only include REVIEWER')
+    assert.ok(!aiValues.includes('4'),'MANUAL_LABELER must not appear in AI Labeler')
+    assert.ok(!revValues.includes('3'),'AI_LABELER must not appear in Reviewer')
+
+    // Fill common session fields
+    c.w.document.querySelector('input[placeholder^="e.g."]').value='AI Annotation Session'
+    c.w.document.querySelector('input[name="documents"]').checked=true
+    c.w.document.querySelector('[aria-label="Session due date"]').value='31/12/2099'
+
+    // CASE B: Missing AI Labeler
+    c.button('Create Session').click();await c.settle()
+    assert.deepEqual(c.errors(),['Vui lòng chọn AI Labeler.'])
+    assert.equal(c.calls.filter(x=>x.method).length,0)
+    c.w.document.querySelectorAll('#apiNotice').forEach(e=>e.remove())
+
+    // CASE C: Missing Reviewer
+    aiLabelerSelect.value='3'
+    aiLabelerSelect.dispatchEvent(new c.w.Event('change'))
+    c.button('Create Session').click();await c.settle()
+    assert.deepEqual(c.errors(),['Vui lòng chọn Reviewer.'])
+    assert.equal(c.calls.filter(x=>x.method).length,0)
+    c.w.document.querySelectorAll('#apiNotice').forEach(e=>e.remove())
+
+    // Select Reviewer
+    aiReviewerSelect.value='5'
+    aiReviewerSelect.dispatchEvent(new c.w.Event('change'))
+
+    // CASE A, G, H: Valid AI Create Session creates session in ONE atomic POST /sessions call
+    c.button('Create Session').click();await c.settle()
+    assert.deepEqual(c.errors(),[])
+    const mutations=c.calls.filter(x=>x.method)
+    assert.deepEqual(mutations.map(x=>x.path),['/sessions'])
+    assert.deepEqual(JSON.parse(JSON.stringify(mutations[0].json)),{
+      name:'AI Annotation Session',
+      description:null,
+      sessionType:'AI',
+      dueAt:'2099-12-31T23:59:00',
+      documents:[11],
+      manualLabelerIds:[],
+      aiLabelerId:3,
+      reviewerId:5,
+      assistanceMode:'AI_ASSISTED'
+    })
+  } finally {c.dom.window.close()}
+})
+test('manager session type switching isolates assignment selections between MANUAL and AI',async()=>{
+  const c=await setup('MANAGER','Session.html')
+  try {
+    const aiRadio=[...c.w.document.querySelectorAll('input[name="sessionType"]')].find(r=>r.value==='AI')
+    const manualRadio=[...c.w.document.querySelectorAll('input[name="sessionType"]')].find(r=>r.value==='MANUAL')
+    const m1Select=c.w.document.querySelector('#manualLabeler1')
+    const revSelect=c.w.document.querySelector('#manualReviewer')
+    const aiLabelerSelect=c.w.document.querySelector('#aiLabeler')
+    const aiReviewerSelect=c.w.document.querySelector('#aiReviewer')
+
+    // In MANUAL mode, select user 4 and user 5
+    m1Select.value='4'
+    m1Select.dispatchEvent(new c.w.Event('change'))
+    revSelect.value='5'
+    revSelect.dispatchEvent(new c.w.Event('change'))
+
+    // Switch to AI
+    aiRadio.click()
+
+    // MANUAL selections must be cleared/reset
+    assert.equal(m1Select.value,'')
+    assert.equal(revSelect.value,'')
+    assert.equal(aiLabelerSelect.value,'')
+    assert.equal(aiReviewerSelect.value,'')
+
+    // In AI mode, select user 3 and user 5
+    aiLabelerSelect.value='3'
+    aiLabelerSelect.dispatchEvent(new c.w.Event('change'))
+    aiReviewerSelect.value='5'
+    aiReviewerSelect.dispatchEvent(new c.w.Event('change'))
+
+    // Switch back to MANUAL
+    manualRadio.click()
+
+    // AI selections must be cleared
+    assert.equal(aiLabelerSelect.value,'')
+    assert.equal(aiReviewerSelect.value,'')
+  } finally {c.dom.window.close()}
+})
+test('manager create session API error keeps modal open, preserves data, and performs no secondary calls',async()=>{
+  const c=await setup('MANAGER','Session.html',{
+    'POST:/sessions': () => { throw new Error('Simulated backend failure') }
+  })
+  try {
+    // Open modal via New Session button
+    const newSessionBtn=[...c.w.document.querySelectorAll('button')].find(b=>b.textContent.includes('New Session'))
+    assert.ok(newSessionBtn,'New Session button should exist')
+    newSessionBtn.click();await c.settle()
+    const modal=c.w.document.querySelector('#modalOverlay')
+    assert.equal(modal.classList.contains('hidden'),false,'Modal should be open initially')
+
+    const nameInput=c.w.document.querySelector('input[placeholder^="e.g."]')
+    const dueInput=c.w.document.querySelector('[aria-label="Session due date"]')
+    const m1Select=c.w.document.querySelector('#manualLabeler1')
+    const revSelect=c.w.document.querySelector('#manualReviewer')
+
+    nameInput.value='Audit Error Session'
+    dueInput.value='31/12/2099'
+    c.w.document.querySelector('input[name="documents"]').checked=true
+    m1Select.value='4'
+    m1Select.dispatchEvent(new c.w.Event('change'))
+    revSelect.value='5'
+    revSelect.dispatchEvent(new c.w.Event('change'))
+
+    c.button('Create Session').click();await c.settle()
+
+    // Error notice must be displayed
+    assert.ok(c.errors().some(err=>err.includes('Simulated backend failure')),'Error notice must be shown')
+
+    // Modal must remain open after failure
+    assert.equal(modal.classList.contains('hidden'),false,'Modal must remain open on API failure')
+
+    // Form inputs must be preserved
+    assert.equal(nameInput.value,'Audit Error Session')
+    assert.equal(dueInput.value,'31/12/2099')
+    assert.equal(m1Select.value,'4')
+    assert.equal(revSelect.value,'5')
+
+    // No secondary /members or /tasks calls
+    const secondaryCalls=c.calls.filter(x=>x.method&&(x.path.includes('/members')||x.path.includes('/tasks')))
+    assert.equal(secondaryCalls.length,0,'No secondary API calls should occur on failure')
+  } finally {c.dom.window.close()}
+})
+test('manager edit existing session members flow remains functional via PUT /api/sessions/{id}/members',async()=>{
+  const c=await setup('MANAGER','Session.html')
+  try {
+    const editBtn=[...c.w.document.querySelectorAll('button')].find(b=>b.textContent.trim()==='edit')
+    assert.ok(editBtn,'Edit button should exist for existing session')
+    editBtn.click();await c.settle()
+
+    const modal=c.w.document.querySelector('#modalOverlay')
+    assert.equal(modal.querySelector('h3').textContent,'Assign Users')
+    assert.equal(c.button('Save Members').textContent.trim(),'Save Members')
+
+    // Select reviewer01 (id 5) in member list
+    const reviewerCheckbox=c.w.document.querySelector('input[name="members"][value="5"]')
+    assert.ok(reviewerCheckbox,'Reviewer checkbox should exist in member list')
+    reviewerCheckbox.checked=true
+
+    c.button('Save Members').click();await c.settle()
+
+    const mutations=c.calls.filter(x=>x.method)
+    assert.ok(mutations.some(x=>x.path==='/sessions/21/members'&&x.method==='PUT'),'Must call PUT /sessions/21/members')
+    assert.ok(!mutations.some(x=>x.path==='/sessions'&&x.method==='POST'),'Must NOT call POST /sessions')
+    assert.ok(!mutations.some(x=>x.path.includes('/tasks')),'Must NOT call /tasks')
   } finally {c.dom.window.close()}
 })
 test('manager uploads multiple PDF files in one selection and refreshes the database list',async()=>{
@@ -319,43 +568,6 @@ test('user management numbers filtered and paginated rows independently from dat
     const search=c.w.document.querySelector('input[placeholder^="Search"]')
     search.value='manager05';search.dispatchEvent(new c.w.Event('input'));await c.settle()
     assert.equal(firstCell(),'1','filtering must renumber the resulting display order')
-  } finally {c.dom.window.close()}
-})
-test('create user previews and uploads a validated avatar',async()=>{
-  const c=await setup('ADMIN','ManagerManagement.html')
-  try {
-    ;[...c.w.document.querySelectorAll('button')].find(b=>b.textContent.includes('New Manager')).click();await c.settle()
-    c.w.document.querySelector('[aria-label="Username"]').value='manager_avatar'
-    c.w.document.querySelector('[aria-label="Gmail"]').value='manager.avatar@gmail.com'
-    const input=c.w.document.querySelector('#userAvatarInput')
-    const file=new c.w.File([new Uint8Array([0xff,0xd8,0xff,1])],'avatar.jpg',{type:'image/jpeg'})
-    Object.defineProperty(input,'files',{configurable:true,value:[file]})
-    input.dispatchEvent(new c.w.Event('change'));await c.settle()
-    const preview=c.w.document.querySelector('img[alt="Avatar preview"]')
-    assert.equal(preview.hidden,false)
-    c.button('Create').click();await c.settle()
-    assert.deepEqual(c.errors(),[])
-    const upload=c.calls.find(call=>call.path==='/users/99/avatar'&&call.method==='POST')
-    assert.ok(upload?.body instanceof c.w.FormData)
-    assert.equal(upload.body.get('file').name,'avatar.jpg')
-  } finally {c.dom.window.close()}
-})
-test('edit user loads the current avatar and uploads its replacement',async()=>{
-  const row={id:8,username:'admin',email:'admin@example.com',avatar_url:'/uploads/avatars/current.png',role:'ADMIN',is_active:true,created_at:'2026-09-12T10:00:00'}
-  const c=await setup('ADMIN','ManagerManagement.html',{'/users':[row]})
-  try {
-    c.w.document.querySelector('button[aria-label="edit"]').click();await c.settle()
-    const preview=c.w.document.querySelector('img[alt="Avatar preview"]')
-    assert.equal(preview.src,'http://localhost:8080/uploads/avatars/current.png')
-    const input=c.w.document.querySelector('#userAvatarInput')
-    const replacement=new c.w.File([new Uint8Array([0x89,0x50,0x4e,0x47])],'replacement.png',{type:'image/png'})
-    Object.defineProperty(input,'files',{configurable:true,value:[replacement]})
-    input.dispatchEvent(new c.w.Event('change'));await c.settle()
-    c.button('Save').click();await c.settle()
-    assert.deepEqual(c.errors(),[])
-    assert.ok(c.calls.some(call=>call.path==='/users/8'&&call.method==='PUT'))
-    const upload=c.calls.find(call=>call.path==='/users/8/avatar'&&call.method==='POST')
-    assert.equal(upload.body.get('file').name,'replacement.png')
   } finally {c.dom.window.close()}
 })
 test('admin permission matrix switches roles and saves changed actions',async()=>{

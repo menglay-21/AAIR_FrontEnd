@@ -7,23 +7,19 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import vn.edu.aair.exception.GlobalExceptionHandler;
 import vn.edu.aair.service.AiExtractionService;
-import vn.edu.aair.service.AvatarStorage;
 import vn.edu.aair.service.DocumentStorage;
 import vn.edu.aair.service.WorkspaceService;
 
 import java.util.Map;
-import java.nio.file.Path;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -33,13 +29,12 @@ class WorkspaceControllerWorkflowTest {
     @Mock WorkspaceService workspaceService;
     @Mock DocumentStorage documentStorage;
     @Mock AiExtractionService aiExtractionService;
-    @Mock AvatarStorage avatarStorage;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(
-                        new WorkspaceController(workspaceService, documentStorage, aiExtractionService, avatarStorage))
+                        new WorkspaceController(workspaceService, documentStorage, aiExtractionService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
@@ -90,22 +85,5 @@ class WorkspaceControllerWorkflowTest {
         mockMvc.perform(get("/api/session-completion").param("sessionId","12"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.allDone").value(false));
-    }
-
-    @Test
-    void uploadsUserAvatarAsMultipart() throws Exception {
-        byte[] png = new byte[] {(byte) 0x89, 'P', 'N', 'G', 0x0d, 0x0a, 0x1a, 0x0a};
-        MockMultipartFile file = new MockMultipartFile("file", "avatar.png", "image/png", png);
-        var stored = new AvatarStorage.StoredAvatar(Path.of("uploads", "avatars", "avatar.png"),
-                "/uploads/avatars/avatar.png");
-        when(avatarStorage.store(any())).thenReturn(stored);
-        when(workspaceService.updateUserAvatar(8L, stored.url())).thenReturn(
-                new WorkspaceService.AvatarChange(
-                        Map.of("id", 8L, "username", "admin", "avatar_url", stored.url()), null));
-
-        mockMvc.perform(multipart("/api/users/8/avatar").file(file))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(8))
-                .andExpect(jsonPath("$.data.avatar_url").value("/uploads/avatars/avatar.png"));
     }
 }

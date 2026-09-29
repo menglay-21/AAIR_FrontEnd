@@ -42,7 +42,7 @@ public class WorkspaceService {
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final String PASSWORD_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@#$%";
-    private static final String USER_COLUMNS = "id, username, email, avatar_url, role, is_active, created_at, created_by";
+    private static final String USER_COLUMNS = "id, username, email, role, is_active, created_at, created_by";
     private static final List<String> REQUIRED_FINANCIAL_FIELDS = List.of(
             "COMPANY_NAME", "INDUSTRY", "REPORT_PERIOD", "REPORT_YEAR", "REVENUE");
     private final JdbcTemplate db;
@@ -111,7 +111,10 @@ public class WorkspaceService {
         if (rows.isEmpty()) throw error(HttpStatus.NOT_FOUND, "Không tìm thấy dữ liệu");
         return rows.getFirst();
     }
-    private long count(String sql, Object... args) { return db.queryForObject(sql, Long.class, args); }
+    private long count(String sql, Object... args) {
+        Long val = db.queryForObject(sql, Long.class, args);
+        return val == null ? 0L : val;
+    }
     public void audit(Actor a, String action, String resource, Long resourceId) {
         db.update("INSERT INTO audit_logs(actor_id,action,resource_type,resource_id) VALUES (?,?,?,?)", a.id(), action, resource, resourceId);
     }
@@ -129,7 +132,18 @@ public class WorkspaceService {
     }
     public List<Map<String,Object>> assignees() {
         var a = actor(); require(a, "MANAGER"); requirePermission(a, "TASKS", "READ");
-        return db.queryForList("SELECT id, username, avatar_url, role FROM users u WHERE is_active=true AND role IN ('AI_LABELER','MANUAL_LABELER','REVIEWER','RESULT_ANALYST') AND NOT EXISTS (SELECT 1 FROM session_members m JOIN annotation_sessions s ON s.id=m.session_id WHERE m.user_id=u.id AND s.status IN ('DRAFT','ACTIVE')) ORDER BY username");
+        return db.queryForList("""
+                SELECT id, username, role FROM users u
+                WHERE is_active = true
+                  AND role IN ('AI_LABELER','MANUAL_LABELER','REVIEWER','RESULT_ANALYST')
+                  AND NOT EXISTS (
+                      SELECT 1 FROM session_members m
+                      JOIN annotation_sessions s ON s.id = m.session_id
+                      WHERE m.user_id = u.id
+                        AND (s.status <> 'CLOSED' OR s.due_at > CURRENT_TIMESTAMP)
+                  )
+                ORDER BY username
+                """);
     }
     public Map<String,Object> createUser(CreateUser r) {
         var a = actor(); require(a, "ADMIN", "MANAGER"); requirePermission(a, "USER_MANAGEMENT", "WRITE");
@@ -162,14 +176,6 @@ public class WorkspaceService {
         state(a.id()!=userId || (r.active() && r.role().equals("ADMIN")), "Không thể tự khóa hoặc hạ quyền tài khoản Admin đang sử dụng");
         var row = one("UPDATE users SET role=?, is_active=? WHERE id=? RETURNING " + USER_COLUMNS, r.role(), r.active(), userId);
         audit(a,"UPDATE_ROLE_STATUS","USER",userId); return row;
-    }
-    public record AvatarChange(Map<String,Object> user, String previousUrl) {}
-    public AvatarChange updateUserAvatar(long userId, String avatarUrl) {
-        var a = actor(); require(a, "ADMIN", "MANAGER"); requirePermission(a, "USER_MANAGEMENT", "WRITE");
-        var previous = one("SELECT avatar_url FROM users WHERE id=? FOR UPDATE", userId);
-        var row = one("UPDATE users SET avatar_url=? WHERE id=? RETURNING " + USER_COLUMNS, avatarUrl, userId);
-        audit(a,"UPDATE_AVATAR","USER",userId);
-        return new AvatarChange(row, (String) previous.get("avatar_url"));
     }
     public Map<String,Object> profile() {
         return one("SELECT " + USER_COLUMNS + " FROM users WHERE id=?", actor().id());
@@ -359,12 +365,13 @@ public class WorkspaceService {
     public List<Map<String,Object>> sessions() {
         var a=actor(); require(a,"MANAGER"); requirePermission(a, "SESSIONS", "READ");
         var rows=db.queryForList("SELECT * FROM annotation_sessions WHERE created_by=? ORDER BY id DESC",a.id());
-        for(var r:rows) r.put("members",db.queryForList("SELECT u.id,u.username,u.avatar_url,u.role FROM users u JOIN session_members m ON m.user_id=u.id WHERE m.session_id=? ORDER BY u.username",id(r,"id")));
+        for(var r:rows) r.put("members",db.queryForList("SELECT u.id,u.username,u.role FROM users u JOIN session_members m ON m.user_id=u.id WHERE m.session_id=? ORDER BY u.username",id(r,"id")));
         return rows;
     }
     private Map<String,Object> ownSession(Actor a,long sessionId) {
         var s=one("SELECT * FROM annotation_sessions WHERE id=? FOR UPDATE",sessionId); owns(a,s,"created_by"); return s;
     }
+    @Transactional(rollbackFor = Throwable.class)
     public Map<String,Object> createSession(Session r) {
         var a = actor();
         require(a, "MANAGER");
@@ -380,14 +387,143 @@ public class WorkspaceService {
         valid(r.dueAt() != null && r.dueAt().isAfter(java.time.LocalDateTime.now()), "Thời hạn phiên phải ở thời điểm tương lai");
         String description = r.description() == null ? null : r.description().trim();
 
+        // 1-6. Assignment, role, active, availability validation
+        validateSessionAssignment(sessionType, r);
+
+        // 7. Validate documents & assistanceMode consistency before persistence
+        List<Long> documentIds = r.documents() == null ? List.of() : r.documents().stream().distinct().toList();
+        for (Long docId : documentIds) {
+            valid(docId != null, "Document ID không được để trống");
+            owns(a, one("SELECT * FROM documents WHERE id=? FOR SHARE", docId), "uploaded_by");
+        }
+        String assistanceMode = sessionType.equals("AI") ? "AI_ASSISTED" : normalizeAssistanceMode(r.assistanceMode());
+
+        // 8-9. Insert annotation_sessions
         var s = one("""
                 INSERT INTO annotation_sessions(name, description, session_type, status, due_at, created_by, started_at, ended_at)
                 VALUES (?, ?, ?, 'DRAFT', ?, ?, NULL, NULL)
                 RETURNING *
                 """,
                 trimmedName, description, sessionType, r.dueAt(), a.id());
-        audit(a, "CREATE", "SESSION", id(s, "id"));
+        long sessionId = id(s, "id");
+        audit(a, "CREATE", "SESSION", sessionId);
+
+        // 10. Insert session_members
+        Set<Long> memberIds = new LinkedHashSet<>();
+        if ("MANUAL".equalsIgnoreCase(sessionType)) {
+            if (r.manualLabelerIds() != null) memberIds.addAll(r.manualLabelerIds());
+            if (r.reviewerId() != null) memberIds.add(r.reviewerId());
+        } else if ("AI".equalsIgnoreCase(sessionType)) {
+            if (r.aiLabelerId() != null) memberIds.add(r.aiLabelerId());
+            if (r.reviewerId() != null) memberIds.add(r.reviewerId());
+        }
+        for (Long userId : memberIds) {
+            db.update("INSERT INTO session_members(session_id, user_id) VALUES (?, ?)", sessionId, userId);
+        }
+
+        // 11. Create annotation_tasks for documents and labelers
+        for (Long docId : documentIds) {
+            if ("MANUAL".equalsIgnoreCase(sessionType)) {
+                if (r.manualLabelerIds() != null) {
+                    for (Long manualId : r.manualLabelerIds()) {
+                        var t = one("""
+                                INSERT INTO annotation_tasks(document_id, session_id, task_type, assigned_to, assigned_by, due_at, assistance_mode)
+                                VALUES (?, ?, ?, ?, ?, ?, ?)
+                                RETURNING *
+                                """,
+                                docId, sessionId, "MANUAL", manualId, a.id(), r.dueAt(), assistanceMode);
+                        audit(a, "CREATE", "TASK", id(t, "id"));
+                    }
+                }
+            } else if ("AI".equalsIgnoreCase(sessionType)) {
+                if (r.aiLabelerId() != null) {
+                    var t = one("""
+                            INSERT INTO annotation_tasks(document_id, session_id, task_type, assigned_to, assigned_by, due_at, assistance_mode)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)
+                            RETURNING *
+                            """,
+                            docId, sessionId, "AI", r.aiLabelerId(), a.id(), r.dueAt(), "AI_ASSISTED");
+                    audit(a, "CREATE", "TASK", id(t, "id"));
+                }
+            }
+        }
+
         return s;
+    }
+
+    private void validateSessionAssignment(String sessionType, Session r) {
+        if ("MANUAL".equalsIgnoreCase(sessionType)) {
+            valid(r.manualLabelerIds() != null && !r.manualLabelerIds().isEmpty(),
+                    "Manual session requires 1 to 2 manual labelers.");
+            valid(r.manualLabelerIds().size() <= 2,
+                    "Manual session requires 1 to 2 manual labelers.");
+            valid(new HashSet<>(r.manualLabelerIds()).size() == r.manualLabelerIds().size(),
+                    "A user cannot have multiple functions in the same session.");
+            valid(r.aiLabelerId() == null,
+                    "AI labeler cannot be assigned to a MANUAL session.");
+            valid(r.reviewerId() != null,
+                    "Reviewer is required.");
+            valid(!r.manualLabelerIds().contains(r.reviewerId()),
+                    "A user cannot have multiple functions in the same session.");
+
+            // 4. Validate user roles & 5. Validate active users
+            for (Long manualId : r.manualLabelerIds()) {
+                validateAssignmentUser(manualId, "MANUAL_LABELER");
+            }
+            validateAssignmentUser(r.reviewerId(), "REVIEWER");
+
+            // 6. Validate previous-session availability
+            for (Long manualId : r.manualLabelerIds()) {
+                validateUserAvailability(manualId);
+            }
+            validateUserAvailability(r.reviewerId());
+        } else if ("AI".equalsIgnoreCase(sessionType)) {
+            valid(r.aiLabelerId() != null,
+                    "AI session requires exactly 1 AI labeler.");
+            valid(r.manualLabelerIds() == null || r.manualLabelerIds().isEmpty(),
+                    "Manual labeler cannot be assigned to an AI session.");
+            valid(r.reviewerId() != null,
+                    "Reviewer is required.");
+            valid(!Objects.equals(r.aiLabelerId(), r.reviewerId()),
+                    "A user cannot have multiple functions in the same session.");
+
+            // 4. Validate user roles & 5. Validate active users
+            validateAssignmentUser(r.aiLabelerId(), "AI_LABELER");
+            validateAssignmentUser(r.reviewerId(), "REVIEWER");
+
+            // 6. Validate previous-session availability
+            validateUserAvailability(r.aiLabelerId());
+            validateUserAvailability(r.reviewerId());
+        }
+    }
+
+    private void validateAssignmentUser(Long userId, String expectedRole) {
+        valid(userId != null, "User ID không được để trống");
+        var rows = db.queryForList("SELECT id, username, role, is_active FROM users WHERE id=?", userId);
+        valid(!rows.isEmpty(), "User " + userId + " không tồn tại");
+        var u = rows.getFirst();
+        String identifier = u.get("username") != null ? String.valueOf(u.get("username")) : String.valueOf(userId);
+        valid(Objects.equals(u.get("role"), expectedRole), "User " + identifier + " must have role " + expectedRole + ".");
+        valid(Boolean.TRUE.equals(u.get("is_active")), "User " + identifier + " is inactive.");
+    }
+
+    public boolean isUserAvailable(long userId) {
+        return count("""
+                SELECT count(*) FROM session_members m
+                JOIN annotation_sessions s ON s.id = m.session_id
+                WHERE m.user_id = ?
+                  AND (s.status <> 'CLOSED' OR s.due_at > CURRENT_TIMESTAMP)
+                """, userId) == 0;
+    }
+
+    public void validateUserAvailability(Long userId) {
+        if (!isUserAvailable(userId)) {
+            var rows = db.queryForList("SELECT id, username, role, is_active FROM users WHERE id=?", userId);
+            String identifier = rows.isEmpty() || rows.getFirst().get("username") == null
+                    ? String.valueOf(userId)
+                    : String.valueOf(rows.getFirst().get("username"));
+            throw error(HttpStatus.BAD_REQUEST, "User " + identifier + " is not available due to an active or unexpired session.");
+        }
     }
     public void members(long sessionId, Members r) {
         var a=actor();require(a,"MANAGER"); requirePermission(a, "SESSIONS", "WRITE"); var s=ownSession(a,sessionId); state(!s.get("status").equals("CLOSED"),"Phiên đã đóng");

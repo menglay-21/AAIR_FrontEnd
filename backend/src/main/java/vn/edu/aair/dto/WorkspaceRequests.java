@@ -1,5 +1,6 @@
 package vn.edu.aair.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
@@ -16,10 +17,41 @@ public final class WorkspaceRequests {
     public record UpdateUser(@NotBlank String role, @NotNull Boolean active) {}
     public record Password(@NotBlank String currentPassword, @NotBlank @Size(min=8,max=72) String newPassword) {}
     public record Document(@NotBlank @Size(max=200) String title, @Size(max=30) String documentType) {}
-    public record Session(@NotBlank(message="Tên phiên không được để trống") @Size(max=150, message="Tên phiên tối đa 150 ký tự") String name,
-                          @Size(max=10000, message="Mô tả tối đa 10000 ký tự") String description,
-                          @NotBlank(message="Loại phiên không được để trống") @Pattern(regexp="^(AI|MANUAL)$", message="Loại phiên chỉ cho phép AI hoặc MANUAL") String sessionType,
-                          @NotNull(message="Thời hạn không được để trống") @Future(message="Thời hạn phải ở thời điểm tương lai") LocalDateTime dueAt) {}
+    public record Session(
+            @NotBlank(message="Tên phiên không được để trống")
+            @Size(max=150, message="Tên phiên tối đa 150 ký tự")
+            String name,
+
+            @Size(max=10000, message="Mô tả tối đa 10000 ký tự")
+            String description,
+
+            @NotBlank(message="Loại phiên không được để trống")
+            @Pattern(regexp="^(AI|MANUAL)$", message="Loại phiên chỉ cho phép AI hoặc MANUAL")
+            String sessionType,
+
+            @NotNull(message="Thời hạn không được để trống")
+            @Future(message="Thời hạn phải ở thời điểm tương lai")
+            LocalDateTime dueAt,
+
+            @JsonAlias("documentIds")
+            List<@NotNull @Positive Long> documents,
+
+            @Size(max=2, message="Manual session tối đa 2 Manual Labeler")
+            List<@NotNull @Positive Long> manualLabelerIds,
+
+            @Positive(message="aiLabelerId phải là số dương")
+            Long aiLabelerId,
+
+            @Positive(message="reviewerId phải là số dương")
+            Long reviewerId,
+
+            @Pattern(regexp="^(NONE|AI_ASSISTED)$", message="Chế độ hỗ trợ chỉ cho phép NONE hoặc AI_ASSISTED")
+            String assistanceMode
+    ) {
+        public Session(String name, String description, String sessionType, LocalDateTime dueAt) {
+            this(name, description, sessionType, dueAt, null, null, null, null, null);
+        }
+    }
     public record Members(@NotNull @Size(max=200) List<@NotNull @Positive Long> userIds) {}
     public record State(@NotBlank String status) {}
     public record Task(@NotNull @Positive Long documentId, @NotNull @Positive Long sessionId,

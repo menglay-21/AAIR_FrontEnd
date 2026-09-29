@@ -55,4 +55,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleStorage() {
         return ResponseEntity.internalServerError().body(ApiError.of("STORAGE_ERROR", "Không thể đọc hoặc lưu tệp trên máy chủ"));
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> handleGeneric(Exception exception) {
+        return ResponseEntity.internalServerError().body(ApiError.of("INTERNAL_ERROR", "Đã xảy ra lỗi trên hệ thống"));
+    }
 }

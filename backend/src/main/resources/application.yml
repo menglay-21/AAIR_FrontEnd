@@ -11,9 +11,9 @@ spring:
   application:
     name: aair-backend
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/aair_db}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/test}
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:123456}
+    password: ${DB_PASSWORD:tuandat1412}
     driver-class-name: org.postgresql.Driver
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
