@@ -88,7 +88,7 @@
             throw new Error('Ngày hết hạn không hợp lệ.');
         return { parsed, iso: `${year}-${month}-${day}T23:59:00` };
     }
-    const status = row => row.status ?? (row.is_active === undefined ? '—' : row.is_active ? 'ACTIVE' : 'INACTIVE');
+    const status = row => (row.is_active === false ? 'INACTIVE' : (row.status ?? (row.is_active ? 'ACTIVE' : '—')));
     const go = file => location.assign(file);
     function options(select, values, all = false) {
         if (!select) return;

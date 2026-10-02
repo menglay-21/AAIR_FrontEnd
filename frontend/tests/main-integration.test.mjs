@@ -591,3 +591,83 @@ test('empty datasets initialize without mock table records',async()=>{
     assert.deepEqual(c.errors(),[]);c.dom.window.close()
   }
 })
+
+test('manager session workflow populates assignees from /api/assignees and refreshes upon session creation',async()=>{
+  const customAssignees = [
+    {id: 101, username: 'ml_user1', role: 'MANUAL_LABELER'},
+    {id: 102, username: 'ml_user2', role: 'MANUAL_LABELER'},
+    {id: 201, username: 'rev_user', role: 'REVIEWER'}
+  ]
+  const c=await setup('MANAGER','Session.html',{'/assignees':customAssignees})
+  try {
+    const m1Select=c.w.document.querySelector('#manualLabeler1')
+    const revSelect=c.w.document.querySelector('#manualReviewer')
+
+    // Verify select options populated directly from /api/assignees
+    const m1Options=[...m1Select.options].map(o=>o.value).filter(Boolean)
+    const revOptions=[...revSelect.options].map(o=>o.value).filter(Boolean)
+    assert.deepEqual(m1Options,['101','102'],'Manual labelers must come from /api/assignees')
+    assert.deepEqual(revOptions,['201'],'Reviewers must come from /api/assignees')
+
+    // Submit a valid session creation
+    c.w.document.querySelector('input[placeholder^="e.g."]').value='Refresh Test Session'
+    c.w.document.querySelector('input[name="documents"]').checked=true
+    c.w.document.querySelector('[aria-label="Session due date"]').value='31/12/2099'
+    m1Select.value='101'
+    m1Select.dispatchEvent(new c.w.Event('change'))
+    revSelect.value='201'
+    revSelect.dispatchEvent(new c.w.Event('change'))
+
+    const initialAssigneeFetchCount=c.calls.filter(x=>x.path==='/assignees'&&!x.method).length
+    c.button('Create Session').click();await c.settle()
+    assert.deepEqual(c.errors(),[])
+
+    // Verify /api/assignees was reloaded after session creation
+    const postAssigneeFetchCount=c.calls.filter(x=>x.path==='/assignees'&&!x.method).length
+    assert.ok(postAssigneeFetchCount>initialAssigneeFetchCount,'/api/assignees must be refreshed after successful session creation')
+  } finally {c.dom.window.close()}
+})
+
+test('closing an active session triggers /api/assignees refresh to reload newly available users',async()=>{
+  const c=await setup('MANAGER','Session.html',{
+    '/sessions': [
+      { id: 22, name: 'Active Session 22', description: '', session_type: 'MANUAL', status: 'ACTIVE', members: [{id:4,username:'manual_labeler01'}] }
+    ]
+  })
+  try {
+    const closeBtn=[...c.w.document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Close')
+    assert.ok(closeBtn,'Close action button must exist for ACTIVE session')
+
+    const initialAssigneeFetchCount=c.calls.filter(x=>x.path==='/assignees'&&!x.method).length
+    closeBtn.click();await c.settle()
+    assert.deepEqual(c.errors(),[])
+
+    // Verify PATCH /sessions/22/status sent with CLOSED
+    const closeCall=c.calls.find(x=>x.path==='/sessions/22/status'&&x.method==='PATCH')
+    assert.ok(closeCall,'Must call PATCH /sessions/22/status')
+    assert.deepEqual(JSON.parse(JSON.stringify(closeCall.json)),{status:'CLOSED'})
+
+    // Verify /api/assignees was reloaded after closing the session
+    const postAssigneeFetchCount=c.calls.filter(x=>x.path==='/assignees'&&!x.method).length
+    assert.ok(postAssigneeFetchCount>initialAssigneeFetchCount,'/api/assignees must be refreshed after closing a session')
+  } finally {c.dom.window.close()}
+})
+
+test('user management status distinguishes account status INACTIVE from workload status AVAILABLE/BUSY',async()=>{
+  const users = [
+    { id: 11, username: 'user_available', email: 'avail@example.com', role: 'MANUAL_LABELER', is_active: true, status: 'AVAILABLE' },
+    { id: 12, username: 'user_busy', email: 'busy@example.com', role: 'MANUAL_LABELER', is_active: true, status: 'BUSY' },
+    { id: 13, username: 'user_locked', email: 'locked@example.com', role: 'MANUAL_LABELER', is_active: false, status: 'BUSY' }
+  ]
+  const c=await setup('MANAGER','UserManagement.html',{'/users':users})
+  try {
+    const rows=[...c.w.document.querySelectorAll('tbody tr')]
+    assert.equal(rows.length,3)
+
+    // Cell index 4 corresponds to Status column
+    const statusColValues=rows.map(r=>r.querySelectorAll('td')[4]?.textContent.trim())
+    assert.equal(statusColValues[0],'AVAILABLE','Active available user shows AVAILABLE workload status')
+    assert.equal(statusColValues[1],'BUSY','Active busy user shows BUSY workload status')
+    assert.equal(statusColValues[2],'INACTIVE','Locked user (is_active: false) shows INACTIVE account status')
+  } finally {c.dom.window.close()}
+})

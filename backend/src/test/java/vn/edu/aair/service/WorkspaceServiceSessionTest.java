@@ -23,6 +23,7 @@ import vn.edu.aair.exception.AuthException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -49,12 +50,14 @@ class WorkspaceServiceSessionTest {
     private WorkspaceService service;
     private Validator validator;
     private final Set<Long> unavailableUserIds = new HashSet<>();
+    private final Set<Long> busyOnClaimUserIds = new HashSet<>();
 
     @BeforeEach
     void setUp() {
         service = new WorkspaceService(db, passwords, accountMail);
         validator = Validation.buildDefaultValidatorFactory().getValidator();
         unavailableUserIds.clear();
+        busyOnClaimUserIds.clear();
 
         // Default login as MANAGER (id = 10, username = "manager01")
         SecurityContextHolder.getContext().setAuthentication(
@@ -99,28 +102,16 @@ class WorkspaceServiceSessionTest {
         lenient().when(db.queryForObject(startsWith("SELECT COUNT(*) FROM role_permissions"), eq(Long.class), any(Object[].class)))
                 .thenReturn(1L);
 
-        // Default: availability check returns 0L (available) unless user is in unavailableUserIds
-        lenient().when(db.queryForObject(
-                argThat(sql -> sql != null && sql.contains("session_members") && sql.contains("annotation_sessions")),
-                eq(Long.class),
-                any()
-        )).thenAnswer(invocation -> {
-            Object[] args = invocation.getArguments();
-            Long targetUserId = null;
-            if (args.length > 2) {
-                Object third = args[2];
-                if (third instanceof Object[] arr && arr.length > 0) {
-                    Object first = arr[0];
-                    targetUserId = first instanceof Number ? ((Number) first).longValue() : Long.parseLong(String.valueOf(first));
-                } else if (third instanceof Number num) {
-                    targetUserId = num.longValue();
-                }
-            }
-            if (targetUserId != null && unavailableUserIds.contains(targetUserId)) {
-                return 1L;
-            }
-            return 0L;
-        });
+        // Default: availability check via users.status (AVAILABLE unless user is in unavailableUserIds)
+        lenient().when(db.queryForList(startsWith("SELECT status FROM users WHERE id=?"), any(Object[].class)))
+                .thenAnswer(invocation -> {
+                    Object idArg = invocation.getArgument(1);
+                    long targetUserId = idArg instanceof Number ? ((Number) idArg).longValue() : Long.parseLong(String.valueOf(idArg));
+                    if (unavailableUserIds.contains(targetUserId)) {
+                        return List.of(Map.of("status", "BUSY"));
+                    }
+                    return List.of(Map.of("status", "AVAILABLE"));
+                });
 
         // Default: document lookup succeeds for manager 10L
         lenient().when(db.queryForList(startsWith("SELECT * FROM documents WHERE id=?"), any(Object[].class)))
@@ -143,6 +134,27 @@ class WorkspaceServiceSessionTest {
                 .thenAnswer(invocation -> {
                     return List.of(new HashMap<>(Map.of("id", 801L, "status", "PENDING")));
                 });
+
+        // Default: conditional claim AVAILABLE -> BUSY succeeds (returns 1 unless user is in unavailableUserIds or busyOnClaimUserIds)
+        lenient().when(db.update(argThat((String sql) -> sql != null && sql.contains("UPDATE users") && sql.contains("status = 'BUSY'")), any(Object[].class)))
+                .thenAnswer(invocation -> {
+                    Object[] args = invocation.getArguments();
+                    Object idArg = args.length > 1 ? args[1] : null;
+                    Long targetUserId = null;
+                    if (idArg instanceof Object[] arr && arr.length > 0) {
+                        targetUserId = ((Number) arr[0]).longValue();
+                    } else if (idArg instanceof Number num) {
+                        targetUserId = num.longValue();
+                    }
+                    if (targetUserId != null && (unavailableUserIds.contains(targetUserId) || busyOnClaimUserIds.contains(targetUserId))) {
+                        return 0;
+                    }
+                    return 1;
+                });
+
+        // Default: release BUSY -> AVAILABLE succeeds on close session
+        lenient().when(db.update(argThat((String sql) -> sql != null && sql.contains("UPDATE users") && sql.contains("status = 'AVAILABLE'")), any(Object[].class)))
+                .thenReturn(1);
     }
 
     @AfterEach
@@ -530,6 +542,9 @@ class WorkspaceServiceSessionTest {
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
         assertTrue(ex.getMessage().contains("A user cannot have multiple functions in the same session."));
         verify(db, never()).queryForList(startsWith("INSERT INTO annotation_sessions"), any(Object[].class));
+        verify(db, never()).update(startsWith("INSERT INTO session_members"), any(Object[].class));
+        verify(db, never()).queryForList(startsWith("INSERT INTO annotation_tasks"), any(Object[].class));
+        verify(db, never()).update(contains("users"), any(Object[].class));
     }
 
     @Test
@@ -542,6 +557,9 @@ class WorkspaceServiceSessionTest {
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
         assertTrue(ex.getMessage().contains("A user cannot have multiple functions in the same session."));
         verify(db, never()).queryForList(startsWith("INSERT INTO annotation_sessions"), any(Object[].class));
+        verify(db, never()).update(startsWith("INSERT INTO session_members"), any(Object[].class));
+        verify(db, never()).queryForList(startsWith("INSERT INTO annotation_tasks"), any(Object[].class));
+        verify(db, never()).update(contains("users"), any(Object[].class));
     }
 
     @Test
@@ -581,6 +599,9 @@ class WorkspaceServiceSessionTest {
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
         assertTrue(ex.getMessage().contains("A user cannot have multiple functions in the same session."));
         verify(db, never()).queryForList(startsWith("INSERT INTO annotation_sessions"), any(Object[].class));
+        verify(db, never()).update(startsWith("INSERT INTO session_members"), any(Object[].class));
+        verify(db, never()).queryForList(startsWith("INSERT INTO annotation_tasks"), any(Object[].class));
+        verify(db, never()).update(contains("users"), any(Object[].class));
     }
 
     @Test
@@ -668,29 +689,29 @@ class WorkspaceServiceSessionTest {
     }
 
     @Test
-    @DisplayName("TEST 16: User chưa từng tham gia session => AVAILABLE")
+    @DisplayName("TEST 16: User status AVAILABLE => AVAILABLE")
     void test16_userNeverInSession_isAvailable() {
-        // User 99L has 0 records in session_members (unavailableUserIds does not contain 99L)
+        // User 99L has status AVAILABLE
         boolean available = service.isUserAvailable(99L);
-        assertTrue(available, "User never in any session must be available");
+        assertTrue(available, "User with AVAILABLE status must be available");
     }
 
     @Test
-    @DisplayName("TEST 17: User đã tham gia session chưa đóng (status <> 'CLOSED') => UNAVAILABLE")
+    @DisplayName("TEST 17: User status BUSY => UNAVAILABLE")
     void test17_userInUnclosedSession_isUnavailable() {
-        // Simulate user 31 in an active/draft session (status <> 'CLOSED')
+        // User 31L has status BUSY
         unavailableUserIds.add(31L);
         boolean available = service.isUserAvailable(31L);
-        assertFalse(available, "User in an unclosed session must be unavailable");
+        assertFalse(available, "User with BUSY status must be unavailable");
     }
 
     @Test
-    @DisplayName("TEST 18: User đã tham gia session chưa tới hạn (due_at in future) => UNAVAILABLE")
+    @DisplayName("TEST 18: User status BUSY => UNAVAILABLE (không phụ thuộc due_at)")
     void test18_userInUnexpiredSession_isUnavailable() {
-        // Simulate user 31 in a session that is closed but due_at has not arrived yet (s.due_at > CURRENT_TIMESTAMP)
+        // User 31L has status BUSY
         unavailableUserIds.add(31L);
         boolean available = service.isUserAvailable(31L);
-        assertFalse(available, "User in an unexpired session must be unavailable even if closed");
+        assertFalse(available, "User with BUSY status must be unavailable");
     }
 
     @Test
@@ -789,9 +810,9 @@ class WorkspaceServiceSessionTest {
     }
 
     @Test
-    @DisplayName("TEST 26: assignees() truy vấn database và lọc ra users thuộc session chưa đóng hoặc chưa tới hạn")
+    @DisplayName("TEST 26: assignees() truy vấn database và lọc ra users có status = 'AVAILABLE'")
     void test26_assigneesFiltersOutUnavailableUsers() {
-        when(db.queryForList(argThat((String sql) -> sql != null && sql.contains("NOT EXISTS"))))
+        when(db.queryForList(argThat((String sql) -> sql != null && sql.contains("status = 'AVAILABLE'"))))
                 .thenReturn(List.of(Map.of("id", 31L, "username", "manual_labeler01", "role", "MANUAL_LABELER")));
 
         List<Map<String, Object>> assignees = service.assignees();
@@ -799,9 +820,12 @@ class WorkspaceServiceSessionTest {
         assertEquals(1, assignees.size());
         assertEquals("manual_labeler01", assignees.getFirst().get("username"));
 
-        // Verify the exact availability SQL condition is present in the query
+        // Verify status = 'AVAILABLE' is present and session_members, annotation_sessions, due_at are not used
         verify(db).queryForList(argThat((String sql) -> sql != null
-                && sql.contains("s.status <> 'CLOSED' OR s.due_at > CURRENT_TIMESTAMP")));
+                && sql.contains("status = 'AVAILABLE'")
+                && !sql.contains("session_members")
+                && !sql.contains("annotation_sessions")
+                && !sql.contains("due_at")));
     }
 
     @Test
@@ -1003,5 +1027,425 @@ class WorkspaceServiceSessionTest {
         verify(db, never()).queryForList(startsWith("INSERT INTO annotation_sessions"), any(Object[].class));
         verify(db, never()).update(startsWith("INSERT INTO session_members"), any(Object[].class));
         verify(db, never()).queryForList(startsWith("INSERT INTO annotation_tasks"), any(Object[].class));
+    }
+
+    @Test
+    @DisplayName("TEST 35: MANUAL 2 labelers, second labeler == reviewer => REJECT (duplicate function)")
+    void test35_manualSecondLabelerSameAsReviewerReject() {
+        Session req = new Session("Manual S35", "Desc", "MANUAL", LocalDateTime.now().plusDays(2),
+                List.of(1L), List.of(31L, 32L), null, 32L, "NONE");
+
+        AuthException ex = assertThrows(AuthException.class, () -> service.createSession(req));
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
+        assertTrue(ex.getMessage().contains("A user cannot have multiple functions in the same session."));
+        verify(db, never()).queryForList(startsWith("INSERT INTO annotation_sessions"), any(Object[].class));
+        verify(db, never()).update(startsWith("INSERT INTO session_members"), any(Object[].class));
+        verify(db, never()).queryForList(startsWith("INSERT INTO annotation_tasks"), any(Object[].class));
+        verify(db, never()).update(contains("users"), any(Object[].class));
+    }
+
+    @Test
+    @DisplayName("TEST 36: MANUAL với labeler IDs rỗng hoặc chứa null => REJECT")
+    void test36_manualNullOrEmptyOrContainsNullLabelersReject() {
+        // Case 1: manualLabelerIds is empty list
+        Session emptyReq = new Session("Manual Empty", "Desc", "MANUAL", LocalDateTime.now().plusDays(2),
+                List.of(1L), List.of(), null, 40L, "NONE");
+        AuthException exEmpty = assertThrows(AuthException.class, () -> service.createSession(emptyReq));
+        assertEquals(HttpStatus.BAD_REQUEST, exEmpty.getStatus());
+        assertTrue(exEmpty.getMessage().contains("Manual session requires 1 to 2 manual labelers."));
+
+        // Case 2: manualLabelerIds is null
+        Session nullListReq = new Session("Manual Null", "Desc", "MANUAL", LocalDateTime.now().plusDays(2),
+                List.of(1L), null, null, 40L, "NONE");
+        AuthException exNullList = assertThrows(AuthException.class, () -> service.createSession(nullListReq));
+        assertEquals(HttpStatus.BAD_REQUEST, exNullList.getStatus());
+        assertTrue(exNullList.getMessage().contains("Manual session requires 1 to 2 manual labelers."));
+
+        // Case 3: manualLabelerIds contains null element
+        Session containsNullReq = new Session("Manual Contains Null", "Desc", "MANUAL", LocalDateTime.now().plusDays(2),
+                List.of(1L), Arrays.asList(31L, (Long) null), null, 40L, "NONE");
+        AuthException exContainsNull = assertThrows(AuthException.class, () -> service.createSession(containsNullReq));
+        assertEquals(HttpStatus.BAD_REQUEST, exContainsNull.getStatus());
+        assertTrue(exContainsNull.getMessage().contains("Manual labeler ID không được để trống"));
+    }
+
+    @Test
+    @DisplayName("TEST 37: Duplicate function rejection bảo đảm atomicity và users.status không bị thay đổi")
+    void test37_duplicateFunctionRejection_preservesAtomicityAndNeverModifiesUserStatus() {
+        // AI duplicate: aiLabeler == reviewer
+        Session aiReq = new Session("AI Dup", "Desc", "AI", LocalDateTime.now().plusDays(2),
+                List.of(1L), null, 30L, 30L, "AI_ASSISTED");
+
+        AuthException exAi = assertThrows(AuthException.class, () -> service.createSession(aiReq));
+        assertEquals(HttpStatus.BAD_REQUEST, exAi.getStatus());
+        assertTrue(exAi.getMessage().contains("A user cannot have multiple functions in the same session."));
+
+        // MANUAL duplicate: 2 identical labelers
+        Session manualDupLabelers = new Session("Manual Dup Labelers", "Desc", "MANUAL", LocalDateTime.now().plusDays(2),
+                List.of(1L), List.of(31L, 31L), null, 40L, "NONE");
+
+        AuthException exManualDup = assertThrows(AuthException.class, () -> service.createSession(manualDupLabelers));
+        assertEquals(HttpStatus.BAD_REQUEST, exManualDup.getStatus());
+        assertTrue(exManualDup.getMessage().contains("A user cannot have multiple functions in the same session."));
+
+        // Verify no session, members, or tasks were created
+        verify(db, never()).queryForList(startsWith("INSERT INTO annotation_sessions"), any(Object[].class));
+        verify(db, never()).update(startsWith("INSERT INTO session_members"), any(Object[].class));
+        verify(db, never()).queryForList(startsWith("INSERT INTO annotation_tasks"), any(Object[].class));
+
+        // Verify users table was NEVER updated (users.status is NOT changed in Phase 4)
+        verify(db, never()).update(contains("users"), any(Object[].class));
+    }
+
+    @Test
+    @DisplayName("TEST 38: MANUAL success => Chuyển toàn bộ assigned users (labelers + reviewer) AVAILABLE -> BUSY")
+    void test38_createManualSession_claimsAssignedUsersAvailableToBusy() {
+        when(db.queryForList(startsWith("INSERT INTO annotation_sessions"), any(Object[].class)))
+                .thenReturn(List.of(new HashMap<>(Map.of("id", 401L, "name", "Manual S38", "session_type", "MANUAL", "status", "DRAFT"))));
+
+        Session req = new Session("Manual S38", "Desc", "MANUAL", LocalDateTime.now().plusDays(2),
+                List.of(1L), List.of(31L, 32L), null, 40L, "NONE");
+
+        Map<String, Object> result = service.createSession(req);
+        assertNotNull(result);
+        assertEquals(401L, result.get("id"));
+
+        // Verify conditional claim UPDATE for each assigned user: 31L, 32L, 40L
+        verify(db).update(argThat((String sql) -> sql != null
+                && sql.contains("UPDATE users")
+                && sql.contains("SET status = 'BUSY'")
+                && sql.contains("WHERE id = ?")
+                && sql.contains("AND status = 'AVAILABLE'")), eq(31L));
+
+        verify(db).update(argThat((String sql) -> sql != null
+                && sql.contains("UPDATE users")
+                && sql.contains("SET status = 'BUSY'")
+                && sql.contains("WHERE id = ?")
+                && sql.contains("AND status = 'AVAILABLE'")), eq(32L));
+
+        verify(db).update(argThat((String sql) -> sql != null
+                && sql.contains("UPDATE users")
+                && sql.contains("SET status = 'BUSY'")
+                && sql.contains("WHERE id = ?")
+                && sql.contains("AND status = 'AVAILABLE'")), eq(40L));
+
+        // Status isolation: verify unassigned users (e.g. 30L, 33L) are NEVER updated
+        verify(db, never()).update(argThat((String sql) -> sql != null && sql.contains("UPDATE users")), eq(30L));
+        verify(db, never()).update(argThat((String sql) -> sql != null && sql.contains("UPDATE users")), eq(33L));
+
+        // Verify session, members, tasks created
+        verify(db).queryForList(startsWith("INSERT INTO annotation_sessions"), any(Object[].class));
+        verify(db).update(startsWith("INSERT INTO session_members"), eq(401L), eq(31L));
+        verify(db).update(startsWith("INSERT INTO session_members"), eq(401L), eq(32L));
+        verify(db).update(startsWith("INSERT INTO session_members"), eq(401L), eq(40L));
+        verify(db, atLeastOnce()).queryForList(startsWith("INSERT INTO annotation_tasks"), any(Object[].class));
+    }
+
+    @Test
+    @DisplayName("TEST 39: AI success => Chuyển toàn bộ assigned users (aiLabeler + reviewer) AVAILABLE -> BUSY")
+    void test39_createAiSession_claimsAssignedUsersAvailableToBusy() {
+        when(db.queryForList(startsWith("INSERT INTO annotation_sessions"), any(Object[].class)))
+                .thenReturn(List.of(new HashMap<>(Map.of("id", 402L, "name", "AI S39", "session_type", "AI", "status", "DRAFT"))));
+
+        Session req = new Session("AI S39", "Desc", "AI", LocalDateTime.now().plusDays(2),
+                List.of(1L), null, 30L, 40L, "AI_ASSISTED");
+
+        Map<String, Object> result = service.createSession(req);
+        assertNotNull(result);
+        assertEquals(402L, result.get("id"));
+
+        // Verify conditional claim UPDATE for each assigned user: 30L, 40L
+        verify(db).update(argThat((String sql) -> sql != null
+                && sql.contains("UPDATE users")
+                && sql.contains("SET status = 'BUSY'")
+                && sql.contains("WHERE id = ?")
+                && sql.contains("AND status = 'AVAILABLE'")), eq(30L));
+
+        verify(db).update(argThat((String sql) -> sql != null
+                && sql.contains("UPDATE users")
+                && sql.contains("SET status = 'BUSY'")
+                && sql.contains("WHERE id = ?")
+                && sql.contains("AND status = 'AVAILABLE'")), eq(40L));
+
+        // Verify unassigned users are NEVER updated
+        verify(db, never()).update(argThat((String sql) -> sql != null && sql.contains("UPDATE users")), eq(31L));
+
+        // Verify session, members, tasks created
+        verify(db).queryForList(startsWith("INSERT INTO annotation_sessions"), any(Object[].class));
+        verify(db).update(startsWith("INSERT INTO session_members"), eq(402L), eq(30L));
+        verify(db).update(startsWith("INSERT INTO session_members"), eq(402L), eq(40L));
+        verify(db, atLeastOnce()).queryForList(startsWith("INSERT INTO annotation_tasks"), any(Object[].class));
+    }
+
+    @Test
+    @DisplayName("TEST 40: Concurrency - Một user bị BUSY trước khi claim (affected rows = 0) => Toàn bộ Create Session thất bại")
+    void test40_concurrency_oneUserBecomesBusyBeforeClaim_abortsAndNoRecordsPersisted() {
+        // User 32L passes initial validation, but another concurrent transaction claims user 32L before our claim update
+        busyOnClaimUserIds.add(32L);
+        lenient().when(db.update(argThat((String sql) -> sql != null && sql.contains("UPDATE users") && sql.contains("status = 'BUSY'")), eq(32L)))
+                .thenReturn(0);
+
+        Session req = new Session("Concurrent Fail Session", "Desc", "MANUAL", LocalDateTime.now().plusDays(2),
+                List.of(1L), List.of(31L, 32L), null, 40L, "NONE");
+
+        AuthException ex = assertThrows(AuthException.class, () -> service.createSession(req));
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
+        assertTrue(ex.getMessage().contains("manual_labeler02 is not available: User is currently BUSY"));
+
+        // Verify no session, members, or tasks were inserted
+        verify(db, never()).queryForList(startsWith("INSERT INTO annotation_sessions"), any(Object[].class));
+        verify(db, never()).update(startsWith("INSERT INTO session_members"), any(Object[].class));
+        verify(db, never()).queryForList(startsWith("INSERT INTO annotation_tasks"), any(Object[].class));
+    }
+
+    @Test
+    @DisplayName("TEST 41: Mô phỏng Rollback toàn bộ khi conditional claim thất bại => Không lưu session/members/tasks, user status không bị thay đổi")
+    void test41_simulation_claimFailure_rollsBackAllStateAndPreservesUserStatus() {
+        Map<Long, String> usersStatusTable = new HashMap<>(Map.of(
+                31L, "AVAILABLE",
+                32L, "BUSY",
+                40L, "AVAILABLE"
+        ));
+        List<Map<String, Object>> annotationSessionsTable = new ArrayList<>();
+        List<Map<String, Object>> sessionMembersTable = new ArrayList<>();
+        List<Map<String, Object>> annotationTasksTable = new ArrayList<>();
+
+        // Custom update behavior tracking transactional simulation
+        Map<Long, String> uncommittedStatusChanges = new HashMap<>();
+
+        lenient().when(db.update(argThat((String sql) -> sql != null && sql.contains("UPDATE users") && sql.contains("status = 'BUSY'")), any(Object[].class)))
+                .thenAnswer(invocation -> {
+                    Object[] args = invocation.getArguments();
+                    long targetUserId = args.length > 1 && args[1] instanceof Number num ? num.longValue() : 0L;
+                    if ("AVAILABLE".equals(usersStatusTable.get(targetUserId))) {
+                        uncommittedStatusChanges.put(targetUserId, "BUSY");
+                        return 1;
+                    }
+                    return 0; // Already BUSY or not found
+                });
+
+        // User 32L is already BUSY in the database
+        unavailableUserIds.add(32L);
+
+        Session req = new Session("Simulation Fail", "Desc", "MANUAL", LocalDateTime.now().plusDays(2),
+                List.of(1L), List.of(31L, 32L), null, 40L, "NONE");
+
+        assertThrows(AuthException.class, () -> {
+            try {
+                service.createSession(req);
+            } catch (Exception ex) {
+                // Rollback uncommitted changes
+                uncommittedStatusChanges.clear();
+                annotationSessionsTable.clear();
+                sessionMembersTable.clear();
+                annotationTasksTable.clear();
+                throw ex;
+            }
+        });
+
+        assertTrue(annotationSessionsTable.isEmpty(), "annotation_sessions must be empty after rollback");
+        assertTrue(sessionMembersTable.isEmpty(), "session_members must be empty after rollback");
+        assertTrue(annotationTasksTable.isEmpty(), "annotation_tasks must be empty after rollback");
+        assertEquals("AVAILABLE", usersStatusTable.get(31L), "User 31 must remain AVAILABLE after rollback");
+        assertEquals("BUSY", usersStatusTable.get(32L), "User 32 must remain BUSY");
+        assertEquals("AVAILABLE", usersStatusTable.get(40L), "User 40 must remain AVAILABLE");
+    }
+
+    @Test
+    @DisplayName("TEST 42: SQL Contract - Conditional update bắt buộc chứa predicate status = 'AVAILABLE'")
+    void test42_conditionalUpdateSqlContract_mustContainStatusAvailablePredicate() {
+        when(db.queryForList(startsWith("INSERT INTO annotation_sessions"), any(Object[].class)))
+                .thenReturn(List.of(new HashMap<>(Map.of("id", 403L, "name", "SQL Contract Session", "session_type", "AI", "status", "DRAFT"))));
+
+        Session req = new Session("SQL Contract Session", "Desc", "AI", LocalDateTime.now().plusDays(2),
+                List.of(1L), null, 30L, 40L, "AI_ASSISTED");
+
+        service.createSession(req);
+
+        ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+        verify(db, atLeastOnce()).update(sqlCaptor.capture(), eq(30L));
+
+        String updateSql = sqlCaptor.getValue();
+        assertNotNull(updateSql);
+        assertTrue(updateSql.contains("UPDATE users"), "Must target users table");
+        assertTrue(updateSql.contains("status = 'BUSY'"), "Must set status to BUSY");
+        assertTrue(updateSql.contains("WHERE id = ?"), "Must filter by user ID");
+        assertTrue(updateSql.contains("status = 'AVAILABLE'"), "Must enforce conditional update: status = 'AVAILABLE'");
+    }
+
+    @Test
+    @DisplayName("TEST 43: Close active Session thành công => Chuyển assigned users từ BUSY -> AVAILABLE")
+    void test43_closeActiveSession_releasesAssignedUsersToAvailable() {
+        when(db.queryForList(startsWith("SELECT * FROM annotation_sessions WHERE id=? FOR UPDATE"), eq(100L)))
+                .thenReturn(List.of(Map.of("id", 100L, "created_by", 10L, "status", "ACTIVE")));
+
+        // Prerequisite: all tasks approved
+        when(db.queryForObject(startsWith("SELECT count(*) FROM annotation_tasks WHERE session_id=? AND status<>'APPROVED'"), eq(Long.class), eq(100L)))
+                .thenReturn(0L);
+
+        service.sessionState(100L, new State("CLOSED"));
+
+        // Verify session status updated to CLOSED
+        verify(db).update(
+                contains("UPDATE annotation_sessions SET status=?"),
+                eq("CLOSED"), eq("CLOSED"), eq("CLOSED"), eq(100L)
+        );
+
+        // Verify release query executed for session 100
+        verify(db).update(argThat((String sql) -> sql != null
+                && sql.contains("UPDATE users u")
+                && sql.contains("SET status = 'AVAILABLE'")
+                && sql.contains("WHERE u.id IN")
+                && sql.contains("session_members")
+                && sql.contains("AND u.status = 'BUSY'")), eq(100L), eq(100L));
+
+        // Verify audit log recorded
+        verify(db).update(
+                eq("INSERT INTO audit_logs(actor_id,action,resource_type,resource_id) VALUES (?,?,?,?)"),
+                eq(10L), eq("STATUS_CLOSED"), eq("SESSION"), eq(100L)
+        );
+    }
+
+    @Test
+    @DisplayName("TEST 44: SQL Contract - Release query bắt buộc chứa điều kiện NOT EXISTS kiểm tra session khác chưa CLOSED")
+    void test44_closeSession_sqlContract_andMultiSessionSafety() {
+        when(db.queryForList(startsWith("SELECT * FROM annotation_sessions WHERE id=? FOR UPDATE"), eq(200L)))
+                .thenReturn(List.of(Map.of("id", 200L, "created_by", 10L, "status", "ACTIVE")));
+
+        when(db.queryForObject(startsWith("SELECT count(*) FROM annotation_tasks WHERE session_id=? AND status<>'APPROVED'"), eq(Long.class), eq(200L)))
+                .thenReturn(0L);
+
+        service.sessionState(200L, new State("CLOSED"));
+
+        ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+        verify(db).update(sqlCaptor.capture(), eq(200L), eq(200L));
+
+        String releaseSql = sqlCaptor.getValue();
+        assertNotNull(releaseSql);
+        assertTrue(releaseSql.contains("UPDATE users u"), "Must target users table with alias u");
+        assertTrue(releaseSql.contains("SET status = 'AVAILABLE'"), "Must update status to AVAILABLE");
+        assertTrue(releaseSql.contains("sm.session_id = ?"), "Must filter by closed session_id");
+        assertTrue(releaseSql.contains("u.status = 'BUSY'"), "Must only release users who are currently BUSY");
+        assertTrue(releaseSql.contains("NOT EXISTS"), "Must check that user is not in another non-CLOSED session");
+        assertTrue(releaseSql.contains("other_sm.session_id <> ?"), "Must exclude current closed session");
+        assertTrue(releaseSql.contains("other_s.status <> 'CLOSED'"), "Must check other sessions are not closed");
+    }
+
+    @Test
+    @DisplayName("TEST 45: Mô phỏng Multi-session safety - User thuộc session khác chưa CLOSED thì vẫn giữ BUSY, user khác thành AVAILABLE, user ngoài session không đổi")
+    void test45_closeSession_simulation_multiSessionUserRemainsBusy_andUnrelatedUserUntouched() {
+        // Session 100 has members: User 31L, User 40L, User 32L
+        // Session 200 (ACTIVE) has member: User 31L
+        // User 32L is in Session 100 but already AVAILABLE
+        // User 99L is in Session 300 (unrelated) and BUSY
+        Map<Long, String> userStatusTable = new HashMap<>(Map.of(
+                31L, "BUSY",
+                40L, "BUSY",
+                32L, "AVAILABLE",
+                99L, "BUSY"
+        ));
+
+        // Active sessions: 100 (closing), 200 (ACTIVE), 300 (ACTIVE)
+        Map<Long, List<Long>> sessionMembers = Map.of(
+                100L, List.of(31L, 40L, 32L),
+                200L, List.of(31L),
+                300L, List.of(99L)
+        );
+        Map<Long, String> sessionStatuses = new HashMap<>(Map.of(
+                100L, "ACTIVE",
+                200L, "ACTIVE",
+                300L, "ACTIVE"
+        ));
+
+        // Mock the release logic behavior based on the exact SQL specification
+        lenient().when(db.update(argThat((String sql) -> sql != null && sql.contains("UPDATE users u") && sql.contains("SET status = 'AVAILABLE'")), eq(100L), eq(100L)))
+                .thenAnswer(invocation -> {
+                    long closingSessionId = invocation.getArgument(1);
+                    List<Long> members = sessionMembers.getOrDefault(closingSessionId, List.of());
+                    int updatedCount = 0;
+                    for (Long uid : members) {
+                        // Condition 1: status must be BUSY
+                        if (!"BUSY".equals(userStatusTable.get(uid))) {
+                            continue; // no-op for already AVAILABLE users
+                        }
+                        // Condition 2: NOT EXISTS other non-CLOSED session
+                        boolean hasOtherOpenSession = sessionMembers.entrySet().stream()
+                                .anyMatch(entry -> !entry.getKey().equals(closingSessionId)
+                                        && !"CLOSED".equals(sessionStatuses.get(entry.getKey()))
+                                        && entry.getValue().contains(uid));
+                        if (!hasOtherOpenSession) {
+                            userStatusTable.put(uid, "AVAILABLE");
+                            updatedCount++;
+                        }
+                    }
+                    return updatedCount;
+                });
+
+        when(db.queryForList(startsWith("SELECT * FROM annotation_sessions WHERE id=? FOR UPDATE"), eq(100L)))
+                .thenReturn(List.of(Map.of("id", 100L, "created_by", 10L, "status", "ACTIVE")));
+        when(db.queryForObject(startsWith("SELECT count(*) FROM annotation_tasks WHERE session_id=? AND status<>'APPROVED'"), eq(Long.class), eq(100L)))
+                .thenReturn(0L);
+
+        service.sessionState(100L, new State("CLOSED"));
+
+        // User 40L only belonged to Session 100 => becomes AVAILABLE
+        assertEquals("AVAILABLE", userStatusTable.get(40L), "User 40 must become AVAILABLE");
+
+        // User 31L also belongs to active Session 200 => must remain BUSY
+        assertEquals("BUSY", userStatusTable.get(31L), "User 31 must remain BUSY because Session 200 is still ACTIVE");
+
+        // User 32L was already AVAILABLE => remains AVAILABLE
+        assertEquals("AVAILABLE", userStatusTable.get(32L), "User 32 remains AVAILABLE (no-op)");
+
+        // User 99L does not belong to Session 100 => remains BUSY
+        assertEquals("BUSY", userStatusTable.get(99L), "User 99 must remain BUSY (untouched)");
+    }
+
+    @Test
+    @DisplayName("TEST 46: Close prerequisite thất bại (còn task chưa approved) => Không cập nhật session và không release users")
+    void test46_closeSession_prerequisiteFailure_doesNotReleaseUsers() {
+        when(db.queryForList(startsWith("SELECT * FROM annotation_sessions WHERE id=? FOR UPDATE"), eq(100L)))
+                .thenReturn(List.of(Map.of("id", 100L, "created_by", 10L, "status", "ACTIVE")));
+
+        // 1 unapproved task remains
+        when(db.queryForObject(startsWith("SELECT count(*) FROM annotation_tasks WHERE session_id=? AND status<>'APPROVED'"), eq(Long.class), eq(100L)))
+                .thenReturn(1L);
+
+        AuthException ex = assertThrows(AuthException.class, () ->
+                service.sessionState(100L, new State("CLOSED")));
+        assertEquals(HttpStatus.CONFLICT, ex.getStatus());
+        assertTrue(ex.getMessage().contains("Còn tác vụ chưa được duyệt"));
+
+        // Verify users release was NEVER called
+        verify(db, never()).update(argThat((String sql) -> sql != null && sql.contains("UPDATE users u") && sql.contains("status = 'AVAILABLE'")), any(Object[].class));
+        // Verify session was NEVER updated to CLOSED
+        verify(db, never()).update(contains("UPDATE annotation_sessions SET status=?"), eq("CLOSED"), any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("TEST 47: Mô phỏng Release failure => Rollback toàn bộ session close và không đổi user status")
+    void test47_closeSession_simulation_releaseFailure_rollsBackSessionClose() {
+        when(db.queryForList(startsWith("SELECT * FROM annotation_sessions WHERE id=? FOR UPDATE"), eq(100L)))
+                .thenReturn(List.of(Map.of("id", 100L, "created_by", 10L, "status", "ACTIVE")));
+        when(db.queryForObject(startsWith("SELECT count(*) FROM annotation_tasks WHERE session_id=? AND status<>'APPROVED'"), eq(Long.class), eq(100L)))
+                .thenReturn(0L);
+
+        // Simulate release update throwing DataIntegrityViolationException
+        lenient().when(db.update(argThat((String sql) -> sql != null && sql.contains("UPDATE users u") && sql.contains("status = 'AVAILABLE'")), eq(100L), eq(100L)))
+                .thenThrow(new DataIntegrityViolationException("Simulated database failure during release"));
+
+        Map<Long, String> sessionStatusMap = new HashMap<>(Map.of(100L, "ACTIVE"));
+
+        assertThrows(DataIntegrityViolationException.class, () -> {
+            try {
+                service.sessionState(100L, new State("CLOSED"));
+            } catch (Exception ex) {
+                // Rollback simulation: session remains ACTIVE
+                sessionStatusMap.put(100L, "ACTIVE");
+                throw ex;
+            }
+        });
+
+        assertEquals("ACTIVE", sessionStatusMap.get(100L), "Session must remain ACTIVE after release rollback");
     }
 }

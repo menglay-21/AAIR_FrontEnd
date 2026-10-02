@@ -56,8 +56,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.internalServerError().body(ApiError.of("STORAGE_ERROR", "Không thể đọc hoặc lưu tệp trên máy chủ"));
     }
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneric(Exception exception) {
-        return ResponseEntity.internalServerError().body(ApiError.of("INTERNAL_ERROR", "Đã xảy ra lỗi trên hệ thống"));
+        log.error("Unhandled exception: ", exception);
+        return ResponseEntity.internalServerError().body(ApiError.of("INTERNAL_ERROR", "Đã xảy ra lỗi trên hệ thống: " + exception.getMessage()));
     }
 }

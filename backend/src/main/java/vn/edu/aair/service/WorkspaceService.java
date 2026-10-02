@@ -135,13 +135,8 @@ public class WorkspaceService {
         return db.queryForList("""
                 SELECT id, username, role FROM users u
                 WHERE is_active = true
+                  AND status = 'AVAILABLE'
                   AND role IN ('AI_LABELER','MANUAL_LABELER','REVIEWER','RESULT_ANALYST')
-                  AND NOT EXISTS (
-                      SELECT 1 FROM session_members m
-                      JOIN annotation_sessions s ON s.id = m.session_id
-                      WHERE m.user_id = u.id
-                        AND (s.status <> 'CLOSED' OR s.due_at > CURRENT_TIMESTAMP)
-                  )
                 ORDER BY username
                 """);
     }
@@ -398,7 +393,20 @@ public class WorkspaceService {
         }
         String assistanceMode = sessionType.equals("AI") ? "AI_ASSISTED" : normalizeAssistanceMode(r.assistanceMode());
 
-        // 8-9. Insert annotation_sessions
+        // 8. Collect assigned members
+        Set<Long> memberIds = new LinkedHashSet<>();
+        if ("MANUAL".equalsIgnoreCase(sessionType)) {
+            if (r.manualLabelerIds() != null) memberIds.addAll(r.manualLabelerIds());
+            if (r.reviewerId() != null) memberIds.add(r.reviewerId());
+        } else if ("AI".equalsIgnoreCase(sessionType)) {
+            if (r.aiLabelerId() != null) memberIds.add(r.aiLabelerId());
+            if (r.reviewerId() != null) memberIds.add(r.reviewerId());
+        }
+
+        // 9. Atomically claim each assigned user: AVAILABLE -> BUSY (concurrency-safe)
+        claimAssignedUsers(memberIds);
+
+        // 10. Insert annotation_sessions
         var s = one("""
                 INSERT INTO annotation_sessions(name, description, session_type, status, due_at, created_by, started_at, ended_at)
                 VALUES (?, ?, ?, 'DRAFT', ?, ?, NULL, NULL)
@@ -408,20 +416,12 @@ public class WorkspaceService {
         long sessionId = id(s, "id");
         audit(a, "CREATE", "SESSION", sessionId);
 
-        // 10. Insert session_members
-        Set<Long> memberIds = new LinkedHashSet<>();
-        if ("MANUAL".equalsIgnoreCase(sessionType)) {
-            if (r.manualLabelerIds() != null) memberIds.addAll(r.manualLabelerIds());
-            if (r.reviewerId() != null) memberIds.add(r.reviewerId());
-        } else if ("AI".equalsIgnoreCase(sessionType)) {
-            if (r.aiLabelerId() != null) memberIds.add(r.aiLabelerId());
-            if (r.reviewerId() != null) memberIds.add(r.reviewerId());
-        }
+        // 11. Insert session_members
         for (Long userId : memberIds) {
             db.update("INSERT INTO session_members(session_id, user_id) VALUES (?, ?)", sessionId, userId);
         }
 
-        // 11. Create annotation_tasks for documents and labelers
+        // 12. Create annotation_tasks for documents and labelers
         for (Long docId : documentIds) {
             if ("MANUAL".equalsIgnoreCase(sessionType)) {
                 if (r.manualLabelerIds() != null) {
@@ -451,20 +451,41 @@ public class WorkspaceService {
         return s;
     }
 
+    private void claimAssignedUsers(Set<Long> userIds) {
+        for (Long userId : userIds) {
+            int updated = db.update("""
+                    UPDATE users
+                    SET status = 'BUSY'
+                    WHERE id = ?
+                      AND status = 'AVAILABLE'
+                    """, userId);
+            if (updated != 1) {
+                var rows = db.queryForList("SELECT id, username, role, is_active FROM users WHERE id=?", userId);
+                String identifier = rows.isEmpty() || rows.getFirst().get("username") == null
+                        ? String.valueOf(userId)
+                        : String.valueOf(rows.getFirst().get("username"));
+                throw error(HttpStatus.BAD_REQUEST, "User " + identifier + " is not available: User is currently BUSY and cannot be assigned to a new session.");
+            }
+        }
+    }
+
     private void validateSessionAssignment(String sessionType, Session r) {
         if ("MANUAL".equalsIgnoreCase(sessionType)) {
             valid(r.manualLabelerIds() != null && !r.manualLabelerIds().isEmpty(),
                     "Manual session requires 1 to 2 manual labelers.");
             valid(r.manualLabelerIds().size() <= 2,
                     "Manual session requires 1 to 2 manual labelers.");
-            valid(new HashSet<>(r.manualLabelerIds()).size() == r.manualLabelerIds().size(),
-                    "A user cannot have multiple functions in the same session.");
+            valid(r.manualLabelerIds().stream().allMatch(Objects::nonNull),
+                    "Manual labeler ID không được để trống");
             valid(r.aiLabelerId() == null,
                     "AI labeler cannot be assigned to a MANUAL session.");
             valid(r.reviewerId() != null,
                     "Reviewer is required.");
-            valid(!r.manualLabelerIds().contains(r.reviewerId()),
-                    "A user cannot have multiple functions in the same session.");
+
+            // Duplicate-function validation: all assigned user IDs must be unique
+            List<Long> assignedIds = new ArrayList<>(r.manualLabelerIds());
+            assignedIds.add(r.reviewerId());
+            validateNoDuplicateFunctions(assignedIds);
 
             // 4. Validate user roles & 5. Validate active users
             for (Long manualId : r.manualLabelerIds()) {
@@ -484,8 +505,12 @@ public class WorkspaceService {
                     "Manual labeler cannot be assigned to an AI session.");
             valid(r.reviewerId() != null,
                     "Reviewer is required.");
-            valid(!Objects.equals(r.aiLabelerId(), r.reviewerId()),
-                    "A user cannot have multiple functions in the same session.");
+
+            // Duplicate-function validation: all assigned user IDs must be unique
+            List<Long> assignedIds = new ArrayList<>();
+            assignedIds.add(r.aiLabelerId());
+            assignedIds.add(r.reviewerId());
+            validateNoDuplicateFunctions(assignedIds);
 
             // 4. Validate user roles & 5. Validate active users
             validateAssignmentUser(r.aiLabelerId(), "AI_LABELER");
@@ -495,6 +520,11 @@ public class WorkspaceService {
             validateUserAvailability(r.aiLabelerId());
             validateUserAvailability(r.reviewerId());
         }
+    }
+
+    private void validateNoDuplicateFunctions(List<Long> assignedUserIds) {
+        valid(new HashSet<>(assignedUserIds).size() == assignedUserIds.size(),
+                "A user cannot have multiple functions in the same session.");
     }
 
     private void validateAssignmentUser(Long userId, String expectedRole) {
@@ -508,12 +538,12 @@ public class WorkspaceService {
     }
 
     public boolean isUserAvailable(long userId) {
-        return count("""
-                SELECT count(*) FROM session_members m
-                JOIN annotation_sessions s ON s.id = m.session_id
-                WHERE m.user_id = ?
-                  AND (s.status <> 'CLOSED' OR s.due_at > CURRENT_TIMESTAMP)
-                """, userId) == 0;
+        var rows = db.queryForList("SELECT status FROM users WHERE id=?", userId);
+        if (rows.isEmpty()) {
+            return false;
+        }
+        Object status = rows.getFirst().get("status");
+        return "AVAILABLE".equalsIgnoreCase(status != null ? status.toString() : "");
     }
 
     public void validateUserAvailability(Long userId) {
@@ -522,13 +552,23 @@ public class WorkspaceService {
             String identifier = rows.isEmpty() || rows.getFirst().get("username") == null
                     ? String.valueOf(userId)
                     : String.valueOf(rows.getFirst().get("username"));
-            throw error(HttpStatus.BAD_REQUEST, "User " + identifier + " is not available due to an active or unexpired session.");
+            throw error(HttpStatus.BAD_REQUEST, "User " + identifier + " is not available: User is currently BUSY and cannot be assigned to a new session.");
         }
     }
+    private LocalDateTime toLocalDateTime(Object value) {
+        if (value == null) return null;
+        if (value instanceof LocalDateTime ldt) return ldt;
+        if (value instanceof java.sql.Timestamp ts) return ts.toLocalDateTime();
+        if (value instanceof java.time.OffsetDateTime odt) return odt.toLocalDateTime();
+        if (value instanceof java.time.ZonedDateTime zdt) return zdt.toLocalDateTime();
+        if (value instanceof java.time.Instant instant) return LocalDateTime.ofInstant(instant, java.time.ZoneId.systemDefault());
+        return LocalDateTime.parse(value.toString());
+    }
+
     public void members(long sessionId, Members r) {
         var a=actor();require(a,"MANAGER"); requirePermission(a, "SESSIONS", "WRITE"); var s=ownSession(a,sessionId); state(!s.get("status").equals("CLOSED"),"Phiên đã đóng");
         long existing=count("SELECT count(*) FROM session_members WHERE session_id=?",sessionId);
-        if (existing>0 && java.time.LocalDateTime.now().isBefore(((java.sql.Timestamp)s.get("due_at")).toLocalDateTime()))
+        if (existing>0 && java.time.LocalDateTime.now().isBefore(toLocalDateTime(s.get("due_at"))))
             throw error(HttpStatus.CONFLICT,"Chỉ được thay đổi thành viên sau ngày hết hạn");
         var requested=new HashSet<>(r.userIds());
         for(long userId:requested) {
@@ -548,6 +588,31 @@ public class WorkspaceService {
         if(r.status().equals("CLOSED")) state(count("SELECT count(*) FROM annotation_tasks WHERE session_id=? AND status<>'APPROVED'",sessionId)==0,"Còn tác vụ chưa được duyệt");
         db.update("UPDATE annotation_sessions SET status=?,started_at=CASE WHEN ?='ACTIVE' THEN CURRENT_TIMESTAMP ELSE started_at END,ended_at=CASE WHEN ?='CLOSED' THEN CURRENT_TIMESTAMP ELSE ended_at END WHERE id=?",r.status(),r.status(),r.status(),sessionId);
         audit(a,"STATUS_"+r.status(),"SESSION",sessionId);
+        if ("CLOSED".equals(r.status())) {
+            releaseAssignedUsers(sessionId);
+        }
+    }
+
+    private void releaseAssignedUsers(long sessionId) {
+        db.update("""
+                UPDATE users u
+                SET status = 'AVAILABLE'
+                WHERE u.id IN (
+                    SELECT sm.user_id
+                    FROM session_members sm
+                    WHERE sm.session_id = ?
+                )
+                  AND u.status = 'BUSY'
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM session_members other_sm
+                    JOIN annotation_sessions other_s
+                      ON other_s.id = other_sm.session_id
+                    WHERE other_sm.user_id = u.id
+                      AND other_sm.session_id <> ?
+                      AND other_s.status <> 'CLOSED'
+                )
+                """, sessionId, sessionId);
     }
     public List<Map<String,Object>> tasks() { return tasks(null,null,null,null,null); }
     public List<Map<String,Object>> tasks(String type, String status, Long sessionId, String due, String search) {
@@ -741,7 +806,7 @@ public class WorkspaceService {
         var a=actor();require(a,"AI_LABELER","MANUAL_LABELER","REVIEWER");
         var entry=one("SELECT * FROM work_time_entries WHERE id=? FOR UPDATE",entryId);owns(a,entry,"user_id");
         state(entry.get("ended_at")==null,"Lượt đo thời gian đã kết thúc");
-        LocalDateTime last=(LocalDateTime)entry.get("last_heartbeat_at");
+        LocalDateTime last=toLocalDateTime(entry.get("last_heartbeat_at"));
         long delta=Math.max(0,Math.min(45,Duration.between(last,LocalDateTime.now()).getSeconds()));
         return one("UPDATE work_time_entries SET active_seconds=active_seconds+?,last_heartbeat_at=CURRENT_TIMESTAMP WHERE id=? RETURNING *",delta,entryId);
     }
@@ -750,7 +815,7 @@ public class WorkspaceService {
         var a=actor();require(a,"AI_LABELER","MANUAL_LABELER","REVIEWER");
         var entry=one("SELECT * FROM work_time_entries WHERE id=? FOR UPDATE",entryId);owns(a,entry,"user_id");
         if(entry.get("ended_at")!=null) return entry;
-        LocalDateTime last=(LocalDateTime)entry.get("last_heartbeat_at");
+        LocalDateTime last=toLocalDateTime(entry.get("last_heartbeat_at"));
         long delta=Math.max(0,Math.min(45,Duration.between(last,LocalDateTime.now()).getSeconds()));
         return one("UPDATE work_time_entries SET active_seconds=active_seconds+?,last_heartbeat_at=CURRENT_TIMESTAMP,ended_at=CURRENT_TIMESTAMP,stop_reason=? WHERE id=? RETURNING *",delta,r.reason(),entryId);
     }
@@ -1098,7 +1163,7 @@ public class WorkspaceService {
                 FROM annotation_tasks t JOIN documents d ON d.id=t.document_id
                 LEFT JOIN users u ON u.id=t.assigned_to
                 LEFT JOIN task_section_progress sp ON sp.task_id=t.id
-                WHERE """+scope+" ORDER BY t.due_at NULLS LAST,t.id,sp.field_name",values));
+                WHERE (1=1)""" + " AND (" + scope + ") ORDER BY t.due_at NULLS LAST,t.id,sp.field_name",values));
         data.put("userProductivity",db.queryForList("""
                 SELECT u.id AS user_id,u.username,count(DISTINCT t.id) AS assigned_tasks,
                        count(DISTINCT t.id) FILTER (WHERE t.status IN ('SUBMITTED','APPROVED')) AS submitted_tasks,
@@ -1109,15 +1174,15 @@ public class WorkspaceService {
                        count(DISTINCT t.id) FILTER (WHERE t.due_at<CURRENT_TIMESTAMP AND t.status NOT IN ('APPROVED','REJECTED')) AS overdue_tasks
                 FROM annotation_tasks t LEFT JOIN users u ON u.id=t.assigned_to
                 LEFT JOIN task_section_progress sp ON sp.task_id=t.id
-                WHERE """+scope+" GROUP BY u.id,u.username ORDER BY completed_tasks DESC,u.username",values));
+                WHERE (1=1)""" + " AND (" + scope + ") GROUP BY u.id,u.username ORDER BY completed_tasks DESC,u.username",values));
         data.put("timeComparison",db.queryForList("""
                 SELECT t.assistance_mode,count(DISTINCT t.id) AS sample_size,
                        round(avg(w.total_seconds)::numeric,2) AS average_seconds,
                        round(percentile_cont(0.5) WITHIN GROUP (ORDER BY w.total_seconds)::numeric,2) AS median_seconds
                 FROM annotation_tasks t
                 JOIN (SELECT task_id,sum(active_seconds) AS total_seconds FROM work_time_entries WHERE task_id IS NOT NULL GROUP BY task_id) w ON w.task_id=t.id
-                WHERE """+scope+" AND t.task_type='MANUAL' AND t.status IN ('SUBMITTED','APPROVED') GROUP BY t.assistance_mode ORDER BY t.assistance_mode",values));
-        data.put("overdueTasks",db.queryForList("SELECT t.id,d.title AS document_title,u.username,t.status,t.due_at,t.assistance_mode FROM annotation_tasks t JOIN documents d ON d.id=t.document_id LEFT JOIN users u ON u.id=t.assigned_to WHERE "+scope+" AND t.due_at<CURRENT_TIMESTAMP AND t.status NOT IN ('APPROVED','REJECTED') ORDER BY t.due_at",values));
+                WHERE (1=1)""" + " AND (" + scope + ") AND t.task_type='MANUAL' AND t.status IN ('SUBMITTED','APPROVED') GROUP BY t.assistance_mode ORDER BY t.assistance_mode",values));
+        data.put("overdueTasks",db.queryForList("SELECT t.id,d.title AS document_title,u.username,t.status,t.due_at,t.assistance_mode FROM annotation_tasks t JOIN documents d ON d.id=t.document_id LEFT JOIN users u ON u.id=t.assigned_to WHERE ("+scope+") AND t.due_at<CURRENT_TIMESTAMP AND t.status NOT IN ('APPROVED','REJECTED') ORDER BY t.due_at",values));
         if(a.role().equals("MANAGER")) data.put("reviewCases",reviewCases(null));
         return data;
     }
