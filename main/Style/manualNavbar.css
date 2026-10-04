@@ -1,0 +1,18 @@
+:root { --manual-nav-height:60px; --manual-nav-blue:#079bc5; --manual-nav-active:#087da7; --manual-nav-ink:#123c4b; --manual-nav-line:rgba(255,255,255,.42); }
+.manual-navbar { display:flex; align-items:center; height:var(--manual-nav-height); min-height:var(--manual-nav-height); color:var(--manual-nav-ink); background:var(--manual-nav-blue); font-family:Inter,Arial,sans-serif; }
+.manual-navbar * { box-sizing:border-box; }
+.manual-navbar__brand { display:flex; align-items:center; align-self:stretch; gap:10px; padding:0 22px; border-right:1px solid var(--manual-nav-line); color:#073d56; text-decoration:none; font-size:15px; font-weight:700; }
+.manual-navbar__brand:hover { color:#073d56; background:rgba(255,255,255,.08); text-decoration:none; }
+.manual-navbar__brand img { width:28px; height:28px; object-fit:contain; }
+.manual-navbar__nav { display:flex; align-self:stretch; }
+.manual-navbar__nav a { display:flex; align-items:center; gap:9px; padding:0 20px; border-right:1px solid var(--manual-nav-line); color:var(--manual-nav-ink); text-decoration:none; font-size:13px; font-weight:600; transition:background-color .15s,color .15s; }
+.manual-navbar__nav a:hover,.manual-navbar__nav a:focus-visible { color:#062f43; background:rgba(0,76,109,.14); text-decoration:none; }
+.manual-navbar__nav a.is-active { color:#fff; background:var(--manual-nav-active); }
+.manual-navbar__nav .material-symbols-outlined { font-size:20px; }
+.manual-navbar__account { display:flex; align-items:center; gap:8px; margin-left:auto; padding-right:12px; }
+.manual-navbar__avatar { display:grid; place-items:center; width:30px; height:30px; border-radius:50%; color:#075985; background:rgba(255,255,255,.2); font-size:12px; font-weight:800; }
+.manual-navbar__identity { display:flex; flex-direction:column; line-height:1.15; }
+.manual-navbar__identity b { color:#073d56; font-size:13px; }
+.manual-navbar__identity small { margin-top:2px; color:#164454; font-size:11px; font-weight:600; letter-spacing:.04em; }
+.manual-navbar__logout { display:inline-flex; align-items:center; gap:6px; height:34px; margin-left:12px; padding:0 11px; border:1px solid rgba(255,255,255,.72); border-radius:7px; color:#fff; background:rgba(0,94,132,.15); font:600 12px Inter,Arial,sans-serif; cursor:pointer; }
+.manual-navbar__logout:hover,.manual-navbar__logout:focus-visible { background:rgba(255,255,255,.2); outline:2px solid rgba(255,255,255,.65); outline-offset:1px; }

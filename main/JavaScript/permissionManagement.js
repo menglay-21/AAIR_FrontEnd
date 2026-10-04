@@ -1,149 +1,95 @@
 window.AAIRPermissionsPage = async function ({ request, user, notice }) {
-    const main = document.querySelector('main');
-    const [roles, users] = await Promise.all([request('/roles'), request('/users')]);
-    const manageableUsers = users;
-    main.className = 'min-h-[calc(100vh-98px)] bg-surface p-6';
-    main.innerHTML = `
-      <section class="mx-auto max-w-[1500px]">
-        <div class="mb-5 flex items-end justify-between gap-4">
-          <div><p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Security administration</p><h1 class="mt-1 text-2xl font-bold text-on-surface">Permission Management</h1></div>
-          <div class="inline-flex rounded-lg border border-outline-variant bg-white p-1" role="tablist">
-            <button id="permissionRoleTab" class="rounded-md bg-primary px-4 py-2 text-xs font-bold text-white" role="tab">Theo role</button>
-            <button id="permissionUserTab" class="rounded-md px-4 py-2 text-xs font-bold text-on-surface-variant" role="tab">Theo user</button>
-          </div>
-        </div>
-        <div class="grid grid-cols-12 gap-4">
-          <aside class="col-span-12 rounded-lg border border-outline-variant bg-white p-4 lg:col-span-3">
-            <div id="rolePicker"><label class="mb-2 block text-xs font-bold">Role mặc định</label><select id="permissionRole" class="w-full rounded-md border-outline-variant text-sm"></select></div>
-            <div id="userPicker" hidden><label class="mb-2 block text-xs font-bold">Tài khoản</label><select id="permissionUser" class="w-full rounded-md border-outline-variant text-sm"></select><div id="permissionUserMeta" class="mt-3 rounded-md bg-surface-container-low p-3 text-xs"></div></div>
-            <div class="mt-5 border-t border-outline-variant pt-4 text-[11px] leading-5 text-on-surface-variant">
-              <p><span class="mr-2 inline-block h-2 w-2 rounded-full bg-slate-400"></span>Kế thừa từ role</p>
-              <p><span class="mr-2 inline-block h-2 w-2 rounded-full bg-amber-500"></span>Custom permission</p>
-              <p class="mt-3">Override theo user được ưu tiên trước quyền role và mọi thay đổi đều được ghi audit log.</p>
-            </div>
-          </aside>
-          <section class="col-span-12 overflow-hidden rounded-lg border border-outline-variant bg-white lg:col-span-9">
-            <header class="flex items-center justify-between border-b border-outline-variant bg-surface-container-low px-5 py-4">
-              <div><h2 id="permissionTitle" class="font-bold">Access Matrix</h2><p id="permissionSubtitle" class="mt-1 text-[10px] text-on-surface-variant"></p></div>
-              <button id="permissionSave" class="rounded-md bg-primary px-4 py-2 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">Lưu thay đổi</button>
-            </header>
-            <div class="overflow-x-auto"><table class="w-full border-collapse text-sm"><thead><tr class="border-b border-outline-variant bg-surface-container-low/50"><th class="px-5 py-3 text-left text-[10px] uppercase">System Feature</th><th class="px-3 py-3 text-center text-[10px] uppercase">Read</th><th class="px-3 py-3 text-center text-[10px] uppercase">Write</th><th class="px-3 py-3 text-center text-[10px] uppercase">Execute</th><th class="px-3 py-3 text-center text-[10px] uppercase">Delete</th></tr></thead><tbody id="permissionRows"></tbody></table></div>
-          </section>
-        </div>
-      </section>`;
+  const main = document.querySelector('main');
+  const actions = ['READ', 'WRITE', 'EXECUTE', 'DELETE'];
+  const actionLabels = { READ: 'Đọc', WRITE: 'Ghi', EXECUTE: 'Thực thi', DELETE: 'Xóa' };
+  const roleMeta = {
+    ADMIN: { label: 'Administrator', description: 'Quản trị bảo mật và vận hành hệ thống', icon: 'shield_person', color: 'blue' },
+    MANAGER: { label: 'Manager', description: 'Quản lý tài liệu, phiên và tiến độ gán nhãn', icon: 'manage_accounts', color: 'violet' },
+    EXPERT: { label: 'Expert', description: 'Chuyên gia thuật ngữ và chất lượng dữ liệu', icon: 'workspace_premium', color: 'emerald' },
+    REVIEWER: { label: 'Reviewer', description: 'Đối chiếu và phê duyệt kết quả', icon: 'fact_check', color: 'amber' },
+    USER: { label: 'User', description: 'Người dùng nghiệp vụ theo phân công', icon: 'person', color: 'slate' }
+  };
+  const featureMeta = {
+    DASHBOARD: ['Quản trị hệ thống', 'Tổng quan', 'Theo dõi sức khỏe hệ thống và các chỉ số tổng hợp.', ['READ']],
+    USER_MANAGEMENT: ['Quản trị hệ thống', 'User Management', 'Tài khoản, vai trò, trạng thái và hồ sơ người dùng.', actions],
+    PERMISSION_MANAGEMENT: ['Quản trị hệ thống', 'Permission Management', 'Cấu hình quyền mặc định và override theo user.', ['READ', 'WRITE']],
+    AUDIT_LOGS: ['Quản trị hệ thống', 'Audit Logs', 'Lịch sử thao tác bảo mật và thay đổi dữ liệu.', ['READ']],
+    DOCUMENTS: ['Nghiệp vụ gán nhãn', 'Documents', 'Tài liệu PDF được đưa vào quy trình xử lý.', ['READ', 'WRITE', 'DELETE']],
+    SESSIONS: ['Nghiệp vụ gán nhãn', 'Sessions', 'Phiên gán nhãn, thành viên và vòng đời xử lý.', actions],
+    TASKS: ['Nghiệp vụ gán nhãn', 'Tasks', 'Nhiệm vụ gán nhãn, lưu và gửi kết quả.', ['READ', 'WRITE', 'EXECUTE']],
+    STATISTICS: ['Nghiệp vụ gán nhãn', 'Statistics', 'Tiến độ, thời gian và chất lượng theo session.', ['READ', 'EXECUTE']]
+  };
+  const defaultRoleMeta = { label: 'Role', description: 'Quyền mặc định theo vai trò', icon: 'badge', color: 'slate' };
+  let roles = [];
+  let users = [];
+  let mode = 'role';
+  let selectedRole = 'ADMIN';
+  let selectedUserId = null;
+  let features = [];
+  let changes = new Map();
+  let original = new Map();
+  let collapsedGroups = new Set();
+  let roleSearch = '';
+  let userSearch = '';
+  let busy = false;
+  let roleLocked = false;
 
-    const roleTab = main.querySelector('#permissionRoleTab');
-    const userTab = main.querySelector('#permissionUserTab');
-    const rolePicker = main.querySelector('#rolePicker');
-    const userPicker = main.querySelector('#userPicker');
-    const roleSelect = main.querySelector('#permissionRole');
-    const userSelect = main.querySelector('#permissionUser');
-    const rows = main.querySelector('#permissionRows');
-    const save = main.querySelector('#permissionSave');
-    const title = main.querySelector('#permissionTitle');
-    const subtitle = main.querySelector('#permissionSubtitle');
-    const meta = main.querySelector('#permissionUserMeta');
-    const actions = ['READ', 'WRITE', 'EXECUTE', 'DELETE'];
-    let mode = 'role';
-    let selectedId = null;
-    let changes = new Map();
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
+  const metaForRole = role => roleMeta[role] || defaultRoleMeta;
+  const featureInfo = feature => featureMeta[feature.key] || ['Nghiệp vụ khác', feature.label || feature.key, 'Tính năng nghiệp vụ AAIR Lab.', actions];
+  const isApplicable = (feature, action) => featureInfo(feature)[3].includes(action);
+  const keyOf = (feature, action) => `${feature}:${action}`;
+  const roleLabel = role => metaForRole(role).label;
+  const enabledValue = (feature, action) => {
+    const item = feature.actions[action];
+    if (mode === 'user') return item?.overrideEnabled == null ? Boolean(item?.roleEnabled) : Boolean(item.overrideEnabled);
+    return Boolean(item);
+  };
 
-    roles.forEach(role => roleSelect.add(new Option(role === 'ADMIN' ? 'Administrator' : 'Manager', role)));
-    manageableUsers.forEach(item => userSelect.add(new Option(`${item.username} · ${item.role}`, item.id)));
+  main.className = 'min-h-[calc(100vh-98px)] bg-[#f6f8fb] text-[#172033]';
+  main.innerHTML = `
+    <style>
+      .permission-page{font-family:Inter,ui-sans-serif,system-ui,sans-serif}.permission-page button,.permission-page input,.permission-page select{font:inherit}
+      .permission-card{border:1px solid #dbe2ec;background:#fff;border-radius:10px}.permission-focus:focus-visible{outline:3px solid rgba(11,79,212,.22);outline-offset:2px}
+      .permission-page .text-\[10px\],.permission-page .text-\[11px\],.permission-page .text-\[12px\]{font-size:13px !important;line-height:1.4}.permission-row:hover td{background:#f8fbff}.permission-check{accent-color:#0b4fd4;width:17px;height:17px;border:1px solid #64748b;box-shadow:0 0 0 1px #fff inset}.permission-scroll{overflow:visible}.permission-description{color:#475569}
+      .permission-sticky{position:sticky;bottom:16px;z-index:20;box-shadow:0 -8px 24px rgba(25,47,78,.12)}.permission-modal-backdrop{background:rgba(15,23,42,.45);backdrop-filter:blur(3px)}.permission-dash{background:linear-gradient(90deg,#0b4fd4 0%,#0096c7 100%)}
+    </style>
+    <div class="permission-page"><div class="mx-auto max-w-[1540px] px-4 pb-28 pt-6 sm:px-6 lg:px-8">
+      <div class="mb-6 flex flex-wrap items-end justify-between gap-4"><div><p class="mb-1 text-[13px] font-bold uppercase tracking-[.16em] text-[#475569]">Quản trị bảo mật</p><h1 class="text-[26px] font-bold tracking-[-.02em] text-[#152238]">Quản lý quyền</h1><p class="mt-1 text-[13px] text-[#475569]" id="permissionGreeting"></p></div><div class="inline-flex rounded-lg border border-[#cbd5e1] bg-white p-1" role="tablist"><button id="permissionRoleTab" class="permission-focus rounded-md bg-[#0b4fd4] px-4 py-2 text-[13px] font-bold text-white" role="tab">Theo role</button><button id="permissionUserTab" class="permission-focus rounded-md px-4 py-2 text-[13px] font-bold text-[#526277]" role="tab">Theo user</button></div></div>
+      <div id="permissionBanner" class="mb-4 hidden items-center gap-2 rounded-lg border border-[#fed7aa] bg-[#fff7ed] px-4 py-3 text-[13px] text-[#9a3412]"><span class="material-symbols-outlined text-[18px]">info</span><span>Override theo user được ưu tiên hơn quyền role. Chấm cam là quyền tùy chỉnh riêng.</span></div>
+      <div class="grid grid-cols-12 gap-5"><aside class="permission-card col-span-12 self-start p-4 lg:col-span-3"><div class="mb-4 flex items-center justify-between"><div><h2 class="text-[15px] font-bold">Phạm vi quyền</h2><p id="permissionScopeCaption" class="mt-1 text-[13px] text-[#475569]">Chọn role để chỉnh quyền mặc định</p></div><span class="material-symbols-outlined text-[#94a3b8]">tune</span></div><label class="relative mb-3 block"><span class="sr-only">Tìm role</span><span class="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-[#94a3b8]">search</span><input id="permissionRoleSearch" class="permission-focus w-full rounded-lg border-[#dbe2ec] py-2 pl-10 pr-3 text-[13px]" placeholder="Tìm role..." /></label><div id="permissionRoleList" class="space-y-2"></div><button id="permissionCreateRole" class="permission-focus mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[#9bb7e8] px-3 py-2.5 text-[13px] font-bold text-[#0b4fd4] hover:bg-[#f1f6ff]"><span class="material-symbols-outlined text-[17px]">add</span>Tạo role</button><div id="permissionUserPicker" class="mt-4 hidden border-t border-[#e5eaf1] pt-4"><label class="mb-2 block text-[13px] font-bold">Chọn tài khoản</label><input id="permissionUserSearch" class="permission-focus mb-2 w-full rounded-lg border-[#dbe2ec] py-2 px-3 text-[13px]" placeholder="Tìm theo username..." /><select id="permissionUser" class="permission-focus w-full rounded-lg border-[#dbe2ec] text-[13px]"></select><div id="permissionUserMeta" class="mt-3 rounded-lg bg-[#f7f9fc] p-3 text-[13px]"></div></div><div id="permissionLegend" class="mt-5 hidden border-t border-[#e5eaf1] pt-4 text-[13px] leading-5 text-[#475569]"><p><span class="mr-2 inline-block h-2 w-2 rounded-full bg-[#94a3b8]"></span>Kế thừa từ role</p><p><span class="mr-2 inline-block h-2 w-2 rounded-full bg-[#f59e0b]"></span>Override theo user</p><p class="mt-3">Quyền hiệu lực dùng override trước, sau đó mới đến quyền role.</p></div></aside>
+      <section class="permission-card col-span-12 min-w-0 overflow-hidden lg:col-span-9"><header class="border-b border-[#e5eaf1] px-5 py-4"><div class="flex flex-wrap items-start justify-between gap-4"><div><div class="flex items-center gap-2"><h2 id="permissionTitle" class="text-[18px] font-bold">Quyền role</h2><span id="permissionReadOnly" class="hidden rounded-full bg-[#fef3c7] px-2 py-1 text-[13px] font-bold uppercase tracking-wide text-[#92400e]" title="Role hệ thống đang khóa chỉnh sửa">CHỈ XEM</span></div><p id="permissionSubtitle" class="mt-1 text-[13px] text-[#475569]"></p></div><button id="permissionCopyRole" class="permission-focus inline-flex items-center gap-1.5 rounded-lg border border-[#cbd5e1] px-3 py-2 text-[13px] font-bold text-[#334155] hover:bg-[#f8fafc]"><span class="material-symbols-outlined text-[17px]">content_copy</span>Sao chép role</button></div><div class="mt-4 flex flex-wrap items-center justify-between gap-3"><div class="flex flex-wrap items-center gap-2"><span class="text-[13px] font-bold uppercase tracking-wide text-[#475569]">Preset:</span><div id="permissionPresets" class="flex flex-wrap gap-1.5"></div></div><div id="permissionCount" class="min-w-[190px]"></div></div></header><div class="permission-scroll"><table class="w-full min-w-[700px] border-collapse text-[13px]"><thead id="permissionHead" class="sticky top-0 z-10 bg-white"></thead><tbody id="permissionRows"></tbody></table></div></section></div>
+    </div></div>
+    <div id="permissionSticky" class="permission-sticky fixed bottom-4 left-1/2 hidden w-[min(760px,calc(100%-2rem))] -translate-x-1/2 rounded-xl border border-[#bfd1ee] bg-white px-4 py-3"><div class="flex flex-wrap items-center justify-between gap-3"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-[#f59e0b]">pending_actions</span><span id="permissionUnsavedText" class="text-[13px] font-semibold"></span></div><div class="flex items-center gap-2"><button id="permissionCancel" class="permission-focus rounded-lg px-3 py-2 text-[13px] font-bold text-[#64748b] hover:bg-[#f1f5f9]">Hủy</button><button id="permissionReview" class="permission-focus rounded-lg border border-[#0b4fd4] px-4 py-2 text-[13px] font-bold text-[#0b4fd4] hover:bg-[#eef4ff]"><span class="material-symbols-outlined mr-1 align-middle text-[16px]">fact_check</span>Xem lại</button><button id="permissionSave" class="permission-focus rounded-lg bg-[#0b4fd4] px-4 py-2 text-[13px] font-bold text-white hover:bg-[#0842b3]"><span class="material-symbols-outlined mr-1 align-middle text-[16px]">save</span>Lưu thay đổi</button></div></div></div>
+    <div id="permissionModal" class="permission-modal-backdrop fixed inset-0 z-50 hidden items-center justify-center p-4"><div class="w-full max-w-[650px] rounded-xl bg-white shadow-2xl"><div class="flex items-start justify-between border-b border-[#e5eaf1] px-5 py-4"><div><h2 class="text-[18px] font-bold">Xem lại thay đổi</h2><p class="mt-1 text-[12px] text-[#64748b]">Kiểm tra diff trước khi ghi vào hệ thống và audit log.</p></div><button id="permissionModalClose" class="permission-focus rounded-lg p-1 text-[#64748b] hover:bg-[#f1f5f9]"><span class="material-symbols-outlined">close</span></button></div><div id="permissionDiff" class="max-h-[330px] overflow-auto px-5 py-4"></div><div class="border-t border-[#e5eaf1] px-5 py-4"><label class="mb-2 block text-[12px] font-bold">Lý do thay đổi <span class="text-[#dc2626]">*</span></label><textarea id="permissionReason" class="permission-focus min-h-[82px] w-full rounded-lg border-[#cbd5e1] text-[13px]" placeholder="Ví dụ: Cấp quyền ghi cho nhóm quản lý tài liệu..."></textarea><p id="permissionReasonError" class="mt-1 hidden text-[11px] text-[#dc2626]">Vui lòng nhập lý do thay đổi.</p></div><div class="flex justify-end gap-2 border-t border-[#e5eaf1] px-5 py-4"><button id="permissionModalCancel" class="permission-focus rounded-lg border border-[#cbd5e1] px-4 py-2 text-[12px] font-bold text-[#475569]">Hủy</button><button id="permissionConfirm" class="permission-focus rounded-lg bg-[#0b4fd4] px-4 py-2 text-[12px] font-bold text-white">Xác nhận lưu</button></div></div></div>`;
 
-    function setTabs() {
-        const userMode = mode === 'user';
-        rolePicker.hidden = userMode;
-        userPicker.hidden = !userMode;
-        roleTab.classList.toggle('bg-primary', !userMode);
-        roleTab.classList.toggle('text-white', !userMode);
-        userTab.classList.toggle('bg-primary', userMode);
-        userTab.classList.toggle('text-white', userMode);
-        save.disabled = user.role !== 'ADMIN' || (userMode && Number(selectedId) === Number(user.id));
-    }
+  const roleTab = main.querySelector('#permissionRoleTab'); const userTab = main.querySelector('#permissionUserTab'); const roleList = main.querySelector('#permissionRoleList'); const roleSearchInput = main.querySelector('#permissionRoleSearch'); const userPicker = main.querySelector('#permissionUserPicker'); const userSelect = main.querySelector('#permissionUser'); const userSearchInput = main.querySelector('#permissionUserSearch'); const userMeta = main.querySelector('#permissionUserMeta'); const rows = main.querySelector('#permissionRows'); const head = main.querySelector('#permissionHead'); const sticky = main.querySelector('#permissionSticky'); const unsavedText = main.querySelector('#permissionUnsavedText'); const saveButton = main.querySelector('#permissionSave'); const modal = main.querySelector('#permissionModal'); const diff = main.querySelector('#permissionDiff'); const reason = main.querySelector('#permissionReason'); const reasonError = main.querySelector('#permissionReasonError'); const title = main.querySelector('#permissionTitle'); const subtitle = main.querySelector('#permissionSubtitle'); const count = main.querySelector('#permissionCount'); const readOnly = main.querySelector('#permissionReadOnly');
+  const isSelf = () => mode === 'user' && Number(selectedUserId) === Number(user.id); const canEdit = () => user.role === 'ADMIN' && !isSelf() && !roleLocked;
+  const currentChanged = () => [...changes.values()];
 
-    function featureCell(label) {
-        const td = document.createElement('td');
-        td.className = 'px-5 py-4 font-semibold text-on-surface';
-        td.textContent = label;
-        return td;
-    }
-
-    async function loadRole() {
-        changes = new Map();
-        const data = await request(`/permissions?role=${encodeURIComponent(roleSelect.value)}`);
-        title.textContent = `Quyền mặc định: ${data.role}`;
-        subtitle.textContent = `${data.enabledPermissions}/${data.totalPermissions} quyền đang bật · ${data.coverage}% coverage`;
-        rows.replaceChildren(...data.features.map(feature => {
-            const tr = document.createElement('tr');
-            tr.className = 'border-b border-outline-variant/60';
-            tr.append(featureCell(feature.label));
-            actions.forEach(action => {
-                const td = document.createElement('td');
-                td.className = 'px-3 py-4 text-center';
-                const input = document.createElement('input');
-                input.type = 'checkbox';
-                input.checked = Boolean(feature.actions[action]);
-                input.disabled = user.role !== 'ADMIN';
-                input.className = 'h-5 w-5 rounded border-outline-variant text-primary';
-                input.setAttribute('aria-label', `${action} ${feature.label}`);
-                input.addEventListener('change', () => changes.set(`${feature.key}:${action}`, { feature: feature.key, action, enabled: input.checked }));
-                td.append(input); tr.append(td);
-            });
-            return tr;
-        }));
-    }
-
-    async function loadUser() {
-        selectedId = Number(userSelect.value);
-        changes = new Map();
-        const data = await request(`/permissions/users/${selectedId}`);
-        title.textContent = `Quyền riêng: ${data.user.username}`;
-        subtitle.textContent = `${data.customCount} custom permission · quyền hiệu lực = custom trước, role sau`;
-        meta.replaceChildren();
-        const roleLine = document.createElement('b'); roleLine.textContent = `Role mặc định: ${data.user.role}`;
-        const statusLine = document.createElement('p'); statusLine.className = 'mt-1 text-on-surface-variant'; statusLine.textContent = data.user.is_active ? 'Tài khoản đang hoạt động' : 'Tài khoản đã khóa';
-        meta.append(roleLine, statusLine);
-        rows.replaceChildren(...data.features.map(feature => {
-            const tr = document.createElement('tr');
-            tr.className = 'border-b border-outline-variant/60';
-            tr.append(featureCell(feature.label));
-            actions.forEach(action => {
-                const permission = feature.actions[action];
-                const td = document.createElement('td'); td.className = 'px-2 py-3 text-center';
-                const select = document.createElement('select');
-                select.className = `min-w-[112px] rounded-md border px-2 py-1.5 text-[11px] ${permission.source === 'CUSTOM' ? 'border-amber-500 bg-amber-50 font-bold text-amber-800' : 'border-outline-variant bg-white'}`;
-                select.add(new Option(`Kế thừa (${permission.roleEnabled ? 'Cho phép' : 'Từ chối'})`, 'inherit'));
-                select.add(new Option('Cho phép riêng', 'allow'));
-                select.add(new Option('Từ chối riêng', 'deny'));
-                select.value = permission.overrideEnabled == null ? 'inherit' : permission.overrideEnabled ? 'allow' : 'deny';
-                select.disabled = user.role !== 'ADMIN' || Number(selectedId) === Number(user.id);
-                select.setAttribute('aria-label', `${action} ${feature.label} cho ${data.user.username}`);
-                select.addEventListener('change', () => {
-                    const enabled = select.value === 'inherit' ? null : select.value === 'allow';
-                    changes.set(`${feature.key}:${action}`, { feature: feature.key, action, enabled });
-                    select.classList.toggle('border-amber-500', enabled !== null);
-                    select.classList.toggle('bg-amber-50', enabled !== null);
-                });
-                td.append(select); tr.append(td);
-            });
-            return tr;
-        }));
-        setTabs();
-    }
-
-    roleTab.addEventListener('click', async () => { mode = 'role'; setTabs(); await loadRole(); });
-    userTab.addEventListener('click', async () => { mode = 'user'; setTabs(); if (userSelect.value) await loadUser(); });
-    roleSelect.addEventListener('change', loadRole);
-    userSelect.addEventListener('change', loadUser);
-    save.addEventListener('click', async () => {
-        const permissions = [...changes.values()];
-        if (!permissions.length) { notice('Không có thay đổi permission.'); return; }
-        if (mode === 'role') await request(`/permissions/${roleSelect.value}`, { method: 'PUT', json: { permissions } });
-        else await request(`/permissions/users/${selectedId}`, { method: 'PUT', json: { permissions } });
-        notice('Đã lưu permission và ghi audit log.');
-        await (mode === 'role' ? loadRole() : loadUser());
-    });
-    setTabs();
-    await loadRole();
+  function setGreeting() { const hour = new Date().getHours(); const period = hour < 12 ? 'sáng' : hour < 18 ? 'chiều' : 'tối'; main.querySelector('#permissionGreeting').textContent = `Chào buổi ${period}, ${user?.username || user?.name || 'Quản trị viên'}`; }
+  function setTabs() { const userMode = mode === 'user'; roleTab.className = `permission-focus rounded-md px-4 py-2 text-[13px] font-bold ${!userMode ? 'bg-[#0b4fd4] text-white' : 'text-[#526277] hover:bg-[#f1f5f9]'}`; userTab.className = `permission-focus rounded-md px-4 py-2 text-[13px] font-bold ${userMode ? 'bg-[#0b4fd4] text-white' : 'text-[#526277] hover:bg-[#f1f5f9]'}`; userPicker.classList.toggle('hidden', !userMode); const banner = main.querySelector('#permissionBanner'); banner.classList.toggle('hidden', !userMode); banner.classList.toggle('flex', userMode); main.querySelector('#permissionLegend').classList.toggle('hidden', !userMode); main.querySelector('#permissionScopeCaption').textContent = userMode ? 'Chọn tài khoản cần tùy chỉnh' : 'Chọn role để chỉnh quyền mặc định'; }
+  function renderRoleList() { const selected = mode === 'role' ? selectedRole : null; const filtered = roles.filter(role => roleLabel(role).toLowerCase().includes(roleSearch.toLowerCase())); roleList.innerHTML = filtered.map(role => { const info = metaForRole(role); const members = users.filter(item => String(item.role).toUpperCase() === role).length; const active = role === selected; return `<button data-role="${esc(role)}" class="permission-role-card permission-focus w-full rounded-lg border p-3 text-left transition ${active ? 'border-[#7aa3e8] bg-[#f3f7ff] shadow-sm' : 'border-[#e5eaf1] hover:border-[#b8cbed] hover:bg-[#fbfdff]'}"><div class="flex items-start gap-3"><span class="material-symbols-outlined rounded-lg bg-[#eaf2ff] p-2 text-[20px] text-[#0b4fd4]">${info.icon}</span><span class="min-w-0 flex-1"><strong class="block truncate text-[13px]">${esc(info.label)}</strong><span class="mt-1 block text-[11px] leading-4 text-[#64748b]">${esc(info.description)}</span></span>${active ? '<span class="material-symbols-outlined text-[18px] text-[#0b4fd4]">check_circle</span>' : ''}</div><div class="mt-3 flex items-center justify-between border-t border-[#e5eaf1] pt-2 text-[11px] text-[#64748b]"><span>${members} thành viên</span><span>${active ? `${[...original.values()].filter(Boolean).length} quyền bật` : 'Quyền mặc định'}</span></div></button>`; }).join('') || '<div class="rounded-lg border border-dashed border-[#cbd5e1] p-4 text-center text-[12px] text-[#64748b]">Không tìm thấy role.</div>'; roleList.querySelectorAll('[data-role]').forEach(button => button.addEventListener('click', async () => { selectedRole = button.dataset.role; changes.clear(); await loadRole(); })); }
+  function renderUserOptions() { const selected = String(selectedUserId || ''); const filtered = users.filter(item => String(item.username).toLowerCase().includes(userSearch.toLowerCase())); userSelect.innerHTML = filtered.map(item => `<option value="${esc(item.id)}" ${String(item.id) === selected ? 'selected' : ''}>${esc(item.username)} · ${esc(roleLabel(String(item.role).toUpperCase()))}</option>`).join(''); }
+  function renderHeader() { head.innerHTML = `<tr class="border-b border-[#dbe2ec] bg-[#f8fafc]"><th class="sticky left-0 z-20 w-[42%] bg-[#f8fafc] px-5 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#64748b]">Tính năng / mô tả</th>${actions.map(action => `<th class="w-[14.5%] px-3 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-[#64748b]" title="${actionLabels[action]}"><div>${actionLabels[action]}</div><input data-column-action="${action}" class="permission-check mt-2" type="checkbox" aria-label="Chọn tất cả quyền ${action}" /></th>`).join('')}</tr>`; head.querySelectorAll('[data-column-action]').forEach(input => input.addEventListener('change', () => toggleColumn(input.dataset.columnAction, input.checked))); }
+  function renderCount() { const applicable = features.reduce((total, feature) => total + featureInfo(feature)[3].length, 0); const enabled = features.reduce((total, feature) => total + featureInfo(feature)[3].filter(action => enabledValue(feature, action)).length, 0); const percent = applicable ? Math.round(enabled * 100 / applicable) : 0; count.innerHTML = `<div class="flex items-center justify-between text-[11px] font-semibold text-[#64748b]"><span>Đang bật <strong class="text-[#172033]">${enabled}/${applicable} quyền</strong></span><span>${percent}%</span></div><div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[#e6edf6]"><div class="permission-dash h-full rounded-full" style="width:${percent}%"></div></div>`; }
+  function renderPermissionCell(feature, action) { if (!isApplicable(feature, action)) return '<td class="px-3 py-3.5 text-center text-[18px] text-[#cbd5e1]">—</td>'; const value = enabledValue(feature, action); const permission = feature.actions[action]; const custom = mode === 'user' && permission?.overrideEnabled != null; const disabled = !canEdit(); const marker = mode === 'user' ? `<span title="${custom ? 'Override theo user' : 'Kế thừa từ role'}" class="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full ${custom ? 'bg-[#f59e0b]' : 'bg-[#94a3b8]'}"></span>` : ''; const reset = mode === 'user' && custom ? `<button data-reset="${feature.key}:${action}" class="permission-focus ml-1 rounded p-1 text-[#64748b] hover:bg-[#fff7ed] hover:text-[#c2410c]" title="Đặt lại về role"><span class="material-symbols-outlined text-[15px]">restart_alt</span></button>` : ''; return `<td class="px-3 py-3.5 text-center"><div class="flex items-center justify-center"><span class="relative inline-flex"><input data-permission="${action}" class="permission-check permission-focus ${custom ? 'ring-2 ring-[#f59e0b]/30' : ''}" type="checkbox" ${value ? 'checked' : ''} ${disabled ? 'disabled' : ''} aria-label="${actionLabels[action]} ${feature.label}">${marker}</span>${reset}</div></td>`; }
+  function renderRows() { const groups = [...new Set(features.map(feature => featureInfo(feature)[0]))]; rows.innerHTML = ''; groups.forEach(group => { const groupFeatures = features.filter(feature => featureInfo(feature)[0] === group); const groupRow = document.createElement('tr'); groupRow.className = 'border-b border-[#e5eaf1] bg-[#f8fafc]'; groupRow.innerHTML = `<td class="sticky left-0 z-[1] bg-[#f8fafc] px-5 py-2.5"><button data-group-toggle="${esc(group)}" class="permission-focus flex items-center gap-2 text-left text-[13px] font-bold uppercase tracking-wider text-[#475569]"><span class="material-symbols-outlined text-[17px]">${collapsedGroups.has(group) ? 'chevron_right' : 'expand_more'}</span>${esc(group)}</button></td>${actions.map(action => `<td class="px-3 py-2 text-center"><input data-group-action="${esc(group)}:${action}" class="permission-check" type="checkbox" aria-label="Chọn nhóm ${esc(group)} ${action}"></td>`).join('')}`; rows.appendChild(groupRow); groupRow.querySelector('[data-group-toggle]').addEventListener('click', () => { if (collapsedGroups.has(group)) collapsedGroups.delete(group); else collapsedGroups.add(group); renderRows(); }); groupRow.querySelectorAll('[data-group-action]').forEach(input => input.addEventListener('change', () => toggleGroup(group, input.dataset.groupAction.split(':')[1], input.checked))); if (collapsedGroups.has(group)) return; groupFeatures.forEach(feature => { const info = featureInfo(feature); const tr = document.createElement('tr'); tr.className = 'permission-row border-b border-[#e5eaf1]'; const marker = mode === 'user' ? '<div class="mt-1 h-2 w-2 shrink-0 rounded-full bg-[#0b4fd4]" title="Trạng thái quyền theo user"></div>' : ''; tr.innerHTML = `<td class="sticky left-0 z-[1] bg-white px-5 py-3.5"><div class="flex items-start gap-2"><input data-row-all data-row-feature="${esc(feature.key)}" title="Chọn tất cả quyền của feature này" type="checkbox" class="permission-check mt-0.5 shrink-0" aria-label="Chọn tất cả quyền ${esc(feature.label || info[1])}">${marker}<div><strong class="block text-[13px]">${esc(feature.label || info[1])}</strong><span class="permission-description mt-1 block max-w-[360px] text-[13px] leading-4">${esc(info[2])}</span></div></div></td>${actions.map(action => renderPermissionCell(feature, action)).join('')}`; rows.appendChild(tr); tr.querySelectorAll('[data-permission]').forEach(control => control.addEventListener('change', () => onPermissionChange(feature, control.dataset.permission, control.checked))); tr.querySelector('[data-row-all]')?.addEventListener('change', event => { featureInfo(feature)[3].forEach(action => recordChange(feature.key, action, event.target.checked)); }); tr.querySelectorAll('[data-reset]').forEach(button => button.addEventListener('click', () => resetPermission(button.dataset.reset))); }); }); updateHeaderChecks(); }
+  function updateHeaderChecks() { actions.forEach(action => { const applicable = features.filter(feature => isApplicable(feature, action)); const checked = applicable.filter(feature => enabledValue(feature, action)).length; const input = head.querySelector(`[data-column-action="${action}"]`); if (input) { input.checked = checked > 0 && checked === applicable.length; input.indeterminate = checked > 0 && checked < applicable.length; input.disabled = !canEdit(); } }); rows.querySelectorAll('[data-group-action]').forEach(input => { const [group, action] = input.dataset.groupAction.split(':'); const applicable = features.filter(feature => featureInfo(feature)[0] === group && isApplicable(feature, action)); const checked = applicable.filter(feature => enabledValue(feature, action)).length; input.checked = checked > 0 && checked === applicable.length; input.indeterminate = checked > 0 && checked < applicable.length; input.disabled = !canEdit(); }); rows.querySelectorAll('[data-row-all]').forEach(input => { const feature = features.find(item => item.key === input.dataset.rowFeature); const applicable = feature ? featureInfo(feature)[3] : []; const checked = applicable.filter(action => enabledValue(feature, action)).length; input.checked = checked > 0 && checked === applicable.length; input.indeterminate = checked > 0 && checked < applicable.length; input.disabled = !canEdit(); }); }
+  function updateSticky() { const n = changes.size; sticky.classList.toggle('hidden', n === 0); saveButton.disabled = !canEdit() || n === 0; if (n) unsavedText.textContent = `Bạn có ${n} thay đổi chưa lưu`; }
+  function recordChange(feature, action, enabled) { const key = keyOf(feature, action); const baseline = original.get(key); const value = mode === 'user' && enabled === 'inherit' ? null : Boolean(enabled); if (value === baseline) changes.delete(key); else changes.set(key, { feature, action, enabled: value }); renderRows(); renderCount(); updateSticky(); }
+  function onPermissionChange(feature, action, checked) { if (['WRITE', 'EXECUTE', 'DELETE'].includes(action) && checked) recordChange(feature.key, 'READ', true); if (action === 'READ' && !checked) ['WRITE', 'EXECUTE', 'DELETE'].forEach(item => { if (isApplicable(feature, item)) recordChange(feature.key, item, false); }); recordChange(feature.key, action, checked); if (mode === 'role' && selectedRole === 'ADMIN' && feature.key === 'PERMISSION_MANAGEMENT' && ['READ', 'WRITE'].includes(action) && !checked) { window.confirm('Administrator không được tự bỏ quyền Permission Management. Thao tác này sẽ bị hủy.'); recordChange(feature.key, action, true); } }
+  function toggleColumn(action, checked) { features.filter(feature => isApplicable(feature, action)).forEach(feature => recordChange(feature.key, action, checked)); }
+  function toggleGroup(group, action, checked) { features.filter(feature => featureInfo(feature)[0] === group && isApplicable(feature, action)).forEach(feature => recordChange(feature.key, action, checked)); }
+  function resetPermission(key) { const [feature, action] = key.split(':'); recordChange(feature, action, 'inherit'); }
+  function renderPresets() { const presets = [['Không truy cập', false], ['Chỉ xem', 'viewer'], ['Biên tập', 'editor'], ['Toàn quyền', true]]; main.querySelector('#permissionPresets').innerHTML = presets.map(([label, value]) => `<button data-preset="${value}" ${canEdit() ? '' : 'disabled title="Role hệ thống đang khóa chỉnh sửa"'} class="permission-focus rounded-md border border-[#dbe2ec] bg-white px-2.5 py-1.5 text-[13px] font-semibold text-[#526277] hover:border-[#9bb7e8] hover:text-[#0b4fd4] disabled:cursor-not-allowed disabled:opacity-50">${label}</button>`).join(''); main.querySelectorAll('[data-preset]').forEach(button => button.addEventListener('click', () => { if (!canEdit()) return notice('Role này đang ở trạng thái chỉ xem.'); const preset = button.dataset.preset; features.forEach(feature => featureInfo(feature)[3].forEach(action => { const on = preset === 'viewer' ? action === 'READ' : preset === 'editor' ? ['READ', 'WRITE'].includes(action) : preset === 'true'; recordChange(feature.key, action, on); })); })); }
+  function renderUserMeta(data) { const selected = data?.user || users.find(item => Number(item.id) === Number(selectedUserId)); if (!selected) return; userMeta.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined rounded-full bg-[#eaf2ff] p-1 text-[18px] text-[#0b4fd4]">person</span><div><strong class="block">${esc(selected.username)}</strong><span class="text-[#64748b]">Role hiện tại: ${esc(roleLabel(String(selected.role).toUpperCase()))}</span></div></div><div class="mt-2 text-[#64748b]">${selected.is_active === false ? 'Tài khoản đã khóa' : 'Tài khoản đang hoạt động'}</div>`; }
+  function renderTableState(kind, message) { const icon = kind === 'loading' ? 'progress_activity' : kind === 'error' ? 'error_outline' : 'inbox'; const text = kind === 'loading' ? 'Đang tải dữ liệu quyền...' : message || (kind === 'error' ? 'Không thể tải dữ liệu quyền.' : 'Chưa có quyền nào được cấu hình.'); rows.innerHTML = `<tr><td colspan="5" class="px-5 py-16 text-center"><span class="material-symbols-outlined ${kind === 'loading' ? 'animate-spin' : ''} text-[32px] ${kind === 'error' ? 'text-[#dc2626]' : 'text-[#94a3b8]'}">${icon}</span><p class="mt-3 text-[13px] font-semibold ${kind === 'error' ? 'text-[#b91c1c]' : 'text-[#475569]'}">${esc(text)}</p></td></tr>`; }
+  function renderLoading() { title.textContent = 'Đang tải quyền'; subtitle.textContent = ''; renderTableState('loading'); count.innerHTML = '<div class="h-3 w-44 animate-pulse rounded bg-[#e5eaf1]"></div><div class="mt-2 h-1.5 w-full animate-pulse rounded bg-[#e5eaf1]"></div>'; }
+  function renderError(error) { renderTableState('error', error?.message || 'Không thể tải quyền. Hãy thử lại.'); }
+  async function loadRole() { busy = true; changes.clear(); roleLocked = false; renderLoading(); try { const data = await request(`/permissions?role=${encodeURIComponent(selectedRole)}`); features = data.features || []; roleLocked = Boolean(data.locked || data.readOnly || data.systemRoleLocked); original = new Map(features.flatMap(feature => actions.map(action => [keyOf(feature.key, action), Boolean(feature.actions[action])] ))); title.textContent = `Quyền mặc định: ${roleLabel(selectedRole)}`; subtitle.textContent = `${roleLabel(selectedRole)} · thay đổi sẽ áp dụng cho các thành viên của role này`; readOnly.classList.toggle('hidden', !roleLocked); readOnly.title = roleLocked ? 'Role hệ thống đang khóa chỉnh sửa' : ''; renderRoleList(); renderHeader(); if (features.length) { renderRows(); renderCount(); } else { renderTableState('empty'); count.innerHTML = ''; } renderPresets(); main.querySelector('#permissionCopyRole').disabled = !canEdit(); updateSticky(); } catch (error) { features = []; original.clear(); renderError(error); } finally { busy = false; } }
+  async function loadUser() { if (!selectedUserId) return; busy = true; changes.clear(); roleLocked = false; renderLoading(); try { const data = await request(`/permissions/users/${selectedUserId}`); features = data.features || []; original = new Map(features.flatMap(feature => actions.map(action => [keyOf(feature.key, action), feature.actions[action]?.overrideEnabled == null ? null : Boolean(feature.actions[action].overrideEnabled)]))); title.textContent = `Override quyền: ${data.user?.username || 'Tài khoản'}`; subtitle.textContent = `${data.customCount || 0} override đang bật · quyền hiệu lực ưu tiên custom trước role`; readOnly.classList.add('hidden'); renderUserMeta(data); renderRoleList(); renderHeader(); if (features.length) { renderRows(); renderCount(); } else { renderTableState('empty'); count.innerHTML = ''; } renderPresets(); main.querySelector('#permissionCopyRole').disabled = !canEdit(); updateSticky(); } catch (error) { features = []; original.clear(); renderError(error); } finally { busy = false; } }
+  function openReview() { const items = currentChanged(); if (!items.length) return; diff.innerHTML = items.map(item => { const from = original.get(keyOf(item.feature, item.action)); const to = mode === 'user' && item.enabled === null ? 'Kế thừa từ role' : item.enabled ? 'Bật' : 'Tắt'; return `<div class="flex items-center justify-between gap-3 border-b border-[#eef2f7] py-2.5 text-[12px]"><span><strong>${esc(features.find(feature => feature.key === item.feature)?.label || item.feature)}</strong><span class="ml-2 text-[#64748b]">${actionLabels[item.action]}</span></span><span class="shrink-0 rounded-full bg-[#f1f5f9] px-2 py-1 font-semibold text-[#475569]">${from == null && mode === 'user' ? 'Kế thừa' : from ? 'Bật' : 'Tắt'} → ${to}</span></div>`; }).join(''); reason.value = ''; reasonError.classList.add('hidden'); modal.classList.remove('hidden'); modal.classList.add('flex'); reason.focus(); }
+  async function saveChanges() { if (busy) return; const reasonValue = reason.value.trim(); if (!reasonValue) { reasonError.classList.remove('hidden'); return; } const permissions = currentChanged(); busy = true; try { if (mode === 'role') await request(`/permissions/${selectedRole}`, { method: 'PUT', json: { permissions, reason: reasonValue } }); else await request(`/permissions/users/${selectedUserId}`, { method: 'PUT', json: { permissions, reason: reasonValue } }); modal.classList.add('hidden'); modal.classList.remove('flex'); notice('Đã lưu permission và ghi audit log.'); await (mode === 'role' ? loadRole() : loadUser()); } finally { busy = false; } }
+  renderLoading(); setGreeting(); setTabs(); roleSearchInput.addEventListener('input', event => { roleSearch = event.target.value; renderRoleList(); }); userSearchInput.addEventListener('input', event => { userSearch = event.target.value; renderUserOptions(); }); roleTab.addEventListener('click', async () => { mode = 'role'; changes.clear(); setTabs(); await loadRole(); }); userTab.addEventListener('click', async () => { mode = 'user'; selectedUserId = selectedUserId || users.find(item => Number(item.id) !== Number(user.id))?.id; renderUserOptions(); setTabs(); await loadUser(); }); userSelect.addEventListener('change', async () => { selectedUserId = Number(userSelect.value); await loadUser(); }); main.querySelector('#permissionCancel').addEventListener('click', () => { changes.clear(); mode === 'role' ? loadRole() : loadUser(); }); main.querySelector('#permissionReview').addEventListener('click', openReview); saveButton.addEventListener('click', openReview); main.querySelector('#permissionModalClose').addEventListener('click', () => { modal.classList.add('hidden'); modal.classList.remove('flex'); }); main.querySelector('#permissionModalCancel').addEventListener('click', () => { modal.classList.add('hidden'); modal.classList.remove('flex'); }); main.querySelector('#permissionConfirm').addEventListener('click', saveChanges); modal.addEventListener('click', event => { if (event.target === modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); } }); main.querySelector('#permissionCreateRole').addEventListener('click', () => notice('Tạo role mới cần được cấu hình ở backend trước khi bật thao tác này.')); main.querySelector('#permissionCopyRole').addEventListener('click', () => notice('Chọn role nguồn để sao chép trong phiên bản tiếp theo.')); try { const [roleResponse, userResponse] = await Promise.all([request('/roles'), request('/users')]); roles = (roleResponse || []).map(role => String(role).toUpperCase()); users = userResponse || []; if (!roles.includes(selectedRole)) selectedRole = roles[0] || 'ADMIN'; users.forEach(item => userSelect.add(new Option(`${item.username} · ${roleLabel(String(item.role).toUpperCase())}`, item.id))); await loadRole(); } catch (error) { renderError(error); }
 };

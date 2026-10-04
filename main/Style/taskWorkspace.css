@@ -285,6 +285,82 @@ body.task-workspace-resizing iframe#pdfViewer {
     color-scheme: light;
 }
 
+/* Compact manual-labeling workspace: optimized for reviewing six fields at 1080p. */
+.manual-task-page { --manual-header-height: 58px; --manual-toolbar-height: 58px; --pdf-pane-width: 56%; }
+.manual-task-page .manual-navbar { height:var(--manual-header-height); }
+.manual-task-page > .manual-session-toolbar { width:calc(100% - var(--document-sidebar-width))!important; margin-left:var(--document-sidebar-width)!important; top:var(--manual-header-height)!important; height:var(--manual-toolbar-height)!important; min-height:var(--manual-toolbar-height); margin-bottom:0!important; padding:0 24px!important; background:#fff!important; }
+.manual-task-page > aside { top:var(--manual-header-height)!important; height:calc(100vh - var(--manual-header-height))!important; background:#f7fafc!important; }
+.manual-task-page > aside::after { content:"✓ Hoàn thành  ·  ◷ Đang chờ"; margin-top:auto; padding:12px 8px; color:#526477; font-size:12px; font-weight:600; white-space:nowrap; }
+.manual-task-page > main { height:calc(100vh - var(--manual-header-height) - var(--manual-toolbar-height))!important; }
+.manual-task-page .document-sidebar-handle { top:var(--manual-header-height); }
+.manual-task-page .manual-session-toolbar #sessionProgressTrack { width:220px!important; height:8px!important; background:#dce7ed!important; }
+.manual-task-page .manual-session-toolbar #sessionProgressBar { background:#078bb8!important; }
+.manual-task-page .manual-session-toolbar #sessionProgressText { color:#075985!important; font-size:13px!important; }
+.manual-task-page .manual-submit-button { min-height:36px; color:#fff!important; background:#078bb8!important; font-weight:700!important; }
+.manual-task-page .manual-submit-button:hover:not(:disabled) { background:#066b91!important; }
+.manual-task-page .manual-submit-button:disabled { color:#607281!important; background:#d7e1e7!important; cursor:not-allowed; opacity:1!important; }
+.manual-task-page .manual-submit-button.session-submit-blocked { color:#607281!important; background:#d7e1e7!important; box-shadow:none!important; cursor:not-allowed; }
+.manual-task-page .manual-run-ai-button { min-height:36px; border:1px solid #078bb8!important; color:#066b91!important; background:#fff!important; font-weight:700!important; }
+.manual-task-page .manual-run-ai-button:hover:not(:disabled) { background:#e5f5fa!important; }
+.manual-task-page .manual-run-ai-button:disabled { border-color:#b8c8d2!important; color:#72828f!important; background:#f2f5f7!important; cursor:not-allowed; opacity:1!important; }
+.manual-task-page .document-item { position:relative; align-items:center!important; min-height:40px; padding:7px 10px!important; border-radius:5px!important; font-size:13px!important; }
+.manual-task-page .document-status { display:grid; place-items:center; width:20px; height:20px; margin-left:auto; border-radius:50%; }
+.manual-task-page .document-status .material-symbols-outlined { font-size:15px; }
+.manual-task-page .document-item[data-status="PENDING"] .document-status { color:#475569; background:#e2e8f0; }
+.manual-task-page .document-item[data-status="IN_PROGRESS"] .document-status { color:#075ea8; background:#dbeefe; }
+.manual-task-page .document-item[data-status="SUBMITTED"] .document-status,.manual-task-page .document-item[data-status="APPROVED"] .document-status { color:#137b57; background:#dcf4e7; }
+.manual-task-page .document-item[data-status="REJECTED"] .document-status { color:#b64040; background:#ffe4e4; }
+.manual-task-page .task-workspace-splitter { width:12px; min-width:12px; background:#eef4f7; }
+.manual-task-page .task-workspace-splitter::after { width:4px; height:54px; background:#507080; box-shadow:0 -9px #507080,0 9px #507080; }
+.manual-task-page .workspace-pdf-viewport { flex-direction:column; padding:0!important; background:#e8eef2!important; }
+.manual-task-page iframe#pdfViewer { min-height:0; flex:1; border-radius:0!important; box-shadow:none!important; }
+.manual-task-page .manual-pdf-toolbar { display:none; }
+.manual-task-page .manual-pdf-toolbar__title { font-size:13px; font-weight:700; }
+.manual-task-page .manual-pdf-toolbar__actions { display:flex; gap:4px; margin-left:auto; }
+.manual-task-page .manual-pdf-toolbar button { display:grid; place-items:center; width:30px; height:30px; border:0; border-radius:5px; color:#fff; background:transparent; cursor:pointer; }
+.manual-task-page .manual-pdf-toolbar button:hover,.manual-task-page .manual-pdf-toolbar button:focus-visible { background:#40525e; outline:1px solid #95e0f5; }
+.manual-task-page .manual-pdf-toolbar .material-symbols-outlined { font-size:18px; }
+.manual-task-page .workspace-data-pane { position:relative; display:flex!important; min-height:0; flex-direction:column; overflow:hidden!important; background:#f7fafc!important; }
+.manual-task-page .workspace-data-pane > div:first-child { flex:0 0 58px; height:58px!important; padding-inline:16px!important; background:#fff!important; }
+.manual-task-page .workspace-data-pane > div:last-child { display:flex!important; min-width:0; min-height:0; width:100%; flex:1 1 auto; flex-direction:column; align-items:stretch; gap:10px; padding:16px!important; overflow-y:auto!important; overflow-x:hidden!important; }
+.manual-task-page .workspace-data-pane > div:last-child > * { width:100%!important; margin:0!important; }
+.manual-task-page .workspace-data-pane > div:last-child > div:first-child { display:flex; align-items:center; min-height:28px; padding-bottom:10px; border-bottom:1px solid #cbd7df; }
+.manual-task-page .workspace-data-pane > div:last-child > div:first-child h3 { display:inline; margin:0!important; font-size:12px!important; color:#526477!important; }
+.manual-task-page .workspace-data-pane > div:last-child > div:first-child p { display:inline; margin-left:8px; overflow:hidden; color:#172031; font-size:13px; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }
+.manual-task-page .workspace-data-pane h3 { font-size:14px!important; }
+.manual-task-page .annotation-field-card { display:flex; min-width:0; width:100%; height:108px; max-height:108px; flex-direction:column; gap:6px; padding:9px 10px; border:1px solid #d5e0e7; border-radius:7px; background:#fff; box-shadow:0 1px 2px rgba(15,44,63,.05); }
+.manual-task-page .annotation-field-card:has(.annotation-source-label:not([hidden])) { height:auto; max-height:none; }
+.manual-task-page .annotation-field-card__top,.manual-task-page .annotation-field-card__meta { display:flex; align-items:center; gap:6px; min-width:0; }
+.manual-task-page .annotation-field-name { display:flex; min-width:0; flex:1; flex-direction:column; line-height:1.15; }
+.manual-task-page .annotation-field-name strong { overflow:hidden; color:#253b4a; font-size:13px; text-overflow:ellipsis; white-space:nowrap; }
+.manual-task-page .annotation-field-name small { margin-top:2px; overflow:hidden; color:#64748b; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+.manual-task-page .annotation-term-input { min-width:0; flex:1; height:28px; min-height:28px; padding:4px 7px; border:0; background:transparent; font-size:13px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; color:#243746; }
+.manual-task-page .annotation-term-input:focus { border:1px solid #078bb8; outline:0; background:#fff; }
+.manual-task-page .annotation-definition-input { min-height:34px; height:34px; margin:0; padding:6px 8px; border-color:#c8d6df; font-size:13px; line-height:1.35; resize:none; }
+.manual-task-page .annotation-status { margin-left:auto; padding:3px 6px; border:1px solid #d5dee5; border-radius:999px; color:#536573; background:#f1f5f7; font-size:11px; font-weight:700; white-space:nowrap; }
+.manual-task-page .annotation-status[data-state="edited"] { border-color:#bbdcf1; color:#075ea8; background:#eaf6fc; }
+.manual-task-page .annotation-status[data-state="confirmed"] { border-color:#a9dfc4; color:#137b57; background:#e9f8ef; }
+.manual-task-page .annotation-status[data-state="readonly"] { border-color:#d5dee5; color:#536573; background:#f1f5f7; }
+.manual-task-page .annotation-icon-button { display:grid; place-items:center; width:27px; height:27px; padding:0; border:0; border-radius:5px; color:#526477; background:transparent; cursor:pointer; }
+.manual-task-page .annotation-icon-button:hover { background:#edf3f6; color:#075985; }
+.manual-task-page .annotation-icon-button--confirm { color:#137b57; }
+.manual-task-page .annotation-icon-button:disabled { color:#9aaab5; cursor:not-allowed; }
+.manual-task-page .annotation-page-chip { padding:3px 7px; border:0; border-radius:999px; color:#075985; background:#e4f5fb; font-size:11px; font-weight:700; cursor:pointer; }
+.manual-task-page .annotation-page-chip:hover:not(:disabled) { background:#cbeaf5; }
+.manual-task-page .annotation-page-chip:disabled { color:#718191; background:#edf1f3; cursor:not-allowed; }
+.manual-task-page .annotation-page-input { width:40px; padding:2px 0; border:0; border-bottom:1px solid #b9c8d2; color:#405364; background:transparent; font-size:12px; text-align:center; }
+.manual-task-page .annotation-confidence { margin-left:auto; padding:3px 6px; border-radius:999px; font-size:11px; font-weight:700; white-space:nowrap; }
+.manual-task-page .annotation-confidence[data-level="high"] { color:#137b57; background:#e9f8ef; }
+.manual-task-page .annotation-confidence[data-level="medium"] { color:#8a5a00; background:#fff5dc; }
+.manual-task-page .annotation-confidence[data-level="low"] { color:#aa3131; background:#ffe8e8; }
+.manual-task-page .annotation-confidence[data-level="unknown"] { color:#536573; background:#f1f5f7; }
+.manual-task-page .annotation-warning { display:grid; place-items:center; color:#a7650b; }
+.manual-task-page .annotation-warning .material-symbols-outlined { font-size:17px; }
+.manual-task-page .annotation-source-toggle { padding:0; border:0; color:#536f82; background:transparent; font-size:12px; text-decoration:underline; cursor:pointer; }
+.manual-task-page .annotation-source-toggle:disabled { color:#98a6b1; cursor:not-allowed; text-decoration:none; }
+.manual-task-page .annotation-source-label { margin:0; padding:7px 8px; border-left:2px solid #078bb8; color:#465967; background:#f1f9fc; font-size:12px; line-height:1.4; white-space:pre-wrap; }
+.manual-task-page .workspace-data-pane::after { content:""; position:absolute; right:0; bottom:0; left:0; height:24px; pointer-events:none; background:linear-gradient(transparent,#f7fafc); }
+
 @media (max-width: 760px) {
     .ai-task-page main,
     .manual-task-page main {
@@ -296,3 +372,27 @@ body.task-workspace-resizing iframe#pdfViewer {
         --document-sidebar-width: 0px;
     }
 }
+.manual-task-page .workspace-data-pane > div:last-child{padding-bottom:0!important}
+.manual-task-page .annotation-panel-save{position:static;z-index:auto;display:flex;flex:0 0 auto;justify-content:flex-end;margin:16px 0 0;padding:12px 16px;border-top:1px solid #d8e1e8;background:#fff!important}
+.manual-task-page .annotation-save-button{min-width:84px;height:38px;padding:0 18px;border:0;border-radius:7px;color:#fff;background:#078bb8;font:700 13px Inter,Arial,sans-serif;cursor:pointer}
+.manual-task-page .annotation-save-button:disabled{opacity:.6;color:#fff;background:#078bb8;cursor:not-allowed}
+.annotation-field-card{position:relative}
+.annotation-field-card [data-state="edited"]{color:#9a6200;background:#fff4d6}
+
+/* Restored legacy annotation field layout. */
+.manual-task-page .annotation-field-card--legacy{height:auto;max-height:none;min-height:0;gap:7px;padding:14px 14px 12px;border-radius:8px;background:#fff}
+.manual-task-page .annotation-field-card--legacy .annotation-field-card__top{display:flex;flex-wrap:wrap;gap:5px;align-items:stretch}
+.manual-task-page .annotation-field-card--legacy .annotation-field-card__top::before{content:'Term';display:block;flex:0 0 100%;color:#53616d;font-size:12px;line-height:1}
+.manual-task-page .annotation-field-card--legacy .annotation-field-name,.manual-task-page .annotation-field-card--legacy .annotation-status,.manual-task-page .annotation-field-card--legacy .annotation-icon-button{display:none}
+.manual-task-page .annotation-field-card--legacy .annotation-term-input{display:block!important;visibility:visible;width:100%;height:48px;flex:1 1 100%;padding:8px 12px;border:1px solid #7b8791;background:#f5f7f9;color:#52606b;font-family:Inter,Arial,sans-serif;font-size:18px;font-weight:700;line-height:1.2}
+.manual-task-page .annotation-field-card--legacy .annotation-legacy-label{display:block;color:#33414c;font-size:12px;line-height:1}
+.manual-task-page .annotation-field-card--legacy .annotation-definition-input{height:132px;min-height:132px;padding:12px;border:1px solid #cbd7e0;background:#f2f6fa;font-size:17px;line-height:1.45;resize:vertical}
+.manual-task-page .annotation-field-card--legacy .annotation-field-card__meta{display:flex;align-items:center;gap:10px;padding:8px 0 0;border-top:1px solid #d9e1e7}
+.manual-task-page .annotation-field-card--legacy .annotation-field-card__meta::before{content:'Source Page';color:#26343d;font-size:16px;font-weight:500}
+.manual-task-page .annotation-field-card--legacy .annotation-field-card__meta::after{content:'Chỉ đọc';margin-left:8px;color:#56806b;font-size:13px;font-weight:600}
+.manual-task-page .annotation-field-card--legacy .annotation-page-chip,.manual-task-page .annotation-field-card--legacy .annotation-confidence,.manual-task-page .annotation-field-card--legacy .annotation-warning,.manual-task-page .annotation-field-card--legacy .annotation-source-toggle{display:none}
+.manual-task-page .annotation-field-card--legacy .annotation-page-input{display:block!important;visibility:visible;width:126px;height:38px;margin-left:auto;padding:7px 12px;border:1px solid #cbd7e0;border-radius:8px;background:#fff;font-size:16px;text-align:left}
+.manual-task-page .annotation-field-card--legacy .annotation-source-label{display:flex;flex-direction:column;gap:6px;margin:0;padding:12px 14px;border-left:3px solid #55b8c8;background:#eff9fb;color:#364752;font-size:14px;line-height:1.35;white-space:normal}
+.manual-task-page .annotation-field-card--legacy .annotation-source-label strong{font-size:12px;letter-spacing:.02em}
+.manual-task-page .annotation-field-card--legacy .annotation-source-label span{font-size:14px}
+

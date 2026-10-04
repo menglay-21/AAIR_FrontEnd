@@ -3,27 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AI Result Analysis</title>
+    <title>AAIR Lab - Analyst</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0">
     <link href="../../../Style/basic.css" rel="stylesheet">
+    <link href="../../../Style/shared.css" rel="stylesheet">
     <link href="../../../Style/taskWorkspace.css" rel="stylesheet">
     <link href="../../../Style/sessionCompletion.css" rel="stylesheet">
     <link href="../../../Style/resultAnalysis.css" rel="stylesheet">
+    <link href="../../../Style/navbar.css" rel="stylesheet">
 </head>
-<body class="result-analysis-page">
-<header class="ra-topbar">
-    <a class="ra-brand" href="Dashboard.html"><img src="/resource/icon/logo_remove_BG.png" alt=""><strong>AAIR Lab</strong></a>
-    <nav><a href="Dashboard.html"><span class="material-symbols-outlined">grid_view</span>Dashboard</a><a href="ViewAll.html"><span class="material-symbols-outlined">list_alt</span>View ALL</a><a class="active" href="Task.html"><span class="material-symbols-outlined">analytics</span>analysis</a></nav>
-    <div class="ra-account"><span id="raAvatar">AN</span><div><b id="raUsername">analyst</b><small>RESULT ANALYST</small></div><button id="raLogout" aria-label="Đăng xuất" type="button"><span class="material-symbols-outlined">logout</span>Đăng xuất</button></div>
-</header>
-<header class="ra-sessionbar"><div><small>SESSION</small><b id="raSession">—</b></div><div><small>TYPE</small><b id="raType">AI</b></div><label>Task<select id="raTaskSelect"></select></label><button id="raAnalyze" class="ra-button" type="button"><span class="material-symbols-outlined">compare</span>Analyze</button><button id="raCompleteAnalysis" class="ra-button" type="button"><span class="material-symbols-outlined">task_alt</span>Complete Analysis</button></header>
+<body class="result-analysis-page aa-shared-page">
+<div data-aair-navbar-mount></div>
+<header class="ra-sessionbar"><div class="ra-session-meta"><small>PHIÊN</small><b id="raSession">—</b></div><div class="ra-session-meta"><small>LOẠI</small><b id="raType">AI</b></div><label>Task<select id="raTaskSelect"></select></label><button id="raAnalyze" class="ra-button" type="button"><span class="material-symbols-outlined">compare</span>Phân tích</button><button id="raCompleteAnalysis" class="ra-button" type="button" title="Cần chạy Phân tích và xử lý hết các khác biệt trước khi hoàn tất"><span class="material-symbols-outlined">task_alt</span>Hoàn tất phân tích</button></header>
 <main class="ra-layout">
-    <aside id="raDocuments" class="ra-documents"><div class="ra-documents__header"><span class="material-symbols-outlined">folder_open</span><strong>Documents</strong><button id="raToggleDocuments" type="button" title="Thu gọn thanh tài liệu"><span class="material-symbols-outlined">chevron_left</span></button></div><div id="raDocumentList" class="ra-document-list"></div></aside>
+    <aside id="raDocuments" class="ra-documents"><div class="ra-documents__header"><span class="material-symbols-outlined">folder_open</span><strong>Tài liệu</strong><button id="raToggleDocuments" type="button" title="Thu gọn thanh tài liệu"><span class="material-symbols-outlined">chevron_left</span></button></div><div id="raDocumentList" class="ra-document-list"></div></aside>
     <section class="ra-pdf-panel"><div class="ra-panel-header"><strong><span class="material-symbols-outlined">picture_as_pdf</span><span id="raDocumentTitle">Chưa chọn tài liệu</span></strong><span id="raPageLabel">Trang 1</span></div><iframe id="raPdf" title="Tài liệu PDF"></iframe><div id="raPdfEmpty" class="ra-empty"><span class="material-symbols-outlined">picture_as_pdf</span><b>Chọn task để xem PDF</b><span>Nhấn vào trang nguồn trong kết quả AI để chuyển tới đúng trang.</span></div></section>
-    <section class="ra-ai-column"><div class="ra-panel-header"><strong><span class="material-symbols-outlined">auto_awesome</span>AI Extraction</strong><label>Model A<select id="raModelA"></select></label></div><div id="raResultsA" class="ra-results"></div></section>
-    <section class="ra-ai-column"><div class="ra-panel-header"><strong><span class="material-symbols-outlined">auto_awesome</span>AI Extraction</strong><label>Model B<select id="raModelB"></select></label></div><div id="raResultsB" class="ra-results"></div></section>
+    <section class="ra-ai-column"><div class="ra-panel-header"><strong><span class="ra-model-dot ra-model-dot--a"></span>Model A <small id="raModelAMeta"></small></strong><label><select id="raModelA"></select></label></div><div id="raResultsA" class="ra-results"></div></section>
+    <section class="ra-ai-column"><div class="ra-panel-header"><strong><span class="ra-model-dot ra-model-dot--b"></span>Model B <small id="raModelBMeta"></small></strong><label><select id="raModelB"></select></label></div><div id="raResultsB" class="ra-results"></div></section>
 </main>
 <footer class="ra-footer"><span id="raMessage"></span><b id="raDifferenceCount">0</b> khác biệt sau Analyze</footer>
 <aside id="raNote" class="ra-note" hidden><div class="ra-note__header"><strong><span class="material-symbols-outlined">sticky_note_2</span>NOTE · Phân tích lỗi và prompt</strong><button id="raCloseNote" type="button"><span class="material-symbols-outlined">close</span></button></div><div id="raNoteCompare" class="ra-note__compare"></div><p>Chọn lỗi, sửa prompt và chạy lại AI để xác định vì sao kết quả mới đúng.</p><label>Prompt sửa lỗi<textarea id="raCorrectionPrompt"></textarea></label><button id="raRunCorrection" class="ra-button" type="button"><span class="material-symbols-outlined">refresh</span>Yêu cầu AI chỉnh sửa</button><div id="raCorrectionResult" class="ra-note-result"></div><hr><label>Prompt GỐC đề xuất<textarea id="raOriginalPrompt"></textarea></label><button id="raImprovePrompt" class="ra-secondary-button" type="button"><span class="material-symbols-outlined">edit_note</span>Cải thiện prompt gốc</button></aside>
-<script src="../../../JavaScript/api.js"></script><script src="../../../JavaScript/guidelineModal.js"></script><script src="../../../JavaScript/sessionCompletion.js"></script><script src="../../../JavaScript/workspace.js"></script>
+<script src="../../../JavaScript/api.js"></script><script src="../../../JavaScript/guidelineModal.js"></script><script src="../../../JavaScript/sessionCompletion.js"></script><script src="../../../JavaScript/navbar.js"></script><script src="../../../JavaScript/workspace.js"></script>
 </body></html>

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Working Session</title>
+    <title>AAIR Lab - Session</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -24,6 +24,7 @@
     <script src="../../../JavaScript/tailwind.js"></script>
 
     <link href="../../../Style/basic.css" rel="stylesheet" />
+    <link href="../../../Style/manualNavbar.css" rel="stylesheet" />
     <link href="../../../Style/taskWorkspace.css" rel="stylesheet" />
     <link href="../../../Style/sessionCompletion.css" rel="stylesheet" />
 
@@ -31,89 +32,16 @@
 
 <body class="manual-task-page bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
 
-    <!-- Fixed Header -->
-    <header
-        class="fixed top-0 left-0 right-0 h-[50px] bg-normal border-b border-outline-variant flex items-center px-2 z-50">
-
-        <!-- AAIR Logo -->
-        <div class="flex items-center gap-2 mr-6">
-            <img src="/resource/icon/logo_remove_BG.png" alt="AAIR Lab Logo" class="h-8 w-auto">
-
-            <h1 class="font-headline-sm text-[14px] font-bold text-primary">
-                AAIR Lab
-            </h1>
-        </div>
-
-        <div class="h-12 w-[1px] bg-outline-variant ms-2"></div>
-
-        <!-- Navigation -->
-        <nav class="flex items-center h-full">
-
-            <a class="flex items-center gap-2 px-4 h-full
-                   text-on-surface-variant
-                   hover:text-text-hover
-                   hover:bg-button-hover
-                   transition-colors duration-200" href="../../User/ManualLabeling/Dashboard.html">
-                <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
-                <span class="font-body-md text-[12px]">Dashboard</span>
-            </a>
-
-            <div class="h-12 w-[1px] bg-outline-variant"></div>
-
-            <a class="flex items-center gap-2 px-4 h-full
-                   text-on-surface-variant
-                   hover:text-text-hover
-                   hover:bg-button-hover
-                   transition-colors duration-200" href="../../User/ManualLabeling/ViewAll.html">
-                <span class="material-symbols-outlined">list_alt </span>
-                <span class="font-body-md text-[12px]">View ALL</span>
-            </a>
-
-            <div class="h-12 w-[1px] bg-outline-variant"></div>
-
-            <a class="flex items-center gap-2 px-4 h-full
-                   text-text-active
-                   bg-button-active
-                   transition-colors duration-200" href="../../User/ManualLabeling/Task.html">
-                <span class="material-symbols-outlined">edit_note</span>
-                <span class="font-body-md text-[12px]">Session</span>
-            </a>
-
-            <div class="h-12 w-[1px] bg-outline-variant"></div>
-
-        </nav>
-
-        <!-- User Profile -->
-        <div class="ml-auto flex items-center gap-3">
-
-            <div class="w-7 h-7 rounded-full
-                   bg-primary-container/10
-                   flex items-center justify-center
-                   text-primary font-bold">
-                B
-            </div>
-
-            <div class="hidden md:block">
-                <p class="text-[12px] font-bold text-on-surface">
-                    NV. B
-                </p>
-                <p class="text-[8px] text-on-surface-variant uppercase tracking-wider">
-                    Manual labeling
-                </p>
-            </div>
-
-        </div>
-
-    </header>
+    <div data-manual-navbar-mount></div>
 
     <!-- TopNavBar -->
-    <header class="ml-[157px] w-[calc(100%-157px)] h-12
+    <header class="manual-session-toolbar ml-[157px] w-[calc(100%-157px)] h-12
            flex items-center px-lg
            bg-text-active border-b border-outline-variant
            shadow-sm sticky top-[50px] z-30 mb-12">
 
         <div class="flex items-center gap-3"> <!-- Title -->
-            <h2 class="text-lg font-bold text-on-surface whitespace-nowrap"> Economic Report Q2 </h2> <!-- Separator -->
+            <h2 id="sessionTitle" class="text-lg font-bold text-on-surface whitespace-nowrap"> Economic Report Q2 </h2> <!-- Separator -->
             <!-- <span class="text-on-surface-variant"> : </span>  -->
             <!-- Progress Bar -->
             <div id="sessionProgressTrack" class="w-48 bg-surface-container-highest h-2 rounded-full overflow-hidden"
@@ -121,7 +49,7 @@
                 <div id="sessionProgressBar" class="h-full aair-gradient rounded-full transition-all duration-500 ease-out" style="width:0%"> </div>
             </div>
             <!-- Percentage -->
-            <span id="sessionProgressText" class="text-label-sm font-bold text-primary whitespace-nowrap">0/0 tài liệu</span>
+            <span id="sessionProgressText" class="text-label-sm font-bold text-primary whitespace-nowrap">0/0 tài liệu · 0%</span>
         </div>
 
 
@@ -133,19 +61,8 @@
                 <option value="Gemini">Gemini</option>
             </select>
 
-            <button type="button" class="px-4 py-2
-                       rounded-lg
-                       text-[12px]
-                       bg-button-active
-                       text-text-active
-                       hover:opacity-85
-                       transition-opacity
-                       flex items-center gap-2 shadow-sm">
-                Submit Task
-            </button>
-            <button type="button" class="px-4 py-2 rounded-lg text-[12px] bg-button-active text-text-active hover:opacity-85 transition-opacity flex items-center gap-2 shadow-sm">
-                Run AI
-            </button>
+            <button type="button" class="manual-submit-button px-4 py-2 rounded-lg text-[12px] shadow-sm" title="Hãy xác nhận tất cả field trước khi nộp bài">Nộp bài</button>
+            <button type="button" class="manual-run-ai-button px-4 py-2 rounded-lg text-[12px] shadow-sm">Chạy AI</button>
 
 
         </div>
@@ -196,6 +113,15 @@
 
             <!-- PDF Viewer -->
             <div class="flex-1 p-4 bg-surface-container">
+                <div class="manual-pdf-toolbar" role="toolbar" aria-label="Điều khiển PDF">
+                    <span class="manual-pdf-toolbar__title">Tài liệu PDF</span>
+                    <div class="manual-pdf-toolbar__actions">
+                        <button type="button" data-pdf-action="fit-width" title="Vừa chiều rộng"><span class="material-symbols-outlined">width_normal</span></button>
+                        <button type="button" data-pdf-action="fit-page" title="Vừa toàn trang"><span class="material-symbols-outlined">fit_screen</span></button>
+                        <button type="button" data-pdf-action="rotate" title="Xoay trang"><span class="material-symbols-outlined">rotate_right</span></button>
+                        <button type="button" data-pdf-action="search" title="Tìm trong tài liệu"><span class="material-symbols-outlined">search</span></button>
+                    </div>
+                </div>
 
                 <iframe id="pdfViewer" src="" class=" w-full h-full
                    border-0
@@ -226,7 +152,7 @@
                     </span>
 
                     <h2 class="text-sm font-semibold text-on-surface">
-                        Document Details
+                        Chi tiết tài liệu
                     </h2>
 
                 </div>
@@ -245,7 +171,7 @@
                 <div>
 
                     <h3 class="text-sm font-semibold text-on-surface mb-3">
-                        Document Information
+                            Thông tin tài liệu
                     </h3>
 
                     <div class="space-y-3">
@@ -401,126 +327,19 @@
                 <!-- EXTRACTED INFORMATION -->
                 <!-- ============================= -->
 
-                <div>
+                <div data-annotation-panel>
 
                     <div class="flex items-center justify-between mb-3">
 
                         <h3 class="text-sm font-semibold text-on-surface">
-                            Extracted Information
+                            Thông tin trích xuất
                         </h3>
 
                     </div>
 
 
-                    <!-- Extracted Item -->
-                    <div class="p-3 mb-3
-                        border border-outline-variant
-                        rounded-lg
-                        bg-surface">
-
-                        <label class="block text-xs font-medium
-                              text-on-surface-variant mb-1">
-
-                            Term
-
-                        </label>
-
-                        <div class="text-sm font-semibold text-on-surface mb-2">
-
-                            Revenue
-
-                        </div>
-
-
-                        <label class="block text-xs font-medium
-                              text-on-surface-variant mb-1">
-
-                            Definition
-
-                        </label>
-
-                        <p class="text-sm text-on-surface">
-
-                            Total income generated by the company during
-                            the reporting period.
-
-                        </p>
-
-                    </div>
-
-
-                    <!-- Extracted Item -->
-                    <div class="p-3 mb-3
-                        border border-outline-variant
-                        rounded-lg
-                        bg-surface">
-
-                        <label class="block text-xs font-medium
-                              text-on-surface-variant mb-1">
-
-                            Term
-
-                        </label>
-
-                        <div class="text-sm font-semibold text-on-surface mb-2">
-
-                            Net Profit
-
-                        </div>
-
-
-                        <label class="block text-xs font-medium
-                              text-on-surface-variant mb-1">
-
-                            Definition
-
-                        </label>
-
-                        <p class="text-sm text-on-surface">
-
-                            Profit remaining after all expenses and taxes
-                            have been deducted.
-
-                        </p>
-
-                    </div>
-
-
                 </div>
 
-
-                <!-- ============================= -->
-                <!-- ACTIONS -->
-                <!-- ============================= -->
-
-                <div class="pt-2 flex gap-2">
-
-                    <button class="flex-1 h-10
-                       rounded-md
-                       text-[12px]
-                       bg-button-active
-                       text-text-active
-                       hover:opacity-85
-                       transition-opacity
-                       transition">
-
-                        Validate
-
-                    </button>
-
-                    <button class="h-10 px-4
-                       rounded-md
-                       border border-outline-variant
-                       text-sm font-medium
-                       text-on-surface
-                       hover:bg-surface-container
-                       transition">
-
-                        Edit
-
-                    </button>
-
-                </div>
 
             </div>
         </div>
@@ -534,6 +353,7 @@
     <script src="../../../JavaScript/api.js"></script>
     <script src="../../../JavaScript/timeTracking.js"></script>
     <script src="../../../JavaScript/sessionCompletion.js"></script>
+    <script src="../../../JavaScript/manualNavbar.js"></script>
     <script src="../../../JavaScript/workspace.js"></script>
 </body>
 

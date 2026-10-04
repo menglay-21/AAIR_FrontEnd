@@ -1,0 +1,43 @@
+:root {
+  --aair-nav-height: 58px;
+  --aair-nav-padding-x: 18px;
+  --aair-nav-gap: 8px;
+  --aair-nav-font-size: 13px;
+  --aair-nav-role-font-size: 12px;
+  --aair-nav-avatar-size: 30px;
+  --aair-nav-primary: #079bc5;
+  --aair-nav-active: #087da7;
+  --aair-nav-border: #63c3dd;
+}
+
+.aair-navbar { display:flex; align-items:center; min-height:var(--aair-nav-height); height:var(--aair-nav-height); background:var(--aair-nav-primary); color:#fff; font-family:Inter,Arial,sans-serif; position:relative; z-index:50; }
+.aair-navbar *, .aair-navbar *::before, .aair-navbar *::after { box-sizing:border-box; }
+.aair-navbar__brand { display:flex; align-items:center; align-self:stretch; gap:var(--aair-nav-gap); padding:0 var(--aair-nav-padding-x); border-right:1px solid var(--aair-nav-border); color:#fff; text-decoration:none; font-size:15px; font-weight:700; white-space:nowrap; }
+.aair-navbar__brand:hover, .aair-navbar__brand:focus-visible { color:#fff; background:rgba(0,0,0,.08); text-decoration:none; }
+.aair-navbar__brand img { width:28px; height:28px; object-fit:contain; filter:brightness(0) invert(1); }
+.aair-navbar__nav { display:flex; align-self:stretch; }
+.aair-navbar__nav a { display:flex; align-items:center; gap:var(--aair-nav-gap); padding:0 var(--aair-nav-padding-x); border-right:1px solid var(--aair-nav-border); color:#eaf9fd; text-decoration:none; font-size:var(--aair-nav-font-size); font-weight:600; white-space:nowrap; transition:background-color .15s,color .15s; }
+.aair-navbar__nav a:hover, .aair-navbar__nav a:focus-visible { color:#fff; background:rgba(0,73,105,.28); text-decoration:none; }
+.aair-navbar__nav a.is-active { color:#fff; background:var(--aair-nav-active); box-shadow:inset 0 -3px 0 #fff; }
+.aair-navbar__account { display:flex; align-items:center; gap:var(--aair-nav-gap); margin-left:auto; padding:0 12px; min-width:0; }
+.aair-navbar__avatar { display:grid; place-items:center; flex:0 0 var(--aair-nav-avatar-size); width:var(--aair-nav-avatar-size); height:var(--aair-nav-avatar-size); border-radius:50%; color:#fff; background:#167ea5; font-size:12px; font-weight:800; }
+.aair-navbar__identity { display:flex; min-width:0; flex-direction:column; line-height:1.15; }
+.aair-navbar__identity b { overflow:hidden; text-overflow:ellipsis; max-width:130px; color:#fff; font-size:13px; }
+.aair-navbar__identity small { margin-top:2px; color:#dff5fc; font-size:var(--aair-nav-role-font-size); font-weight:600; letter-spacing:.02em; }
+.aair-navbar__logout { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:34px; margin-left:4px; padding:0 11px; border:1px solid rgba(255,255,255,.75); border-radius:7px; color:#fff; background:rgba(0,90,128,.18); font:600 12px Inter,Arial,sans-serif; cursor:pointer; }
+.aair-navbar__logout:hover, .aair-navbar__logout:focus-visible { background:rgba(255,255,255,.2); outline:2px solid rgba(255,255,255,.7); outline-offset:1px; }
+.aair-navbar__menu { display:none; width:38px; height:38px; margin-left:8px; border:1px solid rgba(255,255,255,.55); border-radius:6px; color:#fff; background:transparent; cursor:pointer; }
+.aair-dashboard-button { border:1px solid #087da7; color:#fff; background:#087da7; font-weight:700; cursor:pointer; }
+.aair-dashboard-button:hover:not(:disabled) { background:#066b91; }
+.aair-dashboard-button:disabled { border-color:#b7c7d2; color:#687a89; background:#dce6eb; cursor:not-allowed; opacity:1; }
+
+@media (max-width:900px) {
+  .aair-navbar { min-width:0; }
+  .aair-navbar__menu { display:grid; place-items:center; }
+  .aair-navbar__nav { display:none; position:absolute; top:var(--aair-nav-height); left:0; right:0; flex-direction:column; height:auto; padding:6px 0; border-bottom:1px solid var(--aair-nav-border); background:var(--aair-nav-primary); box-shadow:0 6px 14px rgba(8,59,82,.2); }
+  .aair-navbar.is-menu-open .aair-navbar__nav { display:flex; }
+  .aair-navbar__nav a { min-height:44px; border-right:0; padding:0 20px; }
+  .aair-navbar__identity { display:none; }
+  .aair-navbar__logout span:last-child { display:none; }
+  .aair-navbar__logout { width:34px; padding:0; }
+}
