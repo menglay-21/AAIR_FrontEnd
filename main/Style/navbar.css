@@ -38,6 +38,5 @@
   .aair-navbar.is-menu-open .aair-navbar__nav { display:flex; }
   .aair-navbar__nav a { min-height:44px; border-right:0; padding:0 20px; }
   .aair-navbar__identity { display:none; }
-  .aair-navbar__logout span:last-child { display:none; }
-  .aair-navbar__logout { width:34px; padding:0; }
+  .aair-navbar__logout { min-width:64px; padding:0 8px; }
 }

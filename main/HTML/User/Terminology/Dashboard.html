@@ -24,94 +24,19 @@
     <script src="../../../JavaScript/tailwind.js"></script>
 
     <link href="../../../Style/basic.css" rel="stylesheet" />
+    <link href="../../../Style/navbar.css" rel="stylesheet" />
 
 </head>
 
 <body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
 
-    <!-- Fixed Header -->
-    <header
-        class="fixed top-0 left-0 right-0 h-[50px] bg-normal border-b border-outline-variant flex items-center px-2 z-50">
-
-        <!-- AAIR Logo -->
-        <div class="flex items-center gap-2 mr-6">
-            <img src="/resource/icon/logo_remove_BG.png" alt="AAIR Lab Logo" class="h-8 w-auto">
-
-            <h1 class="font-headline-sm text-[14px] font-bold text-primary">
-                AAIR Lab
-            </h1>
-        </div>
-
-        <div class="h-12 w-[1px] bg-outline-variant ms-2"></div>
-
-        <!-- Navigation -->
-        <nav class="flex items-center h-full">
-
-            <!-- Dashboard -->
-            <a href="../../User/Terminology/Dashboard.html" class="flex items-center gap-2 px-4 h-full
-                   text-text-active
-                   bg-button-active
-                   transition-colors duration-200">
-
-                <span class="material-symbols-outlined">
-                    dashboard
-                </span>
-
-                <span class="font-body-md text-[12px]">
-                    Dashboard
-                </span>
-            </a>
-
-            <div class="h-12 w-[1px] bg-outline-variant"></div>
-
-            <!-- Terminology Base -->
-            <a href="../../User/Terminology/BaseManagement.html" class="flex items-center gap-2 px-4 h-full
-                   text-on-surface-variant
-                   hover:text-text-hover
-                   hover:bg-button-hover
-                   transition-colors duration-200">
-
-                <span class="material-symbols-outlined">
-                    dictionary
-                </span>
-
-                <span class="font-body-md  text-[12px]">
-                    Terminology Base
-                </span>
-            </a>
-
-            <div class="h-12 w-[1px] bg-outline-variant"></div>
-
-        </nav>
-
-        <!-- User Profile -->
-        <div class="ml-auto flex items-center gap-3">
-
-            <div class="w-7 h-7 rounded-full
-                   bg-primary-container/10
-                   flex items-center justify-center
-                   text-primary font-bold">
-                A
-            </div>
-
-            <div class="hidden md:block">
-                <p class="text-[12px] font-bold text-on-surface">
-                    NV. A
-                </p>
-                <p class="text-[8px] text-on-surface-variant uppercase tracking-wider">
-                    Terminology
-                </p>
-            </div>
-
-        </div>
-
-    </header>
+    <div data-aair-navbar-mount></div>
 
     <!-- TopNavBar -->
     <header class="w-full h-12
            flex items-center px-lg
            bg-text-active border-b border-outline-variant
-           shadow-sm sticky top-[50px] z-30 mb-6">
+           shadow-sm sticky top-[58px] z-30 mb-6">
 
         <div class="flex items-center">
             <h2 class="text-lg font-bold text-on-surface" data-greeting>Good Morning,</h2>
@@ -460,8 +385,18 @@
     <!-- javascript -->
     <script ></script>
 
+    <script>
+        window.AAIRNavbarConfig = {
+            brandHref: 'Dashboard.html',
+            tabs: [
+                { label: 'Dashboard', icon: 'dashboard', href: 'Dashboard.html' },
+                { label: 'Terminology Base', icon: 'dictionary', href: 'BaseManagement.html' }
+            ]
+        };
+    </script>
     <script src="../../../JavaScript/api.js"></script>
     <script src="../../../JavaScript/greeting.js"></script>
+    <script src="../../../JavaScript/navbar.js"></script>
     <script src="../../../JavaScript/workspace.js"></script>
 </body>
 

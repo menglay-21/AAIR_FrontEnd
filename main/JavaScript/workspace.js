@@ -950,8 +950,7 @@
             workspace:$('.ra-layout'),
             storagePrefix:'aair.resultAnalysis.documentSidebar',
             defaultWidth:156,
-            handleClass:'document-sidebar-handle--analysis',
-            toggleButton:$('#raToggleDocuments')
+            handleClass:'document-sidebar-handle--analysis'
         });
         const qs=new URLSearchParams(location.search);
         const requestedId=qs.get('id');
@@ -970,20 +969,20 @@
         const pdf=$('#raPdf');
         const pdfEmpty=$('#raPdfEmpty');
         const state={tasks,task:null,rows:[],models:[],modelA:'',modelB:'',analyzed:false,page:1,pdfUrl:null,noteRow:null,noteCompare:null,redoRunId:null,completionGuard:null};
-        const fieldLabels={company_name:'Tên công ty',ticker:'Mã chứng khoán',industry:'Ngành nghề',report_period:'Kỳ báo cáo',report_year:'Năm báo cáo',revenue:'Doanh thu'};
-        const value=row=>row?.indicator_value??row?.label_value??row?.value??'Chưa có giá trị';
-        const fieldLabel=row=>fieldLabels[key(row)]||row?.indicator_name||row?.label_name||'Chưa đặt tên';
+        const fieldLabels={company_name:'Company Name',ticker:'Ticker',industry:'Industry',report_period:'Report Period',report_year:'Report Year',revenue:'Revenue'};
+        const value=row=>row?.indicator_value??row?.label_value??row?.value??'No value';
+        const fieldLabel=row=>fieldLabels[key(row)]||row?.indicator_name||row?.label_name||'Unnamed field';
         const key=row=>String(row?.indicator_name??row?.label_name??row?.term??'').trim().toLowerCase();
         const modelKey=row=>row?.run_id?`run::${row.run_id}`:`saved::${row?.provider||'AI'}::${row?.model||row?.provider||'Model'}`;
         const pct=row=>{const n=Number(row?.confidence);return Number.isFinite(n)?`${Math.round(n<=1?n*100:n)}%`:'—';};
-        const name=task=>task?.document_title||task?.title||`Tài liệu #${task?.id||''}`;
+        const name=task=>task?.document_title||task?.title||`Document #${task?.id||''}`;
         const setMessage=message=>{const el=$('#raMessage');if(el)el.textContent=message||'';};
         const selectTask=(id)=>{
             const next=tasks.find(row=>String(row.id)===String(id))||tasks[0];
             if(!next)return;
             state.task=next;state.analyzed=false;state.page=1;
             taskSelect.value=String(next.id);
-            $('#raSession').textContent=next.session_name||'Kết quả AI';
+            $('#raSession').textContent=next.session_name||'AI Results';
             $('#raType').textContent=next.task_type||'AI';
             $('#raDocumentTitle').textContent=name(next);
             renderDocuments();
@@ -995,13 +994,12 @@
                 const button=document.createElement('button');
                 button.type='button';button.className=state.task?.id===row.id?'active':'';button.dataset.taskId=String(row.id);
                 button.title=name(row);
-                const icon=document.createElement('span');icon.className='material-symbols-outlined';icon.textContent='picture_as_pdf';
-                const label=document.createElement('span');label.innerHTML=`${name(row)}<small>${row.session_name||'Chưa xác định'} · Task #${row.id}</small>`;button.dataset.status=row.status==='APPROVED'||row.status==='SUBMITTED'?'done':'pending';
-                button.append(icon,label);button.onclick=()=>selectTask(row.id);documents.append(button);
+            const label=document.createElement('span');label.innerHTML=`${name(row)}<small>${row.session_name||'Unknown session'} · Task #${row.id}</small>`;button.dataset.status=row.status==='APPROVED'||row.status==='SUBMITTED'?'done':'pending';
+            button.append(label);button.onclick=()=>selectTask(row.id);documents.append(button);
             });
         };
         const renderModels=()=>{
-            const fill=select=>{select.replaceChildren(new Option('Chọn nguồn kết quả',''),...state.models.map(model=>new Option(`${model.provider} · ${model.model}${model.runId?` · ${String(model.runId).slice(0,8)}`:''}`,model.key)));select.disabled=state.models.length<1;};
+            const fill=select=>{select.replaceChildren(new Option('Select a result source',''),...state.models.map(model=>new Option(`${model.provider} · ${model.model}${model.runId?` · ${String(model.runId).slice(0,8)}`:''}`,model.key)));select.disabled=state.models.length<1;};
             fill(modelASelect);fill(modelBSelect);
             state.modelA=state.modelA||state.models[0]?.key||'';state.modelB=state.modelB||state.models[1]?.key||'';
             if(state.modelA===state.modelB&&state.models[1])state.modelB=state.models[1].key;
@@ -1011,20 +1009,20 @@
         const rowFor=(rows,indicator)=>rows.find(row=>key(row)===indicator);
         const draw=(target,rows,other,side)=>{
             target.replaceChildren();
-            if(!rows.length){const empty=document.createElement('p');empty.className='ra-empty-results';empty.textContent='Chưa có kết quả cho model này.';target.append(empty);return;}
+            if(!rows.length){const empty=document.createElement('p');empty.className='ra-empty-results';empty.textContent='No results for this model.';target.append(empty);return;}
             rows.forEach(row=>{
                 const compare=rowFor(other,key(row));
                 const different=state.analyzed&&(!compare||String(value(row))!==String(value(compare)));
                 const card=document.createElement('article');card.className=`ra-result${different?' different':''}`;
                 const top=document.createElement('div');top.className='ra-result__top';
-                const title=document.createElement('div');const label=document.createElement('span');label.className='ra-label';label.textContent='Chỉ tiêu';
+                const title=document.createElement('div');const label=document.createElement('span');label.className='ra-label';label.textContent='Indicator';
                 const strong=document.createElement('strong');strong.textContent=fieldLabel(row);strong.title=row.indicator_name||row.label_name||'';title.append(label,strong);top.append(title);
-                if(different){const badge=document.createElement('span');badge.className='ra-difference';badge.textContent='Khác nhau';top.append(badge);}
-                const valueLabel=document.createElement('span');valueLabel.className='ra-label';valueLabel.textContent=`Giá trị ${side}`;
-                const parsed=splitLabelValue(value(row),row.source_label||row.source_text);const valueText=document.createElement('div');valueText.className='ra-value';const valueNode=document.createElement('div');valueNode.textContent=parsed.editableValue||'Chưa có giá trị';valueText.append(valueNode);if(parsed.sourceLabel){const sourceText=document.createElement('small');sourceText.className='ra-source-text';sourceText.textContent=`Nguồn: ${parsed.sourceLabel}`;valueText.append(sourceText);}
+                if(different){const badge=document.createElement('span');badge.className='ra-difference';badge.textContent='Different';top.append(badge);}
+                const valueLabel=document.createElement('span');valueLabel.className='ra-label';valueLabel.textContent=`Value ${side}`;
+                const parsed=splitLabelValue(value(row),row.source_label||row.source_text);const valueText=document.createElement('div');valueText.className='ra-value';const valueNode=document.createElement('div');valueNode.textContent=parsed.editableValue||'No value';valueText.append(valueNode);if(parsed.sourceLabel){const sourceText=document.createElement('small');sourceText.className='ra-source-text';sourceText.textContent=`Source: ${parsed.sourceLabel}`;valueText.append(sourceText);}
                 const meta=document.createElement('div');meta.className='ra-meta';
-                const confidence=document.createElement('span');confidence.textContent=`Độ tin cậy ${pct(row)}`;
-                const source=document.createElement('button');source.className='ra-source';source.type='button';source.textContent=`Trang ${row.source_page||'—'} · Đến trang`;
+                const confidence=document.createElement('span');confidence.textContent=`Confidence ${pct(row)}`;
+                const source=document.createElement('button');source.className='ra-source';source.type='button';source.textContent=`Page ${row.source_page||'—'} · Go to page`;
                 source.onclick=event=>{event.stopPropagation();openPage(row.source_page);};
                 meta.append(confidence,source);card.append(top,valueLabel,valueText,meta);
                 card.onclick=()=>openNote(row,compare);target.append(card);
@@ -1041,7 +1039,7 @@
         };
         const openPage=page=>{
             const next=Number(page);if(!Number.isInteger(next)||next<1)return;
-            state.page=next;$('#raPageLabel').textContent=`Trang ${next}`;
+            state.page=next;$('#raPageLabel').textContent=`Page ${next}`;
             if(state.pdfUrl)pdf.src=`${state.pdfUrl}#page=${next}`;
         };
         const loadPdf=async()=>{
@@ -1074,33 +1072,33 @@
         const openNote=(row,compare)=>{
             state.noteRow=row;state.noteCompare=compare;state.redoRunId=null;note.hidden=false;
             noteCompare.replaceChildren();
-            [[state.modelA,value(row)],[state.modelB,compare?value(compare):'Thiếu kết quả']].forEach(([model,result])=>{const box=document.createElement('div');const provider=document.createElement('span');provider.textContent=model||'Model';const content=document.createElement('b');content.textContent=String(result);box.append(provider,content);noteCompare.append(box);});
-            correctionPrompt.value=`Hãy kiểm tra chỉ tiêu ${row.indicator_name||row.label_name||''} ở trang ${row.source_page||''}. Đọc đúng nhãn nguồn, không suy diễn và trả về JSON có value, unit, source_page, source_label, confidence.`;
-            originalPrompt.value='Trích xuất các chỉ tiêu tài chính trong báo cáo, luôn kèm source_page, source_label và confidence.';
+            [[state.modelA,value(row)],[state.modelB,compare?value(compare):'Missing result']].forEach(([model,result])=>{const box=document.createElement('div');const provider=document.createElement('span');provider.textContent=model||'Model';const content=document.createElement('b');content.textContent=String(result);box.append(provider,content);noteCompare.append(box);});
+            correctionPrompt.value=`Check indicator ${row.indicator_name||row.label_name||''} on page ${row.source_page||''}. Read the source label accurately, do not infer values, and return JSON with value, unit, source_page, source_label, and confidence.`;
+            originalPrompt.value='Extract financial indicators from the report and always include value, unit, source_page, source_label, and confidence.';
             correctionResult.textContent='';
         };
         taskSelect.replaceChildren(...tasks.map(row=>new Option(`${name(row)} · Task #${row.id}`,String(row.id))));
         const initial=tasks.find(row=>String(row.id)===String(requestedId))||tasks[0];
-        if(!initial){setMessage('Chưa có task được phân công.');return;}
+        if(!initial){setMessage('No assigned task.');return;}
         taskSelect.onchange=()=>selectTask(taskSelect.value);
-        const syncModelOptions=()=>{[...modelBSelect.options].forEach(option=>{option.disabled=option.value===state.modelA;});[...modelASelect.options].forEach(option=>{option.disabled=option.value===state.modelB;});const analyze=$('#raAnalyze');const blocked=!state.modelA||!state.modelB||state.modelA===state.modelB;analyze.disabled=blocked;analyze.title=blocked?'Vui lòng chọn hai nguồn kết quả khác nhau.':'Phân tích khác biệt giữa hai nguồn kết quả';};
+        const syncModelOptions=()=>{[...modelBSelect.options].forEach(option=>{option.disabled=option.value===state.modelA;});[...modelASelect.options].forEach(option=>{option.disabled=option.value===state.modelB;});const analyze=$('#raAnalyze');const blocked=!state.modelA||!state.modelB||state.modelA===state.modelB;analyze.disabled=blocked;analyze.title=blocked?'Select two different result sources.':'Analyze differences between the two sources';};
         modelASelect.onchange=()=>{state.modelA=modelASelect.value;if(state.modelA===state.modelB)state.modelB=[...modelBSelect.options].find(option=>!option.disabled&&option.value!==state.modelA)?.value||'';state.analyzed=false;syncModelOptions();renderResults();};
-        modelBSelect.onchange=()=>{state.modelB=modelBSelect.value;if(state.modelA===state.modelB){setMessage('Hai model phải là hai nguồn kết quả khác nhau.');state.analyzed=false;}syncModelOptions();renderResults();};
-        $('#raAnalyze').onclick=()=>{state.analyzed=Boolean(state.modelA&&state.modelB&&state.modelA!==state.modelB);renderResults();setMessage(state.analyzed?'Đã phân tích sự khác biệt giữa hai model.':'Hãy chọn hai nguồn kết quả khác nhau.');};
-        const saveNote=document.createElement('button');saveNote.type='button';saveNote.className='ra-secondary-button';saveNote.innerHTML='<span class="material-symbols-outlined">save</span>Lưu NOTE';correctionResult.after(saveNote);
-        const confirmRedo=document.createElement('button');confirmRedo.type='button';confirmRedo.className='ra-secondary-button';confirmRedo.hidden=true;confirmRedo.innerHTML='<span class="material-symbols-outlined">verified</span>Xác nhận kết quả redo';saveNote.after(confirmRedo);
-        saveNote.onclick=async()=>{if(!state.task||!state.noteRow)return;const noteText=correctionPrompt.value.trim();if(!noteText){setMessage('Hãy nhập NOTE giải thích lỗi.');return;}await request(`/analysis/tasks/${state.task.id}/fields/${encodeURIComponent(key(state.noteRow))}`,{method:'PUT',json:{note:noteText,redoRunId:null,redoConfirmed:false}});await state.completionGuard?.refresh();setMessage('Đã lưu NOTE cho field.');};
-        confirmRedo.onclick=async()=>{if(!state.task||!state.noteRow||!state.redoRunId)return;await request(`/analysis/tasks/${state.task.id}/fields/${encodeURIComponent(key(state.noteRow))}`,{method:'PUT',json:{note:null,redoRunId:state.redoRunId,redoConfirmed:true}});confirmRedo.hidden=true;await state.completionGuard?.refresh();setMessage('Đã xác nhận kết quả redo.');};
+        modelBSelect.onchange=()=>{state.modelB=modelBSelect.value;if(state.modelA===state.modelB){setMessage('The two models must be different result sources.');state.analyzed=false;}syncModelOptions();renderResults();};
+        $('#raAnalyze').onclick=()=>{state.analyzed=Boolean(state.modelA&&state.modelB&&state.modelA!==state.modelB);renderResults();setMessage(state.analyzed?'Differences between the two models have been analyzed.':'Select two different result sources.');};
+        const saveNote=document.createElement('button');saveNote.type='button';saveNote.className='ra-secondary-button';saveNote.textContent='Save NOTE';correctionResult.after(saveNote);
+        const confirmRedo=document.createElement('button');confirmRedo.type='button';confirmRedo.className='ra-secondary-button';confirmRedo.hidden=true;confirmRedo.textContent='Confirm redo result';saveNote.after(confirmRedo);
+        saveNote.onclick=async()=>{if(!state.task||!state.noteRow)return;const noteText=correctionPrompt.value.trim();if(!noteText){setMessage('Enter a NOTE explaining the error.');return;}await request(`/analysis/tasks/${state.task.id}/fields/${encodeURIComponent(key(state.noteRow))}`,{method:'PUT',json:{note:noteText,redoRunId:null,redoConfirmed:false}});await state.completionGuard?.refresh();setMessage('NOTE saved for the field.');};
+        confirmRedo.onclick=async()=>{if(!state.task||!state.noteRow||!state.redoRunId)return;await request(`/analysis/tasks/${state.task.id}/fields/${encodeURIComponent(key(state.noteRow))}`,{method:'PUT',json:{note:null,redoRunId:state.redoRunId,redoConfirmed:true}});confirmRedo.hidden=true;await state.completionGuard?.refresh();setMessage('Redo result confirmed.');};
         $('#raCloseNote').onclick=()=>{note.hidden=true;};
         $('#raRunCorrection').onclick=async()=>{
             if(!state.task||!correctionPrompt.value.trim())return;
-            const button=$('#raRunCorrection');button.disabled=true;correctionResult.textContent='Đang chạy lại AI…';
-            try{const selected=state.models.find(model=>model.key===state.modelA);const provider=selected?.provider||'Gemini';const response=await request(`/tasks/${state.task.id}/run-ai`,{method:'POST',json:{provider,prompt:correctionPrompt.value}});state.redoRunId=response?.runId||null;confirmRedo.hidden=!state.redoRunId;correctionResult.textContent=`AI đã chạy lại ${response?.labels?.length||0} chỉ tiêu bằng ${response?.provider||provider}. Hãy kiểm tra rồi xác nhận kết quả redo.`;}catch(error){correctionResult.textContent=error.message;}finally{button.disabled=false;}
+            const button=$('#raRunCorrection');button.disabled=true;correctionResult.textContent='Running AI again…';
+            try{const selected=state.models.find(model=>model.key===state.modelA);const provider=selected?.provider||'Gemini';const response=await request(`/tasks/${state.task.id}/run-ai`,{method:'POST',json:{provider,prompt:correctionPrompt.value}});state.redoRunId=response?.runId||null;confirmRedo.hidden=!state.redoRunId;correctionResult.textContent=`AI reran ${response?.labels?.length||0} indicators with ${response?.provider||provider}. Review and confirm the redo result.`;}catch(error){correctionResult.textContent=error.message;}finally{button.disabled=false;}
         };
-        $('#raImprovePrompt').onclick=()=>{originalPrompt.value=`${originalPrompt.value.trim()} Với mỗi chỉ tiêu, đối chiếu nhãn nguồn trong cùng ngữ cảnh; không suy diễn số liệu; bắt buộc trả về value, unit, source_page, source_label và confidence.`;};
+        $('#raImprovePrompt').onclick=()=>{originalPrompt.value=`${originalPrompt.value.trim()} For each indicator, compare the source label in the same context; do not infer values; always return value, unit, source_page, source_label, and confidence.`;};
         window.addEventListener('pagehide',()=>{if(state.pdfUrl)URL.revokeObjectURL(state.pdfUrl);});
-        state.completionGuard=AAIR.SessionCompletion?.create({button:$('#raCompleteAnalysis'),loadStatus:()=>request(`/session-completion${state.task?.session_id?`?sessionId=${state.task.session_id}`:''}`),findItem:item=>$(`[data-task-id="${item.id}"]`,documents),blockedTitle:'Cần xử lý mọi khác biệt của tất cả tài liệu trước khi Complete Analysis'});
-        $('#raCompleteAnalysis').onclick=async()=>{if(state.completionGuard&&!await state.completionGuard.ensure('Chưa thể Complete Analysis'))return;await request('/analysis/complete',{method:'POST',json:{sessionId:state.task?.session_id||null}});await state.completionGuard?.refresh();setMessage('Đã hoàn tất phân tích session.');};
+        state.completionGuard=AAIR.SessionCompletion?.create({button:$('#raCompleteAnalysis'),loadStatus:()=>request(`/session-completion${state.task?.session_id?`?sessionId=${state.task.session_id}`:''}`),findItem:item=>$(`[data-task-id="${item.id}"]`,documents),blockedTitle:'Resolve all differences in all documents before completing the analysis'});
+        $('#raCompleteAnalysis').onclick=async()=>{if(state.completionGuard&&!await state.completionGuard.ensure('Analysis cannot be completed yet'))return;await request('/analysis/complete',{method:'POST',json:{sessionId:state.task?.session_id||null}});await state.completionGuard?.refresh();setMessage('The session analysis is complete.');};
         syncModelOptions();selectTask(initial.id);
     }
     async function taskPage() {
@@ -1556,7 +1554,7 @@
     async function dashboardPage() {
         const data=await request('/dashboard');
         const role=user.role;
-        const greeting=$$('header h2').find(h=>text(h).startsWith('Xin chào'));if(greeting)greeting.textContent=`Xin chào, ${user.username}`;
+        const greeting=$$('header h2').find(h=>/^Good (Morning|Afternoon|Evening)/.test(text(h)));if(greeting){const currentGreeting=window.AAIRGreeting?.getGreeting?.(new Date())||'Good Morning,';greeting.textContent=`${currentGreeting} ${user.username}`;}
         const rows=await request(role==='ADMIN'?'/audit-logs':role==='TERMINOLOGY'?'/terms':'/tasks');
         // All dashboard designs have their KPI cards in the first grid.
         const grid=$('main .grid');
@@ -1669,11 +1667,10 @@
         if(profile){const ps=$$('p',profile);if(ps[0])ps[0].textContent=user.username;if(ps[1])ps[1].textContent=user.role==='RESULT_ANALYST'?'Analyst':user.role;
             const avatar=profile.previousElementSibling;if(avatar){avatar.replaceChildren();const node=avatarNode(user,'w-full h-full');avatar.append(node);}
             const logout=document.createElement('button');
-            logout.type='button';logout.setAttribute('aria-label','Đăng xuất');logout.title='Đăng xuất khỏi hệ thống';
+            logout.type='button';logout.setAttribute('aria-label','Log out');logout.title='Log out of the system';
             logout.className='ml-2 inline-flex min-h-9 items-center gap-2 rounded-lg border border-white/40 bg-white/15 px-3 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-white/70';
-            const icon=document.createElement('span');icon.className='material-symbols-outlined text-[18px]';icon.textContent='logout';
-            const label=document.createElement('span');label.textContent='Đăng xuất';
-            logout.append(icon,label);bind(logout,()=>{if(confirm('Bạn có chắc muốn đăng xuất?'))AAIR.logout();});
+            const label=document.createElement('span');label.textContent='Log out';
+            logout.append(label);bind(logout,()=>{if(confirm('Are you sure you want to log out?'))AAIR.logout();});
             profile.parentElement.append(logout);
         }
         if(page==='BaseManagement.html')await termsPage();
@@ -1686,6 +1683,7 @@
         else if(page==='Task.html')await taskPage();
         else if(page==='LogView.html')await logsPage();
         else if(page==='PermissionManagement.html')await permissionsPage();
+        else if(page==='Dashboard.html'&&user.role==='RESULT_ANALYST'&&window.AAIRResultAnalysisDashboard)await window.AAIRResultAnalysisDashboard({request,user,notice,go});
         else if(page==='Dashboard.html')await dashboardPage();
         else if(page==='Statistics.html')await statisticsPage();
         else if(page==='SystemMonitoring.html')await monitoringPage();

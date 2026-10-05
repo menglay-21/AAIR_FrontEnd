@@ -1,163 +1,80 @@
 window.AAIRTerminologyPage = async function ({ request, notice }) {
     const main = document.querySelector('main');
-    main.className = 'min-h-[calc(100vh-98px)] bg-surface p-5';
+    main.className = 'min-h-[calc(100vh-58px)] bg-surface px-3 pb-4 pt-4 sm:px-4';
     main.innerHTML = `
-      <section class="mx-auto max-w-[1550px]">
-        <header class="mb-4 flex items-end justify-between"><div><p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Knowledge management</p><h1 class="mt-1 text-2xl font-bold">Terminology Base</h1></div><button id="termNew" class="rounded-md bg-primary px-4 py-2 text-xs font-bold text-white"><span class="material-symbols-outlined mr-1 align-middle text-base">add</span>New Term</button></header>
-        <div class="grid grid-cols-12 gap-4">
-          <section class="col-span-12 overflow-hidden rounded-lg border border-outline-variant bg-white lg:col-span-7">
-            <div class="flex items-center gap-3 border-b border-outline-variant p-4"><input id="termSearch" class="min-w-0 flex-1 rounded-md border-outline-variant text-sm" placeholder="Tìm thuật ngữ, viết tắt hoặc từ đồng nghĩa"><select id="termCategoryFilter" class="rounded-md border-outline-variant text-sm"><option value="">Tất cả category</option></select></div>
-            <div class="max-h-[590px] overflow-auto"><table class="w-full text-left text-xs"><thead class="sticky top-0 bg-surface-container-low"><tr><th class="px-4 py-3">Financial Term</th><th class="px-4 py-3">Abbreviation</th><th class="px-4 py-3">Category</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-right">Actions</th></tr></thead><tbody id="termRows"></tbody></table></div>
+      <section class="terminology-page">
+        <header class="terminology-page-header">
+          <div><h1>Terminology Base</h1></div>
+          <div class="terminology-header-actions">
+            <input id="termCsvFile" type="file" accept=".csv,text/csv" hidden>
+            <button id="termImport" type="button" class="term-button term-button--outline"><span class="material-symbols-outlined">upload_file</span>Import CSV</button>
+            <button id="termNew" type="button" class="term-button"><span class="material-symbols-outlined">add</span>Thêm thuật ngữ</button>
+          </div>
+        </header>
+        <div class="terminology-workspace">
+          <section class="terminology-panel terminology-list-panel">
+            <header class="terminology-panel-head"><div><h2>Danh sách thuật ngữ</h2><p id="termCount">0 thuật ngữ</p></div></header>
+            <div class="terminology-filters">
+              <label class="sr-only" for="termSearch">Tìm kiếm thuật ngữ</label>
+              <div class="term-search-wrap"><span class="material-symbols-outlined">search</span><input id="termSearch" placeholder="Tìm thuật ngữ, viết tắt hoặc từ đồng nghĩa"></div>
+              <select id="termCategoryFilter" aria-label="Lọc theo danh mục"><option value="">Tất cả danh mục</option></select>
+              <select id="termStatusFilter" aria-label="Lọc theo trạng thái"><option value="">Tất cả trạng thái</option><option value="ACTIVE">Đang hoạt động</option><option value="INACTIVE">Không hoạt động</option></select>
+            </div>
+            <div class="term-table-wrap"><table class="term-table"><thead><tr><th><button data-sort="term" type="button">Thuật ngữ <span>↕</span></button></th><th>Viết tắt</th><th><button data-sort="category" type="button">Danh mục <span>↕</span></button></th><th><button data-sort="status" type="button">Trạng thái <span>↕</span></button></th><th class="term-actions-heading">Thao tác</th></tr></thead><tbody id="termRows"></tbody></table><div id="termEmpty" class="term-empty" hidden></div></div>
           </section>
-          <aside class="col-span-12 rounded-lg border border-outline-variant bg-white lg:col-span-5">
-            <div class="border-b border-outline-variant bg-surface-container-low px-5 py-4"><h2 class="font-bold">Term Details</h2><p id="termFormMode" class="mt-1 text-[10px] text-on-surface-variant">Tạo thuật ngữ mới</p></div>
-            <form id="termForm" class="grid grid-cols-2 gap-4 p-5">
-              <label class="col-span-2 grid gap-1.5 text-xs font-bold">Financial Term<input id="termName" required maxlength="200" class="rounded-md border-outline-variant text-sm"></label>
-              <label class="grid gap-1.5 text-xs font-bold">Abbreviation<input id="termAbbreviation" maxlength="100" class="rounded-md border-outline-variant text-sm" placeholder="Có thể để trống"></label>
-              <label class="grid gap-1.5 text-xs font-bold">Category<input id="termCategory" maxlength="100" list="termCategories" class="rounded-md border-outline-variant text-sm"><datalist id="termCategories"></datalist></label>
-              <label class="col-span-2 grid gap-1.5 text-xs font-bold">Definition<textarea id="termDefinition" required rows="3" maxlength="20000" class="rounded-md border-outline-variant text-sm"></textarea></label>
-              <div class="col-span-2"><label class="mb-1.5 block text-xs font-bold">Synonyms</label><div id="termSynonyms" class="tag-editor"><input aria-label="Thêm từ đồng nghĩa" placeholder="Nhập rồi Enter hoặc dấu phẩy"></div></div>
-              <div class="col-span-2"><label class="mb-1.5 block text-xs font-bold">Related Terms</label><div id="termRelated" class="tag-editor"><input aria-label="Thêm thuật ngữ liên quan" list="relatedOptions" placeholder="Tìm thuật ngữ rồi Enter"><datalist id="relatedOptions"></datalist></div></div>
-              <label class="col-span-2 grid gap-1.5 text-xs font-bold">Example Usage<textarea id="termExample" rows="2" maxlength="5000" class="rounded-md border-outline-variant text-sm"></textarea></label>
-              <label class="grid gap-1.5 text-xs font-bold">Status<select id="termStatusEnhanced" class="rounded-md border-outline-variant text-sm"><option>ACTIVE</option><option>INACTIVE</option></select></label>
-              <div class="col-span-2 flex justify-end gap-2 border-t border-outline-variant pt-4"><button id="termCancel" type="button" class="rounded-md border border-outline-variant px-4 py-2 text-xs font-bold">Cancel</button><button class="rounded-md bg-primary px-4 py-2 text-xs font-bold text-white">Save Term</button></div>
+          <aside class="terminology-panel terminology-form-panel">
+            <header class="terminology-panel-head"><div><h2 id="termFormTitle">Thêm thuật ngữ</h2><p id="termFormMode">Tạo thuật ngữ mới.</p></div></header>
+            <form id="termForm" class="term-form-scroll" novalidate>
+              <div class="term-form-grid">
+                <label class="term-field term-field--full">Thuật ngữ (Financial Term) <b>*</b><input id="termName" required maxlength="200" placeholder="Ví dụ: Operating Income"><small id="termNameError"></small></label>
+                <label class="term-field">Viết tắt (Abbreviation)<input id="termAbbreviation" maxlength="100" placeholder="Không bắt buộc"></label>
+                <label class="term-field">Danh mục (Category) <b>*</b><input id="termCategory" required maxlength="100" list="termCategories" placeholder="Chọn hoặc nhập danh mục"><datalist id="termCategories"></datalist><small id="termCategoryError"></small></label>
+                <label class="term-field term-field--full">Định nghĩa (Definition) <b>*</b><textarea id="termDefinition" required rows="4" maxlength="20000" placeholder="Nhập định nghĩa thuật ngữ"></textarea><small id="termDefinitionError"></small></label>
+                <div class="term-field term-field--full"><label for="termSynonymsInput">Từ đồng nghĩa (Synonyms)</label><div id="termSynonyms" class="term-tag-editor"><input id="termSynonymsInput" aria-label="Thêm từ đồng nghĩa" placeholder="Nhập rồi nhấn Enter hoặc dấu phẩy"></div></div>
+                <div class="term-field term-field--full"><label for="termRelatedInput">Thuật ngữ liên quan (Related Terms)</label><div id="termRelated" class="term-tag-editor"><input id="termRelatedInput" aria-label="Thêm thuật ngữ liên quan" list="relatedOptions" placeholder="Tìm thuật ngữ rồi nhấn Enter"><datalist id="relatedOptions"></datalist></div></div>
+                <label class="term-field term-field--full">Ví dụ sử dụng (Example Usage)<textarea id="termExample" rows="3" maxlength="5000" placeholder="Nhập ví dụ sử dụng"></textarea></label>
+                <label class="term-field">Trạng thái (Status)<select id="termStatus"><option value="ACTIVE">Đang hoạt động</option><option value="INACTIVE">Không hoạt động</option></select></label>
+              </div>
             </form>
+            <footer class="term-form-actions"><button id="termCancel" type="button" class="term-button term-button--outline">Hủy</button><button id="termSave" type="submit" form="termForm" class="term-button">Lưu thuật ngữ</button></footer>
           </aside>
         </div>
-        <section class="mt-4 overflow-hidden rounded-lg border border-outline-variant bg-white">
-          <header class="flex flex-wrap items-center gap-3 border-b border-outline-variant bg-surface-container-low px-5 py-4"><div class="mr-auto"><h2 class="font-bold">History</h2><p class="mt-1 text-[10px] text-on-surface-variant">Nhật ký thêm, sửa, xóa · mới nhất trước</p></div><select id="historyUser" class="rounded-md border-outline-variant text-xs"><option value="">Tất cả người dùng</option></select><select id="historyTerm" class="rounded-md border-outline-variant text-xs"><option value="">Tất cả thuật ngữ</option></select></header>
-          <div class="max-h-[360px] overflow-auto"><table class="w-full text-left text-xs"><thead class="sticky top-0 bg-white"><tr><th class="px-4 py-3">Thời gian</th><th class="px-4 py-3">Người thực hiện</th><th class="px-4 py-3">Hành động</th><th class="px-4 py-3">Thuật ngữ</th><th class="px-4 py-3">Thay đổi</th></tr></thead><tbody id="historyRows"></tbody></table></div>
-        </section>
       </section>`;
+
+    document.getElementById('aair-terminology-style')?.remove();
     const style = document.createElement('style');
-    style.textContent = '.tag-editor{display:flex;min-height:42px;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 8px;border:1px solid #c7d2db;border-radius:6px;background:#fff}.tag-editor:focus-within{border-color:#078bb8;box-shadow:0 0 0 3px #078bb81f}.tag-editor input{min-width:150px;flex:1;border:0!important;padding:4px!important;box-shadow:none!important;font-size:12px}.term-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 7px;border-radius:4px;background:#e5f3f8;color:#075f7f;font-size:10px;font-weight:700}.term-chip button{border:0;background:transparent;color:inherit;cursor:pointer}.audit-diff{display:grid;gap:4px}.audit-diff div{display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px}.audit-diff b{color:#526474}.audit-old{text-decoration:line-through;color:#a04d49}.audit-new{color:#147154}';
+    style.id = 'aair-terminology-style';
+    style.textContent = `.terminology-page{width:100%}.terminology-page-header,.terminology-header-actions,.terminology-filters,.term-search-wrap,.term-form-actions{display:flex;align-items:center}.terminology-page-header{justify-content:space-between;gap:12px;margin-bottom:14px}.terminology-page-header h1{margin:0;color:#1f313e;font-size:24px;line-height:1.25}.terminology-header-actions{gap:9px}.term-button{display:inline-flex;min-height:38px;align-items:center;justify-content:center;gap:6px;border:1px solid #078db8;border-radius:7px;padding:0 14px;background:#078db8;color:#fff;font:700 13px Inter,Arial,sans-serif;cursor:pointer}.term-button:hover{background:#067da5}.term-button .material-symbols-outlined{font-size:18px}.term-button--outline{border-color:#bccbd5;background:#fff;color:#405867}.term-button--outline:hover{background:#f3f8fa}.terminology-workspace{display:grid;grid-template-columns:minmax(340px,2fr) minmax(460px,3fr);gap:14px;align-items:stretch}.terminology-panel{display:flex;min-height:calc(100vh - 150px);min-width:0;flex-direction:column;overflow:hidden;border:1px solid #c7d4dc;border-radius:9px;background:#fff;box-shadow:0 2px 8px rgba(25,59,77,.05)}.terminology-panel-head{display:flex;min-height:70px;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #d5e0e6;background:#f7fafb}.terminology-panel-head h2{margin:0;color:#203640;font-size:16px}.terminology-panel-head p{margin:4px 0 0;color:#526b79;font-size:13px;line-height:1.3}.terminology-filters{gap:8px;padding:12px;border-bottom:1px solid #d5e0e6}.term-search-wrap{min-width:130px;flex:1;gap:7px;height:38px;padding:0 10px;border:1px solid #bdccd6;border-radius:7px}.term-search-wrap .material-symbols-outlined{color:#657b89;font-size:19px}.term-search-wrap input{min-width:0;flex:1;border:0!important;padding:0!important;box-shadow:none!important}.terminology-filters select,.term-field input,.term-field select,.term-field textarea{width:100%;border:1px solid #bdccd6;border-radius:7px;background:#fff;color:#263d4b;font:13px Inter,Arial,sans-serif}.terminology-filters select{width:132px;height:38px;padding:0 10px}.term-field input,.term-field select{height:38px;padding:0 11px}.term-field textarea{min-height:86px;padding:10px 11px;resize:vertical}.terminology-filters input::placeholder,.term-field input::placeholder,.term-field textarea::placeholder{color:#82939e;font-size:13px;font-weight:400}.terminology-filters select:focus,.term-field input:focus,.term-field select:focus,.term-field textarea:focus{outline:0;border-color:#078db8;box-shadow:0 0 0 3px rgba(7,141,184,.12)}.term-table-wrap{min-height:0;flex:1;overflow:auto}.term-table{width:100%;border-collapse:collapse;text-align:left;font-size:13px}.term-table th{position:sticky;top:0;z-index:1;padding:11px 12px;color:#526c7a;background:#eff4f6;font-size:11px;font-weight:700;white-space:nowrap}.term-table th button{border:0;padding:0;color:inherit;background:transparent;font:inherit;cursor:pointer}.term-table td{padding:12px;border-top:1px solid #e0e8ec;vertical-align:middle}.term-table tr[data-id]{cursor:pointer}.term-table tr[data-id]:hover{background:#f4fafc}.term-table tr.is-selected{background:#e7f6fb;box-shadow:inset 3px 0 #078db8}.term-name{color:#075f7f;font-weight:700}.term-status{display:inline-block;padding:4px 8px;border-radius:99px;font-size:10px;font-weight:800;letter-spacing:.02em;white-space:nowrap}.term-status--active{background:#dff3e9;color:#147654}.term-status--inactive{background:#e9eef1;color:#596c78}.term-actions-heading{text-align:right}.term-row-actions{display:flex;justify-content:flex-end;gap:10px}.term-icon-button{display:grid;width:30px;height:30px;place-items:center;border:0;border-radius:6px;background:transparent;cursor:pointer}.term-icon-button:hover{background:#e8f3f7}.term-icon-button .material-symbols-outlined{font-size:19px}.term-icon-button--edit{color:#087ba5}.term-icon-button--delete{color:#c6413c}.term-empty{display:grid;min-height:180px;place-items:center;padding:24px;color:#6d8290;text-align:center}.term-form-scroll{min-height:0;flex:1;overflow:auto;padding:16px}.term-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.term-field{display:grid;gap:6px;color:#2d4350;font-size:13px;font-weight:700}.term-field--full{grid-column:1/-1}.term-field b{color:#c6413c}.term-field small{min-height:14px;color:#b53e38;font-size:11px;font-weight:500}.term-tag-editor{display:flex;min-height:38px;flex-wrap:wrap;align-items:center;gap:6px;padding:5px 7px;border:1px solid #bdccd6;border-radius:7px;background:#fff}.term-tag-editor:focus-within{border-color:#078db8;box-shadow:0 0 0 3px rgba(7,141,184,.12)}.term-tag-editor input{min-width:140px;flex:1;height:26px!important;border:0!important;padding:0!important;box-shadow:none!important}.term-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border-radius:5px;background:#e4f3f8;color:#075f7f;font-size:11px;font-weight:700}.term-chip button{border:0;padding:0;color:inherit;background:transparent;font-size:15px;line-height:1;cursor:pointer}.term-form-actions{position:sticky;bottom:0;z-index:2;justify-content:flex-end;gap:9px;padding:12px 16px;border-top:1px solid #d5e0e6;background:#fff;box-shadow:0 -4px 12px rgba(26,58,77,.06)}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}@media(max-width:980px){.terminology-workspace{grid-template-columns:1fr}.terminology-panel{min-height:auto;max-height:none}.terminology-page-header{align-items:flex-start;flex-direction:column}.terminology-filters{flex-wrap:wrap}.term-search-wrap{flex-basis:100%}.terminology-filters select{flex:1;width:auto}}@media(max-width:560px){.terminology-header-actions{width:100%;flex-wrap:wrap}.term-button{flex:1}.term-form-grid{grid-template-columns:1fr}.term-field--full{grid-column:auto}}`;
     document.head.append(style);
 
-    const fields = {
-        name: main.querySelector('#termName'), abbreviation: main.querySelector('#termAbbreviation'),
-        category: main.querySelector('#termCategory'), definition: main.querySelector('#termDefinition'),
-        example: main.querySelector('#termExample'), status: main.querySelector('#termStatusEnhanced')
-    };
-    const synonyms = createTagEditor(main.querySelector('#termSynonyms'));
-    const related = createTagEditor(main.querySelector('#termRelated'), true);
-    let terms = [], logs = [], editing = null;
+    const $ = selector => main.querySelector(selector);
+    const fields = { name: $('#termName'), abbreviation: $('#termAbbreviation'), category: $('#termCategory'), definition: $('#termDefinition'), example: $('#termExample'), status: $('#termStatus') };
+    const errorFields = { name: $('#termNameError'), category: $('#termCategoryError'), definition: $('#termDefinitionError') };
+    let terms = [], editing = null, selected = null, synonyms = [], related = [], isDirty = false, sort = { key: 'term', direction: 1 };
+    const markDirty = () => { isDirty = true; };
 
-    function createTagEditor(host, relatedMode = false) {
-        const input = host.querySelector('input');
-        let values = [];
-        function draw() {
-            host.querySelectorAll('.term-chip').forEach(node => node.remove());
-            values.forEach(value => {
-                const chip = document.createElement('span'); chip.className = 'term-chip';
-                const label = document.createElement('span');
-                const row = relatedMode ? terms.find(item => Number(item.id) === Number(value)) : null;
-                label.textContent = row ? row.term : String(value);
-                const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×'; remove.setAttribute('aria-label', `Xóa ${label.textContent}`);
-                remove.addEventListener('click', () => { values = values.filter(item => String(item) !== String(value)); draw(); });
-                chip.append(label, remove); host.insertBefore(chip, input);
-            });
-        }
-        function add(raw) {
-            const value = raw.trim(); if (!value) return;
-            let normalized = value;
-            if (relatedMode) {
-                const match = terms.find(item => item.term.toLowerCase() === value.toLowerCase());
-                if (!match) { notice('Hãy chọn một thuật ngữ có trong hệ thống.', true); return; }
-                if (Number(match.id) === Number(editing)) { notice('Không thể liên kết thuật ngữ với chính nó.', true); return; }
-                normalized = Number(match.id);
-            }
-            if (!values.some(item => String(item) === String(normalized))) values.push(normalized);
-            input.value = ''; draw();
-        }
-        input.addEventListener('keydown', event => {
-            if (event.key === 'Enter' || event.key === ',') { event.preventDefault(); add(input.value.replace(/,$/, '')); }
-            if (event.key === 'Backspace' && !input.value && values.length) { values.pop(); draw(); }
-        });
-        input.addEventListener('blur', () => { if (input.value.trim()) add(input.value); });
-        return { get: () => [...values], set: next => { values = [...(next || [])]; draw(); }, clear: () => { values = []; input.value = ''; draw(); } };
-    }
+    function actionButton(icon, label, kind) { const button = document.createElement('button'); button.type = 'button'; button.title = label; button.setAttribute('aria-label', label); button.className = `term-icon-button term-icon-button--${kind}`; const glyph = document.createElement('span'); glyph.className = 'material-symbols-outlined'; glyph.textContent = icon; button.append(glyph); return button; }
+    function confirmDiscard(next) { if (!isDirty || confirm('Bạn có thay đổi chưa lưu. Bạn có muốn bỏ các thay đổi này không?')) next(); }
+    function setFormMode(title, description) { $('#termFormTitle').textContent = title; $('#termFormMode').textContent = description; }
+    function clearErrors() { Object.values(errorFields).forEach(node => { node.textContent = ''; }); }
+    function drawTags(host, values) { const input = host.querySelector('input'); host.querySelectorAll('.term-chip').forEach(node => node.remove()); values.forEach((value, index) => { const chip = document.createElement('span'); chip.className = 'term-chip'; const text = document.createElement('span'); text.textContent = value; const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×'; remove.setAttribute('aria-label', `Xóa ${value}`); remove.addEventListener('click', () => { values.splice(index, 1); markDirty(); drawTags(host, values); }); chip.append(text, remove); host.insertBefore(chip, input); }); }
+    function attachTagInput(host, values, relatedMode) { const input = host.querySelector('input'); const add = () => { const value = input.value.trim(); if (!value) return; const match = relatedMode ? terms.find(item => item.term.toLowerCase() === value.toLowerCase()) : null; if (relatedMode && !match) return notice('Hãy chọn một thuật ngữ có trong hệ thống.', true); if (relatedMode && Number(match.id) === Number(editing)) return notice('Không thể liên kết thuật ngữ với chính nó.', true); const normalized = relatedMode ? match.term : value; if (!values.some(item => item.toLowerCase() === normalized.toLowerCase())) values.push(normalized); input.value = ''; markDirty(); drawTags(host, values); }; input.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ',') { event.preventDefault(); add(); } }); input.addEventListener('blur', add); }
+    function buildOptions() { const categories = [...new Set(terms.map(item => item.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'vi')); const categoryFilter = $('#termCategoryFilter'); const previousCategory = categoryFilter.value; categoryFilter.replaceChildren(new Option('Tất cả danh mục', ''), ...categories.map(value => new Option(value, value))); categoryFilter.value = [...categoryFilter.options].some(option => option.value === previousCategory) ? previousCategory : ''; $('#termCategories').replaceChildren(...categories.map(value => new Option(value, value))); $('#relatedOptions').replaceChildren(...terms.filter(item => Number(item.id) !== Number(editing)).map(item => new Option(item.term, item.term))); }
+    function statusBadge(value) { const badge = document.createElement('span'); const active = value === 'ACTIVE'; badge.className = `term-status term-status--${active ? 'active' : 'inactive'}`; badge.textContent = active ? 'ĐANG HOẠT ĐỘNG' : 'KHÔNG HOẠT ĐỘNG'; return badge; }
+    function filteredTerms() { const query = $('#termSearch').value.trim().toLowerCase(), category = $('#termCategoryFilter').value, status = $('#termStatusFilter').value; return terms.filter(row => (!category || row.category === category) && (!status || row.status === status) && (!query || [row.term, row.abbreviation, ...(row.synonyms || [])].join(' ').toLowerCase().includes(query))).sort((left, right) => String(left[sort.key] || '').localeCompare(String(right[sort.key] || ''), 'vi') * sort.direction); }
+    function renderTerms() { const visible = filteredTerms(), tbody = $('#termRows'); tbody.replaceChildren(); $('#termCount').textContent = `${visible.length} thuật ngữ`; const empty = $('#termEmpty'); empty.hidden = visible.length > 0; empty.textContent = terms.length ? 'Không tìm thấy kết quả phù hợp.' : 'Chưa có thuật ngữ nào.'; visible.forEach(row => { const tr = document.createElement('tr'); tr.dataset.id = row.id; if (Number(row.id) === Number(selected)) tr.classList.add('is-selected'); const name = document.createElement('td'), nameText = document.createElement('span'), abbreviation = document.createElement('td'), category = document.createElement('td'), status = document.createElement('td'), actions = document.createElement('td'), actionList = document.createElement('div'); nameText.className = 'term-name'; nameText.textContent = row.term; name.append(nameText); abbreviation.textContent = row.abbreviation || '—'; category.textContent = row.category || '—'; status.append(statusBadge(row.status)); actionList.className = 'term-row-actions'; const editButton = actionButton('edit', 'Sửa', 'edit'); editButton.addEventListener('click', event => { event.stopPropagation(); selectForEdit(row); }); const deleteButton = actionButton('delete', 'Xóa', 'delete'); deleteButton.addEventListener('click', async event => { event.stopPropagation(); if (!confirm(`Bạn có chắc muốn xóa thuật ngữ “${row.term}” không?`)) return; await request(`/terms/${row.id}`, { method: 'DELETE' }); if (Number(editing) === Number(row.id)) resetForm(); await refresh(); notice(`Đã xóa thuật ngữ “${row.term}”.`); }); actionList.append(editButton, deleteButton); actions.append(actionList); tr.append(name, abbreviation, category, status, actions); tr.addEventListener('click', () => selectForEdit(row)); tbody.append(tr); }); }
+    function resetForm() { editing = null; selected = null; isDirty = false; clearErrors(); Object.values(fields).forEach(field => { field.value = ''; }); fields.status.value = 'ACTIVE'; synonyms.splice(0); related.splice(0); drawTags($('#termSynonyms'), synonyms); drawTags($('#termRelated'), related); setFormMode('Thêm thuật ngữ', 'Tạo thuật ngữ mới.'); buildOptions(); renderTerms(); fields.name.focus(); }
+    function loadForm(row) { editing = row.id; selected = row.id; isDirty = false; clearErrors(); fields.name.value = row.term || ''; fields.abbreviation.value = row.abbreviation || ''; fields.category.value = row.category || ''; fields.definition.value = row.definition || ''; fields.example.value = row.example_usage || ''; fields.status.value = row.status || 'ACTIVE'; synonyms.splice(0, synonyms.length, ...(row.synonyms || [])); related.splice(0); const relatedNames = row.related_terms || row.related_term_names || []; related.push(...relatedNames); if (!related.length && Array.isArray(row.related_term_ids)) related.push(...row.related_term_ids.map(id => terms.find(item => Number(item.id) === Number(id))?.term).filter(Boolean)); drawTags($('#termSynonyms'), synonyms); drawTags($('#termRelated'), related); setFormMode(`Sửa: ${row.term}`, 'Cập nhật thông tin thuật ngữ đã chọn.'); buildOptions(); renderTerms(); fields.name.focus(); }
+    function selectForEdit(row) { if (Number(row.id) !== Number(selected)) confirmDiscard(() => loadForm(row)); }
+    function validate() { clearErrors(); let valid = true; [['name', 'Vui lòng nhập thuật ngữ.'], ['category', 'Vui lòng chọn hoặc nhập danh mục.'], ['definition', 'Vui lòng nhập định nghĩa.']].forEach(([key, message]) => { if (!fields[key].value.trim()) { errorFields[key].textContent = message; valid = false; } }); return valid; }
+    function parseCsv(source) { const rows = []; let row = [], value = '', quoted = false; for (let index = 0; index < source.length; index += 1) { const character = source[index]; if (character === '"') { if (quoted && source[index + 1] === '"') { value += '"'; index += 1; } else quoted = !quoted; } else if (character === ',' && !quoted) { row.push(value); value = ''; } else if ((character === '\n' || character === '\r') && !quoted) { if (character === '\r' && source[index + 1] === '\n') index += 1; row.push(value); rows.push(row); row = []; value = ''; } else value += character; } if (value || row.length) { row.push(value); rows.push(row); } return rows; }
+    async function importCsv(file) { const records = parseCsv(await file.text()), header = records.shift()?.map(value => value.replace(/^\uFEFF/, '').trim().toLowerCase()); if (!header?.includes('term') || !header.includes('definition')) throw new Error('CSV cần cột term và definition; có thể thêm category, status.'); const imports = records.filter(row => row.some(Boolean)).map(row => Object.fromEntries(header.map((key, index) => [key, row[index] || '']))); if (imports.some(row => !row.term.trim() || !row.definition.trim() || !['ACTIVE', 'INACTIVE'].includes(row.status || 'ACTIVE'))) throw new Error('CSV có dòng thiếu term/definition hoặc status không hợp lệ.'); let saved = 0; try { for (const row of imports) { await request('/terms', { method: 'POST', json: { ...row, status: row.status || 'ACTIVE' } }); saved += 1; } } catch (error) { throw new Error(`Đã nhập ${saved}/${imports.length} dòng; dừng ở dòng ${saved + 2}: ${error.message}`); } await refresh(); notice(`Đã nhập ${saved} thuật ngữ.`); }
+    async function refresh() { terms = await request('/terms'); buildOptions(); renderTerms(); }
 
-    function reset() {
-        editing = null; Object.values(fields).forEach(field => field.value = ''); fields.status.value = 'ACTIVE'; synonyms.clear(); related.clear();
-        main.querySelector('#termFormMode').textContent = 'Tạo thuật ngữ mới'; fields.name.focus();
-    }
-    function edit(row) {
-        editing = row.id; fields.name.value = row.term || ''; fields.abbreviation.value = row.abbreviation || ''; fields.category.value = row.category || '';
-        fields.definition.value = row.definition || ''; fields.example.value = row.example_usage || ''; fields.status.value = row.status || 'ACTIVE';
-        synonyms.set(row.synonyms); related.set(row.related_term_ids); main.querySelector('#termFormMode').textContent = `Đang sửa #${row.id}`; fields.name.focus();
-    }
-    function renderTerms() {
-        const query = main.querySelector('#termSearch').value.trim().toLowerCase();
-        const category = main.querySelector('#termCategoryFilter').value;
-        const visible = terms.filter(row => (!category || row.category === category) && (!query || [row.term, row.abbreviation, ...(row.synonyms || [])].join(' ').toLowerCase().includes(query)));
-        const tbody = main.querySelector('#termRows'); tbody.replaceChildren();
-        visible.forEach(row => {
-            const tr = document.createElement('tr'); tr.className = 'border-b border-outline-variant/60 hover:bg-surface-container-low/40';
-            [row.term, row.abbreviation || '—', row.category || '—', row.status].forEach(value => { const td = document.createElement('td'); td.className = 'px-4 py-3'; td.textContent = value; tr.append(td); });
-            const actions = document.createElement('td'); actions.className = 'px-4 py-3 text-right';
-            const editButton = iconButton('edit', 'Sửa'); editButton.addEventListener('click', () => edit(row));
-            const deleteButton = iconButton('delete', 'Xóa'); deleteButton.addEventListener('click', async () => { if (!confirm(`Xóa thuật ngữ "${row.term}"?`)) return; await request(`/terms/${row.id}`, { method: 'DELETE' }); if (editing === row.id) reset(); await refresh(); notice('Đã xóa thuật ngữ và ghi audit log.'); });
-            actions.append(editButton, deleteButton); tr.append(actions); tbody.append(tr);
-        });
-    }
-    function iconButton(icon, label) {
-        const button = document.createElement('button'); button.type = 'button'; button.title = label; button.className = 'ml-2 rounded p-1 text-primary hover:bg-surface-container-low';
-        const span = document.createElement('span'); span.className = 'material-symbols-outlined text-lg'; span.textContent = icon; button.append(span); return button;
-    }
-    function valueText(value) {
-        if (value == null || value === '') return '—';
-        if (Array.isArray(value)) return value.map(item => terms.find(term => Number(term.id) === Number(item))?.term || item).join(', ') || '—';
-        return String(value);
-    }
-    function renderHistory() {
-        const actor = main.querySelector('#historyUser').value, termName = main.querySelector('#historyTerm').value;
-        const tbody = main.querySelector('#historyRows'); tbody.replaceChildren();
-        logs.filter(log => (!actor || String(log.actor_id) === actor) && (!termName || log.term_name === termName)).forEach(log => {
-            const tr = document.createElement('tr'); tr.className = 'border-b border-outline-variant/60 align-top';
-            const values = [new Date(log.created_at).toLocaleString('vi-VN'), log.username || 'System', log.action, log.term_name];
-            values.forEach(value => { const td = document.createElement('td'); td.className = 'px-4 py-3'; td.textContent = value; tr.append(td); });
-            const diffCell = document.createElement('td'); diffCell.className = 'px-4 py-3';
-            const diff = document.createElement('div'); diff.className = 'audit-diff';
-            const oldValues = log.old_values || {}, newValues = log.new_values || {};
-            const keys = ['term','definition','category','status','abbreviation','synonyms','related_term_ids','example_usage'];
-            keys.filter(key => JSON.stringify(oldValues[key] ?? null) !== JSON.stringify(newValues[key] ?? null)).forEach(key => {
-                const line = document.createElement('div'); const name = document.createElement('b'); name.textContent = key;
-                const change = document.createElement('span'); const oldNode = document.createElement('span'); oldNode.className = 'audit-old'; oldNode.textContent = valueText(oldValues[key]);
-                const arrow = document.createTextNode(' → '); const newNode = document.createElement('span'); newNode.className = 'audit-new'; newNode.textContent = valueText(newValues[key]);
-                change.append(oldNode, arrow, newNode); line.append(name, change); diff.append(line);
-            });
-            if (!diff.children.length) diff.textContent = log.action === 'CREATED' ? 'Tạo bản ghi' : log.action === 'DELETED' ? 'Xóa bản ghi' : 'Không đổi dữ liệu';
-            diffCell.append(diff); tr.append(diffCell); tbody.append(tr);
-        });
-    }
-    function rebuildOptions() {
-        const categories = [...new Set(terms.map(item => item.category).filter(Boolean))].sort();
-        const categoryFilter = main.querySelector('#termCategoryFilter'); const selectedCategory = categoryFilter.value;
-        categoryFilter.replaceChildren(new Option('Tất cả category', ''), ...categories.map(value => new Option(value, value))); categoryFilter.value = selectedCategory;
-        main.querySelector('#termCategories').replaceChildren(...categories.map(value => { const option = document.createElement('option'); option.value = value; return option; }));
-        main.querySelector('#relatedOptions').replaceChildren(...terms.filter(item => Number(item.id) !== Number(editing)).map(item => { const option = document.createElement('option'); option.value = item.term; return option; }));
-        const historyTerm = main.querySelector('#historyTerm'); const selectedTerm = historyTerm.value;
-        historyTerm.replaceChildren(new Option('Tất cả thuật ngữ', ''), ...[...new Set(logs.map(log => log.term_name))].sort().map(value => new Option(value, value))); historyTerm.value = selectedTerm;
-        const historyUser = main.querySelector('#historyUser'); const selectedUser = historyUser.value;
-        const actors = [...new Map(logs.filter(log => log.actor_id).map(log => [String(log.actor_id), log.username || `User #${log.actor_id}`])).entries()];
-        historyUser.replaceChildren(new Option('Tất cả người dùng', ''), ...actors.map(([id, name]) => new Option(name, id))); historyUser.value = selectedUser;
-    }
-    async function refresh() {
-        [terms, logs] = await Promise.all([request('/terms'), request('/term-audit-logs')]);
-        rebuildOptions(); renderTerms(); renderHistory();
-    }
-
-    main.querySelector('#termForm').addEventListener('submit', async event => {
-        event.preventDefault();
-        const json = { term: fields.name.value.trim(), definition: fields.definition.value.trim(), category: fields.category.value.trim(), status: fields.status.value, abbreviation: fields.abbreviation.value.trim() || null, synonyms: synonyms.get(), relatedTermIds: related.get(), exampleUsage: fields.example.value.trim() || null };
-        await request(editing ? `/terms/${editing}` : '/terms', { method: editing ? 'PUT' : 'POST', json });
-        reset(); await refresh(); notice('Đã lưu thuật ngữ và ghi audit log.');
-    });
-    main.querySelector('#termCancel').addEventListener('click', reset);
-    main.querySelector('#termNew').addEventListener('click', reset);
-    main.querySelector('#termSearch').addEventListener('input', renderTerms);
-    main.querySelector('#termCategoryFilter').addEventListener('change', renderTerms);
-    main.querySelector('#historyUser').addEventListener('change', renderHistory);
-    main.querySelector('#historyTerm').addEventListener('change', renderHistory);
-    await refresh(); reset();
+    attachTagInput($('#termSynonyms'), synonyms, false); attachTagInput($('#termRelated'), related, true); Object.values(fields).forEach(field => field.addEventListener('input', markDirty));
+    $('#termForm').addEventListener('submit', async event => { event.preventDefault(); if (!validate()) return notice('Vui lòng kiểm tra các trường bắt buộc.', true); const relatedTermIds = related.map(name => terms.find(item => item.term.toLowerCase() === name.toLowerCase())?.id).filter(Boolean); const json = { term: fields.name.value.trim(), definition: fields.definition.value.trim(), category: fields.category.value.trim(), status: fields.status.value, abbreviation: fields.abbreviation.value.trim() || null, synonyms: [...synonyms], relatedTermIds, exampleUsage: fields.example.value.trim() || null }; await request(editing ? `/terms/${editing}` : '/terms', { method: editing ? 'PUT' : 'POST', json }); const savedName = json.term; await refresh(); isDirty = false; if (editing) loadForm(terms.find(item => Number(item.id) === Number(editing))); else resetForm(); notice(`Đã lưu thuật ngữ “${savedName}”.`); });
+    $('#termNew').addEventListener('click', () => confirmDiscard(resetForm)); $('#termCancel').addEventListener('click', () => confirmDiscard(resetForm)); $('#termSearch').addEventListener('input', renderTerms); $('#termCategoryFilter').addEventListener('change', renderTerms); $('#termStatusFilter').addEventListener('change', renderTerms);
+    main.querySelectorAll('[data-sort]').forEach(button => button.addEventListener('click', () => { const key = button.dataset.sort; sort = { key, direction: sort.key === key ? -sort.direction : 1 }; renderTerms(); }));
+    $('#termImport').addEventListener('click', () => $('#termCsvFile').click()); $('#termCsvFile').addEventListener('change', async event => { const file = event.target.files[0]; if (!file) return; try { await importCsv(file); } catch (error) { notice(error.message || 'Không thể nhập CSV.', true); } finally { event.target.value = ''; } });
+    await refresh(); resetForm();
 };

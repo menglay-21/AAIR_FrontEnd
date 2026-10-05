@@ -15,6 +15,159 @@
      border-left: 3px solid #004ac6;
  }
 
+ /* Admin navigation uses text-only tabs consistently across every admin page. */
+ body > header.fixed.top-0 nav a > .material-symbols-outlined {
+     display: none !important;
+ }
+
+ body > header.fixed.top-0 nav a {
+     gap: 0 !important;
+ }
+
+ /* Keep the Admin header pixel-aligned with the shared Analyst header. */
+ body > header.fixed.top-0 {
+     height: 58px !important;
+     min-height: 58px !important;
+     background: #079bc5 !important;
+     color: #fff !important;
+     font-family: Inter, Arial, sans-serif;
+ }
+
+ body > header.fixed.top-0 > div:first-child {
+     width: 155px;
+     flex: 0 0 155px;
+     height: 100%;
+     margin-right: 0 !important;
+     padding: 0 18px;
+     border-right: 1px solid #63c3dd;
+ }
+
+ body > header.fixed.top-0 > div:first-child + div {
+     display: none !important;
+ }
+
+ body > header.fixed.top-0 > div:first-child h1,
+ body > header.fixed.top-0 nav a,
+ body > header.fixed.top-0 nav a:hover,
+ body > header.fixed.top-0 nav a:focus-visible {
+     color: #eaf9fd !important;
+ }
+
+ body > header.fixed.top-0 > div:first-child h1 {
+     color: #fff !important;
+ }
+
+ body > header.fixed.top-0 > div:first-child img {
+     filter: brightness(0) invert(1);
+ }
+
+ body > header.fixed.top-0 nav a {
+     padding: 0 18px !important;
+     border-right: 1px solid #63c3dd;
+     font-size: 13px;
+     font-weight: 600;
+ }
+
+ body > header.fixed.top-0 nav a.bg-button-active {
+     color: #fff !important;
+     background: #087da7 !important;
+     box-shadow: inset 0 -3px 0 #fff;
+ }
+
+ body > header.fixed.top-0 nav > div {
+     height: 100% !important;
+     background: #63c3dd !important;
+ }
+
+ body > header.fixed.top-0 > div:last-child > div:first-child {
+     color: #fff !important;
+     background: #167ea5 !important;
+ }
+
+ body > header.fixed.top-0 > div:last-child p {
+     color: #fff !important;
+ }
+
+ body > header.fixed.top-0 ~ header.sticky {
+     top: 58px !important;
+ }
+
+ /* Manual Labeler and Reviewer use the same header metrics and colors. */
+ .manual-navbar,
+ .review-topbar {
+     height: 58px !important;
+     min-height: 58px !important;
+     background: #079bc5 !important;
+     color: #fff !important;
+     font-family: Inter, Arial, sans-serif;
+ }
+
+ .manual-navbar__brand,
+ .review-brand {
+     width: 155px;
+     flex: 0 0 155px;
+     gap: 8px;
+     padding: 0 18px;
+     color: #fff !important;
+     border-right: 1px solid #63c3dd;
+ }
+
+ .manual-navbar__brand img,
+ .review-brand img {
+     filter: brightness(0) invert(1);
+ }
+
+ .manual-navbar__nav a,
+ .review-nav a {
+     gap: 0 !important;
+     padding: 0 18px;
+     color: #eaf9fd !important;
+     border-right: 1px solid #63c3dd;
+ }
+
+ .manual-navbar__nav a:hover,
+ .manual-navbar__nav a:focus-visible,
+ .review-nav a:hover,
+ .review-nav a:focus-visible {
+     color: #fff !important;
+     background: rgba(0, 73, 105, .28);
+ }
+
+ .manual-navbar__nav a.is-active,
+ .review-nav a.is-active {
+     color: #fff !important;
+     background: #087da7 !important;
+     box-shadow: inset 0 -3px 0 #fff;
+ }
+
+ .manual-navbar__nav a > .material-symbols-outlined,
+ .review-nav a > .material-symbols-outlined,
+ .review-account .outline-button > .material-symbols-outlined {
+     display: none !important;
+ }
+
+ .manual-navbar__avatar,
+ .review-avatar {
+     color: #fff !important;
+     background: #167ea5 !important;
+ }
+
+ .manual-navbar__identity b,
+ .manual-navbar__identity small,
+ .review-account b,
+ .review-account small {
+     color: #fff !important;
+ }
+
+ .manual-navbar__logout,
+ .review-account .outline-button {
+     gap: 0;
+     margin-left: 4px;
+     border-color: rgba(255,255,255,.75);
+     color: #fff;
+     background: rgba(0,90,128,.18);
+ }
+
  /* Custom scrollbar for data-dense interfaces */
  ::-webkit-scrollbar {
      width: 6px;

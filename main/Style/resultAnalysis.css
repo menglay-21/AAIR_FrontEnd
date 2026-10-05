@@ -26,7 +26,7 @@
 .result-analysis-page .ra-document-list button span:last-child{min-width:0}
 .result-analysis-page .ra-document-list small{display:block;color:#718294;font-size:11px;font-weight:400}
 .result-analysis-page .ra-footer{font-size:12px}
-.result-analysis-page .ra-sessionbar{height:48px;padding-left:178px}
+.result-analysis-page .ra-sessionbar{height:48px;padding-left:16px}
 .result-analysis-page .ra-session-meta{min-width:52px}
 .result-analysis-page .ra-sessionbar small{font-size:11px}
 .result-analysis-page .ra-sessionbar b{font-size:13px}
