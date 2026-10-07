@@ -133,7 +133,7 @@ public class WorkspaceService {
     public List<Map<String,Object>> assignees() {
         var a = actor(); require(a, "MANAGER"); requirePermission(a, "TASKS", "READ");
         return db.queryForList("""
-                SELECT id, username, role FROM users u
+                SELECT id, username, role, status, is_active FROM users u
                 WHERE is_active = true
                   AND status = 'AVAILABLE'
                   AND role IN ('AI_LABELER','MANUAL_LABELER','REVIEWER','RESULT_ANALYST')

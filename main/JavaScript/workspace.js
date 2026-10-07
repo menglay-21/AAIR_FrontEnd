@@ -637,6 +637,12 @@
         let aiLabelers=currentAssignees.filter(u=>u.role==='AI_LABELER');
         let reviewers=currentAssignees.filter(u=>u.role==='REVIEWER');
 
+        function formatUserOptionLabel(user){
+            if(!user)return '';
+            const status=user.is_active===false?'INACTIVE':(user.status||'UNKNOWN');
+            return `${user.username} — ${status}`;
+        }
+
         function populateSelect(select,users,defaultLabel){
             const currentVal=select.value;
             select.replaceChildren();
@@ -647,7 +653,7 @@
             for(const u of users){
                 const opt=document.createElement('option');
                 opt.value=String(u.id);
-                opt.textContent=u.username;
+                opt.textContent=formatUserOptionLabel(u);
                 if(String(u.id)===currentVal)opt.selected=true;
                 select.appendChild(opt);
             }
@@ -666,6 +672,16 @@
             syncAiAssignmentOptions();
         }
 
+        function renderAssignmentDropdowns(assigneeList=currentAssignees){
+            currentAssignees=assigneeList||[];
+            manualLabelers=currentAssignees.filter(u=>u.role==='MANUAL_LABELER');
+            aiLabelers=currentAssignees.filter(u=>u.role==='AI_LABELER');
+            reviewers=currentAssignees.filter(u=>u.role==='REVIEWER');
+            populateManualOptions();
+            populateAiOptions();
+        }
+        window.renderAssignmentDropdowns=renderAssignmentDropdowns;
+
         function syncAssignmentOptions(){
             const val1=m1Select.value;
             const val2=m2Select.value;
@@ -676,7 +692,10 @@
                 const taken=(opt.value===val2 && val2!=='')||(opt.value===valRev && valRev!=='');
                 opt.disabled=taken;
                 const user=manualLabelers.find(u=>String(u.id)===opt.value);
-                if(user)opt.textContent=taken?`${user.username} (Selected)`:user.username;
+                if(user){
+                    const label=formatUserOptionLabel(user);
+                    opt.textContent=taken?`${label} (Selected)`:label;
+                }
             });
 
             $$('option',m2Select).forEach(opt=>{
@@ -684,7 +703,10 @@
                 const taken=(opt.value===val1 && val1!=='')||(opt.value===valRev && valRev!=='');
                 opt.disabled=taken;
                 const user=manualLabelers.find(u=>String(u.id)===opt.value);
-                if(user)opt.textContent=taken?`${user.username} (Selected)`:user.username;
+                if(user){
+                    const label=formatUserOptionLabel(user);
+                    opt.textContent=taken?`${label} (Selected)`:label;
+                }
             });
 
             $$('option',reviewerSelect).forEach(opt=>{
@@ -692,7 +714,10 @@
                 const taken=(opt.value===val1 && val1!=='')||(opt.value===val2 && val2!=='');
                 opt.disabled=taken;
                 const user=reviewers.find(u=>String(u.id)===opt.value);
-                if(user)opt.textContent=taken?`${user.username} (Selected)`:user.username;
+                if(user){
+                    const label=formatUserOptionLabel(user);
+                    opt.textContent=taken?`${label} (Selected)`:label;
+                }
             });
 
             const count=[val1,val2,valRev].filter(Boolean).length;
@@ -708,7 +733,10 @@
                 const taken=(opt.value===valRev && valRev!=='');
                 opt.disabled=taken;
                 const user=aiLabelers.find(u=>String(u.id)===opt.value);
-                if(user)opt.textContent=taken?`${user.username} (Selected)`:user.username;
+                if(user){
+                    const label=formatUserOptionLabel(user);
+                    opt.textContent=taken?`${label} (Selected)`:label;
+                }
             });
 
             $$('option',aiReviewerSelect).forEach(opt=>{
@@ -716,7 +744,10 @@
                 const taken=(opt.value===valAi && valAi!=='');
                 opt.disabled=taken;
                 const user=reviewers.find(u=>String(u.id)===opt.value);
-                if(user)opt.textContent=taken?`${user.username} (Selected)`:user.username;
+                if(user){
+                    const label=formatUserOptionLabel(user);
+                    opt.textContent=taken?`${label} (Selected)`:label;
+                }
             });
 
             const count=[valAi,valRev].filter(Boolean).length;
@@ -748,8 +779,7 @@
             syncAiAssignmentOptions();
         });
 
-        populateManualOptions();
-        populateAiOptions();
+        renderAssignmentDropdowns(currentAssignees);
 
         let previousType='MANUAL';
         const syncSessionType=()=>{
@@ -826,12 +856,8 @@
         };
         const reloadAssignees=async()=>{
             try{
-                currentAssignees=await request('/assignees');
-                manualLabelers=currentAssignees.filter(u=>u.role==='MANUAL_LABELER');
-                aiLabelers=currentAssignees.filter(u=>u.role==='AI_LABELER');
-                reviewers=currentAssignees.filter(u=>u.role==='REVIEWER');
-                populateManualOptions();
-                populateAiOptions();
+                const fetched=await request('/assignees');
+                renderAssignmentDropdowns(fetched);
                 checkList(memberList,currentAssignees.map(u=>({id:u.id,name:`${u.username} — ${u.role}`})),'members');
             }catch{}
         };
