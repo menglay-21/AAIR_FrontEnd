@@ -982,6 +982,35 @@
         const requestedId=qs.get('id');
         const tasks=await request('/tasks');
         const taskSelect=$('#raTaskSelect');
+        const durationEl=$('#raSessionDuration');
+        let currentTimerSessionId=Symbol('initial');
+        let sessionTimerInterval=null;
+        const formatSessionDuration=totalSeconds=>{
+            const s=Math.max(0,Math.floor(totalSeconds));
+            const hours=Math.floor(s/3600);
+            const minutes=Math.floor((s%3600)/60);
+            const seconds=s%60;
+            return `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+        };
+        window.AAIR=window.AAIR||{};window.AAIR.formatSessionDuration=formatSessionDuration;
+        const updateSessionTimer=task=>{
+            const sessionId=task?.session_id??null;
+            const startedAt=task?.session_started_at??null;
+            if(sessionId===currentTimerSessionId)return;
+            currentTimerSessionId=sessionId;
+            if(sessionTimerInterval){clearInterval(sessionTimerInterval);sessionTimerInterval=null;}
+            if(!durationEl)return;
+            if(!startedAt){durationEl.textContent='—:—:—';durationEl.title='Phiên chưa bắt đầu';return;}
+            const startMs=new Date(startedAt).getTime();
+            if(isNaN(startMs)){durationEl.textContent='—:—:—';return;}
+            durationEl.title=`Bắt đầu: ${startedAt}`;
+            const tick=()=>{
+                const elapsedSec=Math.max(0,Math.floor((Date.now()-startMs)/1000));
+                durationEl.textContent=formatSessionDuration(elapsedSec);
+            };
+            tick();
+            sessionTimerInterval=window.setInterval(tick,1000);
+        };
         const documents=$('#raDocumentList');
         const modelASelect=$('#raModelA');
         const modelBSelect=$('#raModelB');
@@ -1011,6 +1040,7 @@
             $('#raSession').textContent=next.session_name||'AI Results';
             $('#raType').textContent=next.task_type||'AI';
             $('#raDocumentTitle').textContent=name(next);
+            updateSessionTimer(next);
             renderDocuments();
             loadTaskResults();
         };
@@ -1122,7 +1152,7 @@
             try{const selected=state.models.find(model=>model.key===state.modelA);const provider=selected?.provider||'Gemini';const response=await request(`/tasks/${state.task.id}/run-ai`,{method:'POST',json:{provider,prompt:correctionPrompt.value}});state.redoRunId=response?.runId||null;confirmRedo.hidden=!state.redoRunId;correctionResult.textContent=`AI reran ${response?.labels?.length||0} indicators with ${response?.provider||provider}. Review and confirm the redo result.`;}catch(error){correctionResult.textContent=error.message;}finally{button.disabled=false;}
         };
         $('#raImprovePrompt').onclick=()=>{originalPrompt.value=`${originalPrompt.value.trim()} For each indicator, compare the source label in the same context; do not infer values; always return value, unit, source_page, source_label, and confidence.`;};
-        window.addEventListener('pagehide',()=>{if(state.pdfUrl)URL.revokeObjectURL(state.pdfUrl);});
+        window.addEventListener('pagehide',()=>{if(state.pdfUrl)URL.revokeObjectURL(state.pdfUrl);if(sessionTimerInterval)clearInterval(sessionTimerInterval);});
         state.completionGuard=AAIR.SessionCompletion?.create({button:$('#raCompleteAnalysis'),loadStatus:()=>request(`/session-completion${state.task?.session_id?`?sessionId=${state.task.session_id}`:''}`),findItem:item=>$(`[data-task-id="${item.id}"]`,documents),blockedTitle:'Resolve all differences in all documents before completing the analysis'});
         $('#raCompleteAnalysis').onclick=async()=>{if(state.completionGuard&&!await state.completionGuard.ensure('Analysis cannot be completed yet'))return;await request('/analysis/complete',{method:'POST',json:{sessionId:state.task?.session_id||null}});await state.completionGuard?.refresh();setMessage('The session analysis is complete.');};
         syncModelOptions();selectTask(initial.id);

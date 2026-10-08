@@ -43,3 +43,7 @@
 .result-analysis-page .document-sidebar-handle--analysis{top:106px;bottom:28px}
 .result-analysis-page.document-sidebar-resizing #raPdf{pointer-events:none}
 @media(max-width:1250px){.result-analysis-page .ra-layout{grid-template-columns:var(--document-sidebar-width) minmax(340px,1.3fr) minmax(250px,1fr) minmax(250px,1fr)}}
+.result-analysis-page #raSessionDuration{font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.result-analysis-page .ra-ai-column{display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden}
+.result-analysis-page .ra-panel-header{flex:0 0 46px}
+.result-analysis-page .ra-results{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden}

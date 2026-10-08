@@ -618,6 +618,7 @@ public class WorkspaceService {
     public List<Map<String,Object>> tasks(String type, String status, Long sessionId, String due, String search) {
         var a=actor(); if (a.role().equals("MANAGER")) requirePermission(a, "TASKS", "READ");
         StringBuilder sql=new StringBuilder("SELECT t.*,d.title AS document_title,u.username AS assignee,s.name AS session_name, " +
+                "s.started_at AS session_started_at, " +
                 "(SELECT count(*) FROM ai_labeler_results ar WHERE ar.task_id=t.id) AS result_count " +
                 "FROM annotation_tasks t JOIN documents d ON d.id=t.document_id LEFT JOIN users u ON u.id=t.assigned_to " +
                 "LEFT JOIN annotation_sessions s ON s.id=t.session_id WHERE "+taskScope(a));
