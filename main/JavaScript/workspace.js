@@ -75,7 +75,7 @@
         const marker = input.match(/\n\s*Nhãn nguồn:\s*/i);
         const sourceLabel = String(explicitSourceLabel ?? (marker ? input.slice(marker.index + marker[0].length) : '')).trim();
         return {
-            editableValue: marker ? input.slice(0, marker.index).trimEnd() : input,
+            editableValue: (marker ? input.slice(0, marker.index).trimEnd() : input).replace(/\s+text$/i, '').trim(),
             sourceLabel,
         };
     }
@@ -88,7 +88,7 @@
             throw new Error('Ngày hết hạn không hợp lệ.');
         return { parsed, iso: `${year}-${month}-${day}T23:59:00` };
     }
-    const status = row => row.status ?? (row.is_active === undefined ? '—' : row.is_active ? 'ACTIVE' : 'INACTIVE');
+    const status = row => (row.is_active === false ? 'INACTIVE' : (row.status ?? (row.is_active ? 'ACTIVE' : '—')));
     const go = file => location.assign(file);
     function options(select, values, all = false) {
         if (!select) return;
@@ -139,8 +139,9 @@
         const dataPane=workspace?.children[1];
         if(!workspace||!pdfPane||!dataPane||!$('#pdfViewer',pdfPane))return;
 
-        const storageKey='aair.taskWorkspace.pdfPaneWidth';
-        const clamp=value=>Math.min(80,Math.max(30,Number(value)||58));
+        const storageKey=`aair.taskWorkspace.pdfPaneWidth.${document.body.classList.contains('manual-task-page')?'manual-v2':'default'}`;
+        const defaultWidth=document.body.classList.contains('manual-task-page')?56:58;
+        const clamp=value=>Math.min(80,Math.max(30,Number(value)||defaultWidth));
         let width=clamp(localStorage.getItem(storageKey));
         let frame=0;
         pdfPane.classList.add('workspace-pdf-pane');
@@ -195,6 +196,16 @@
             const next=event.key==='Home'?30:event.key==='End'?80:width+(event.key==='ArrowLeft'?-2:2);
             applyWidth(next,true);
         });
+        $$('[data-pdf-action]',pdfPane).forEach(button=>bind(button,()=>{
+            const iframe=$('#pdfViewer',pdfPane);
+            const viewer=iframe?.contentWindow?.PDFViewerApplication?.pdfViewer;
+            const action=button.dataset.pdfAction;
+            if(!viewer)return;
+            if(action==='fit-width')viewer.currentScaleValue='page-width';
+            if(action==='fit-page')viewer.currentScaleValue='page-fit';
+            if(action==='rotate')viewer.pagesRotation=(viewer.pagesRotation+90)%360;
+            if(action==='search')iframe.contentWindow?.document.querySelector('#viewFind')?.click();
+        }));
     }
     function setupDocumentSidebar(options={}) {
         const sidebar=options.sidebar||document.querySelector('body > aside');
@@ -626,6 +637,12 @@
         let aiLabelers=currentAssignees.filter(u=>u.role==='AI_LABELER');
         let reviewers=currentAssignees.filter(u=>u.role==='REVIEWER');
 
+        function formatUserOptionLabel(user){
+            if(!user)return '';
+            const status=user.is_active===false?'INACTIVE':(user.status||'UNKNOWN');
+            return `${user.username} — ${status}`;
+        }
+
         function populateSelect(select,users,defaultLabel){
             const currentVal=select.value;
             select.replaceChildren();
@@ -636,7 +653,7 @@
             for(const u of users){
                 const opt=document.createElement('option');
                 opt.value=String(u.id);
-                opt.textContent=u.username;
+                opt.textContent=formatUserOptionLabel(u);
                 if(String(u.id)===currentVal)opt.selected=true;
                 select.appendChild(opt);
             }
@@ -655,6 +672,16 @@
             syncAiAssignmentOptions();
         }
 
+        function renderAssignmentDropdowns(assigneeList=currentAssignees){
+            currentAssignees=assigneeList||[];
+            manualLabelers=currentAssignees.filter(u=>u.role==='MANUAL_LABELER');
+            aiLabelers=currentAssignees.filter(u=>u.role==='AI_LABELER');
+            reviewers=currentAssignees.filter(u=>u.role==='REVIEWER');
+            populateManualOptions();
+            populateAiOptions();
+        }
+        window.renderAssignmentDropdowns=renderAssignmentDropdowns;
+
         function syncAssignmentOptions(){
             const val1=m1Select.value;
             const val2=m2Select.value;
@@ -665,7 +692,10 @@
                 const taken=(opt.value===val2 && val2!=='')||(opt.value===valRev && valRev!=='');
                 opt.disabled=taken;
                 const user=manualLabelers.find(u=>String(u.id)===opt.value);
-                if(user)opt.textContent=taken?`${user.username} (Selected)`:user.username;
+                if(user){
+                    const label=formatUserOptionLabel(user);
+                    opt.textContent=taken?`${label} (Selected)`:label;
+                }
             });
 
             $$('option',m2Select).forEach(opt=>{
@@ -673,7 +703,10 @@
                 const taken=(opt.value===val1 && val1!=='')||(opt.value===valRev && valRev!=='');
                 opt.disabled=taken;
                 const user=manualLabelers.find(u=>String(u.id)===opt.value);
-                if(user)opt.textContent=taken?`${user.username} (Selected)`:user.username;
+                if(user){
+                    const label=formatUserOptionLabel(user);
+                    opt.textContent=taken?`${label} (Selected)`:label;
+                }
             });
 
             $$('option',reviewerSelect).forEach(opt=>{
@@ -681,7 +714,10 @@
                 const taken=(opt.value===val1 && val1!=='')||(opt.value===val2 && val2!=='');
                 opt.disabled=taken;
                 const user=reviewers.find(u=>String(u.id)===opt.value);
-                if(user)opt.textContent=taken?`${user.username} (Selected)`:user.username;
+                if(user){
+                    const label=formatUserOptionLabel(user);
+                    opt.textContent=taken?`${label} (Selected)`:label;
+                }
             });
 
             const count=[val1,val2,valRev].filter(Boolean).length;
@@ -697,7 +733,10 @@
                 const taken=(opt.value===valRev && valRev!=='');
                 opt.disabled=taken;
                 const user=aiLabelers.find(u=>String(u.id)===opt.value);
-                if(user)opt.textContent=taken?`${user.username} (Selected)`:user.username;
+                if(user){
+                    const label=formatUserOptionLabel(user);
+                    opt.textContent=taken?`${label} (Selected)`:label;
+                }
             });
 
             $$('option',aiReviewerSelect).forEach(opt=>{
@@ -705,7 +744,10 @@
                 const taken=(opt.value===valAi && valAi!=='');
                 opt.disabled=taken;
                 const user=reviewers.find(u=>String(u.id)===opt.value);
-                if(user)opt.textContent=taken?`${user.username} (Selected)`:user.username;
+                if(user){
+                    const label=formatUserOptionLabel(user);
+                    opt.textContent=taken?`${label} (Selected)`:label;
+                }
             });
 
             const count=[valAi,valRev].filter(Boolean).length;
@@ -737,8 +779,7 @@
             syncAiAssignmentOptions();
         });
 
-        populateManualOptions();
-        populateAiOptions();
+        renderAssignmentDropdowns(currentAssignees);
 
         let previousType='MANUAL';
         const syncSessionType=()=>{
@@ -815,12 +856,8 @@
         };
         const reloadAssignees=async()=>{
             try{
-                currentAssignees=await request('/assignees');
-                manualLabelers=currentAssignees.filter(u=>u.role==='MANUAL_LABELER');
-                aiLabelers=currentAssignees.filter(u=>u.role==='AI_LABELER');
-                reviewers=currentAssignees.filter(u=>u.role==='REVIEWER');
-                populateManualOptions();
-                populateAiOptions();
+                const fetched=await request('/assignees');
+                renderAssignmentDropdowns(fetched);
                 checkList(memberList,currentAssignees.map(u=>({id:u.id,name:`${u.username} — ${u.role}`})),'members');
             }catch{}
         };
@@ -941,18 +978,47 @@
         ],['session_name','status'],pageTargets);
     }
     async function legacyResultAnalysisPage() {
+        window.AAIRSharedHeader?.mount(user);
         setupDocumentSidebar({
             sidebar:$('#raDocuments'),
             workspace:$('.ra-layout'),
             storagePrefix:'aair.resultAnalysis.documentSidebar',
             defaultWidth:156,
-            handleClass:'document-sidebar-handle--analysis',
-            toggleButton:$('#raToggleDocuments')
+            handleClass:'document-sidebar-handle--analysis'
         });
         const qs=new URLSearchParams(location.search);
         const requestedId=qs.get('id');
         const tasks=await request('/tasks');
         const taskSelect=$('#raTaskSelect');
+        const durationEl=$('#raSessionDuration');
+        let currentTimerSessionId=Symbol('initial');
+        let sessionTimerInterval=null;
+        const formatSessionDuration=totalSeconds=>{
+            const s=Math.max(0,Math.floor(totalSeconds));
+            const hours=Math.floor(s/3600);
+            const minutes=Math.floor((s%3600)/60);
+            const seconds=s%60;
+            return `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+        };
+        window.AAIR=window.AAIR||{};window.AAIR.formatSessionDuration=formatSessionDuration;
+        const updateSessionTimer=task=>{
+            const sessionId=task?.session_id??null;
+            const startedAt=task?.session_started_at??null;
+            if(sessionId===currentTimerSessionId)return;
+            currentTimerSessionId=sessionId;
+            if(sessionTimerInterval){clearInterval(sessionTimerInterval);sessionTimerInterval=null;}
+            if(!durationEl)return;
+            if(!startedAt){durationEl.textContent='—:—:—';durationEl.title='Phiên chưa bắt đầu';return;}
+            const startMs=new Date(startedAt).getTime();
+            if(isNaN(startMs)){durationEl.textContent='—:—:—';return;}
+            durationEl.title=`Bắt đầu: ${startedAt}`;
+            const tick=()=>{
+                const elapsedSec=Math.max(0,Math.floor((Date.now()-startMs)/1000));
+                durationEl.textContent=formatSessionDuration(elapsedSec);
+            };
+            tick();
+            sessionTimerInterval=window.setInterval(tick,1000);
+        };
         const documents=$('#raDocumentList');
         const modelASelect=$('#raModelA');
         const modelBSelect=$('#raModelB');
@@ -966,20 +1032,23 @@
         const pdf=$('#raPdf');
         const pdfEmpty=$('#raPdfEmpty');
         const state={tasks,task:null,rows:[],models:[],modelA:'',modelB:'',analyzed:false,page:1,pdfUrl:null,noteRow:null,noteCompare:null,redoRunId:null,completionGuard:null};
-        const value=row=>row?.indicator_value??row?.label_value??row?.value??'Chưa có giá trị';
+        const fieldLabels={company_name:'Company Name',ticker:'Ticker',industry:'Industry',report_period:'Report Period',report_year:'Report Year',revenue:'Revenue'};
+        const value=row=>row?.indicator_value??row?.label_value??row?.value??'No value';
+        const fieldLabel=row=>fieldLabels[key(row)]||row?.indicator_name||row?.label_name||'Unnamed field';
         const key=row=>String(row?.indicator_name??row?.label_name??row?.term??'').trim().toLowerCase();
         const modelKey=row=>row?.run_id?`run::${row.run_id}`:`saved::${row?.provider||'AI'}::${row?.model||row?.provider||'Model'}`;
         const pct=row=>{const n=Number(row?.confidence);return Number.isFinite(n)?`${Math.round(n<=1?n*100:n)}%`:'—';};
-        const name=task=>task?.document_title||task?.title||`Tài liệu #${task?.id||''}`;
+        const name=task=>task?.document_title||task?.title||`Document #${task?.id||''}`;
         const setMessage=message=>{const el=$('#raMessage');if(el)el.textContent=message||'';};
         const selectTask=(id)=>{
             const next=tasks.find(row=>String(row.id)===String(id))||tasks[0];
             if(!next)return;
             state.task=next;state.analyzed=false;state.page=1;
             taskSelect.value=String(next.id);
-            $('#raSession').textContent=next.session_name||'Kết quả AI';
+            $('#raSession').textContent=next.session_name||'AI Results';
             $('#raType').textContent=next.task_type||'AI';
             $('#raDocumentTitle').textContent=name(next);
+            updateSessionTimer(next);
             renderDocuments();
             loadTaskResults();
         };
@@ -989,15 +1058,14 @@
                 const button=document.createElement('button');
                 button.type='button';button.className=state.task?.id===row.id?'active':'';button.dataset.taskId=String(row.id);
                 button.title=name(row);
-                const icon=document.createElement('span');icon.className='material-symbols-outlined';icon.textContent='picture_as_pdf';
-                const label=document.createElement('span');label.textContent=name(row);
-                button.append(icon,label);button.onclick=()=>selectTask(row.id);documents.append(button);
+            const label=document.createElement('span');label.innerHTML=`${name(row)}<small>${row.session_name||'Unknown session'} · Task #${row.id}</small>`;button.dataset.status=row.status==='APPROVED'||row.status==='SUBMITTED'?'done':'pending';
+            button.append(label);button.onclick=()=>selectTask(row.id);documents.append(button);
             });
         };
         const renderModels=()=>{
-            const fill=select=>{select.replaceChildren(...state.models.map(model=>new Option(`${model.provider} · ${model.model}${model.runId?` · ${String(model.runId).slice(0,8)}`:''}`,model.key)));select.disabled=state.models.length<1;};
+            const fill=select=>{select.replaceChildren(new Option('Select a result source',''),...state.models.map(model=>new Option(`${model.provider} · ${model.model}${model.runId?` · ${String(model.runId).slice(0,8)}`:''}`,model.key)));select.disabled=state.models.length<1;};
             fill(modelASelect);fill(modelBSelect);
-            state.modelA=state.modelA||state.models[0]?.key||'';state.modelB=state.modelB||state.models[1]?.key||state.models[0]?.key||'';
+            state.modelA=state.modelA||state.models[0]?.key||'';state.modelB=state.modelB||state.models[1]?.key||'';
             if(state.modelA===state.modelB&&state.models[1])state.modelB=state.models[1].key;
             modelASelect.value=state.modelA;modelBSelect.value=state.modelB;
         };
@@ -1005,28 +1073,29 @@
         const rowFor=(rows,indicator)=>rows.find(row=>key(row)===indicator);
         const draw=(target,rows,other,side)=>{
             target.replaceChildren();
-            if(!rows.length){const empty=document.createElement('p');empty.className='ra-empty-results';empty.textContent='Chưa có kết quả cho model này.';target.append(empty);return;}
+            if(!rows.length){const empty=document.createElement('p');empty.className='ra-empty-results';empty.textContent='No results for this model.';target.append(empty);return;}
             rows.forEach(row=>{
                 const compare=rowFor(other,key(row));
                 const different=state.analyzed&&(!compare||String(value(row))!==String(value(compare)));
                 const card=document.createElement('article');card.className=`ra-result${different?' different':''}`;
                 const top=document.createElement('div');top.className='ra-result__top';
-                const title=document.createElement('div');const label=document.createElement('span');label.className='ra-label';label.textContent='Chỉ tiêu';
-                const strong=document.createElement('strong');strong.textContent=row.indicator_name||row.label_name||'Chưa đặt tên';title.append(label,strong);top.append(title);
-                if(different){const badge=document.createElement('span');badge.className='ra-difference';badge.textContent='Khác nhau';top.append(badge);}
-                const valueLabel=document.createElement('span');valueLabel.className='ra-label';valueLabel.textContent=`Giá trị ${side}`;
-                const valueText=document.createElement('div');valueText.className='ra-value';valueText.textContent=String(value(row));
+                const title=document.createElement('div');const label=document.createElement('span');label.className='ra-label';label.textContent='Indicator';
+                const strong=document.createElement('strong');strong.textContent=fieldLabel(row);strong.title=row.indicator_name||row.label_name||'';title.append(label,strong);top.append(title);
+                if(different){const badge=document.createElement('span');badge.className='ra-difference';badge.textContent='Different';top.append(badge);}
+                const valueLabel=document.createElement('span');valueLabel.className='ra-label';valueLabel.textContent=`Value ${side}`;
+                const parsed=splitLabelValue(value(row),row.source_label||row.source_text);const valueText=document.createElement('div');valueText.className='ra-value';const valueNode=document.createElement('div');valueNode.textContent=parsed.editableValue||'No value';valueText.append(valueNode);if(parsed.sourceLabel){const sourceText=document.createElement('small');sourceText.className='ra-source-text';sourceText.textContent=`Source: ${parsed.sourceLabel}`;valueText.append(sourceText);}
                 const meta=document.createElement('div');meta.className='ra-meta';
-                const confidence=document.createElement('span');confidence.textContent=`Độ tin cậy ${pct(row)}`;
-                const source=document.createElement('button');source.className='ra-source';source.type='button';source.textContent=`Trang ${row.source_page||'—'}`;
+                const confidence=document.createElement('span');confidence.textContent=`Confidence ${pct(row)}`;
+                const source=document.createElement('button');source.className='ra-source';source.type='button';source.textContent=`Page ${row.source_page||'—'} · Go to page`;
                 source.onclick=event=>{event.stopPropagation();openPage(row.source_page);};
-                const pageInput=document.createElement('input');pageInput.type='number';pageInput.min='1';pageInput.value=row.source_page||'';pageInput.setAttribute('aria-label','Source Page');pageInput.className='ra-source-page';pageInput.onchange=()=>openPage(pageInput.value);
-                meta.append(confidence,source,pageInput);card.append(top,valueLabel,valueText,meta);
+                meta.append(confidence,source);card.append(top,valueLabel,valueText,meta);
                 card.onclick=()=>openNote(row,compare);target.append(card);
             });
         };
         const renderResults=()=>{
             const a=rowsFor(state.modelA),b=rowsFor(state.modelB);
+            const selectedA=state.models.find(model=>model.key===state.modelA),selectedB=state.models.find(model=>model.key===state.modelB);
+            $('#raModelAMeta').textContent=selectedA?`${selectedA.provider} · ${selectedA.model}`:'';$('#raModelBMeta').textContent=selectedB?`${selectedB.provider} · ${selectedB.model}`:'';
             draw(resultsA,a,b,'A');draw(resultsB,b,a,'B');
             const all=[...new Set([...a,...b].map(key).filter(Boolean))];
             const differences=state.analyzed?all.filter(indicator=>{const left=rowFor(a,indicator),right=rowFor(b,indicator);return !left||!right||String(value(left))!==String(value(right));}):[];
@@ -1034,7 +1103,7 @@
         };
         const openPage=page=>{
             const next=Number(page);if(!Number.isInteger(next)||next<1)return;
-            state.page=next;$('#raPageLabel').textContent=`Trang ${next}`;
+            state.page=next;$('#raPageLabel').textContent=`Page ${next}`;
             if(state.pdfUrl)pdf.src=`${state.pdfUrl}#page=${next}`;
         };
         const loadPdf=async()=>{
@@ -1042,7 +1111,7 @@
             pdf.removeAttribute('src');pdf.hidden=true;pdfEmpty.hidden=false;
             if(!state.task?.document_id)return;
             const blob=await request(`/documents/${state.task.document_id}/file`,{blob:true});
-            state.pdfUrl=URL.createObjectURL(blob);pdf.src=`${state.pdfUrl}#page=${state.page}`;pdf.hidden=false;pdfEmpty.hidden=true;
+            state.pdfUrl=URL.createObjectURL(blob);pdf.src=`${state.pdfUrl}#page=${state.page}&zoom=100&toolbar=0`;pdf.hidden=false;pdfEmpty.hidden=true;
         };
         const loadTaskResults=async()=>{
             const taskId=state.task.id;
@@ -1060,41 +1129,41 @@
             })):[];
             state.rows=[...aiRows,...savedRows];
             state.models=[...new Map(state.rows.map(row=>[modelKey(row),{key:modelKey(row),provider:row.provider||'AI',model:row.model||row.provider||'Model',runId:row.run_id||null}])).values()];
-            state.modelA='';state.modelB='';renderModels();renderResults();setMessage('');
+            state.modelA='';state.modelB='';renderModels();syncModelOptions();renderResults();setMessage('');
             try{await loadPdf();}catch(error){setMessage(error.message); }
             await state.completionGuard?.refresh();
         };
         const openNote=(row,compare)=>{
             state.noteRow=row;state.noteCompare=compare;state.redoRunId=null;note.hidden=false;
             noteCompare.replaceChildren();
-            [[state.modelA,value(row)],[state.modelB,compare?value(compare):'Thiếu kết quả']].forEach(([model,result])=>{const box=document.createElement('div');const provider=document.createElement('span');provider.textContent=model||'Model';const content=document.createElement('b');content.textContent=String(result);box.append(provider,content);noteCompare.append(box);});
-            correctionPrompt.value=`Hãy kiểm tra chỉ tiêu ${row.indicator_name||row.label_name||''} ở trang ${row.source_page||''}. Đọc đúng nhãn nguồn, không suy diễn và trả về JSON có value, unit, source_page, source_label, confidence.`;
-            originalPrompt.value='Trích xuất các chỉ tiêu tài chính trong báo cáo, luôn kèm source_page, source_label và confidence.';
+            [[state.modelA,value(row)],[state.modelB,compare?value(compare):'Missing result']].forEach(([model,result])=>{const box=document.createElement('div');const provider=document.createElement('span');provider.textContent=model||'Model';const content=document.createElement('b');content.textContent=String(result);box.append(provider,content);noteCompare.append(box);});
+            correctionPrompt.value=`Check indicator ${row.indicator_name||row.label_name||''} on page ${row.source_page||''}. Read the source label accurately, do not infer values, and return JSON with value, unit, source_page, source_label, and confidence.`;
+            originalPrompt.value='Extract financial indicators from the report and always include value, unit, source_page, source_label, and confidence.';
             correctionResult.textContent='';
         };
         taskSelect.replaceChildren(...tasks.map(row=>new Option(`${name(row)} · Task #${row.id}`,String(row.id))));
         const initial=tasks.find(row=>String(row.id)===String(requestedId))||tasks[0];
-        if(!initial){setMessage('Chưa có task được phân công.');return;}
+        if(!initial){setMessage('No assigned task.');return;}
         taskSelect.onchange=()=>selectTask(taskSelect.value);
-        modelASelect.onchange=()=>{state.modelA=modelASelect.value;state.analyzed=false;renderResults();};
-        modelBSelect.onchange=()=>{state.modelB=modelBSelect.value;state.analyzed=false;renderResults();};
-        $('#raAnalyze').onclick=()=>{state.analyzed=Boolean(state.modelA&&state.modelB&&state.modelA!==state.modelB);renderResults();setMessage(state.analyzed?'Đã phân tích sự khác biệt giữa hai model.':'Hãy chọn hai model khác nhau.');};
-        const saveNote=document.createElement('button');saveNote.type='button';saveNote.className='ra-secondary-button';saveNote.innerHTML='<span class="material-symbols-outlined">save</span>Lưu NOTE';correctionResult.after(saveNote);
-        const confirmRedo=document.createElement('button');confirmRedo.type='button';confirmRedo.className='ra-secondary-button';confirmRedo.hidden=true;confirmRedo.innerHTML='<span class="material-symbols-outlined">verified</span>Xác nhận kết quả redo';saveNote.after(confirmRedo);
-        saveNote.onclick=async()=>{if(!state.task||!state.noteRow)return;const noteText=correctionPrompt.value.trim();if(!noteText){setMessage('Hãy nhập NOTE giải thích lỗi.');return;}await request(`/analysis/tasks/${state.task.id}/fields/${encodeURIComponent(key(state.noteRow))}`,{method:'PUT',json:{note:noteText,redoRunId:null,redoConfirmed:false}});await state.completionGuard?.refresh();setMessage('Đã lưu NOTE cho field.');};
-        confirmRedo.onclick=async()=>{if(!state.task||!state.noteRow||!state.redoRunId)return;await request(`/analysis/tasks/${state.task.id}/fields/${encodeURIComponent(key(state.noteRow))}`,{method:'PUT',json:{note:null,redoRunId:state.redoRunId,redoConfirmed:true}});confirmRedo.hidden=true;await state.completionGuard?.refresh();setMessage('Đã xác nhận kết quả redo.');};
+        const syncModelOptions=()=>{[...modelBSelect.options].forEach(option=>{option.disabled=option.value===state.modelA;});[...modelASelect.options].forEach(option=>{option.disabled=option.value===state.modelB;});const analyze=$('#raAnalyze');const blocked=!state.modelA||!state.modelB||state.modelA===state.modelB;analyze.disabled=blocked;analyze.title=blocked?'Select two different result sources.':'Analyze differences between the two sources';};
+        modelASelect.onchange=()=>{state.modelA=modelASelect.value;if(state.modelA===state.modelB)state.modelB=[...modelBSelect.options].find(option=>!option.disabled&&option.value!==state.modelA)?.value||'';state.analyzed=false;syncModelOptions();renderResults();};
+        modelBSelect.onchange=()=>{state.modelB=modelBSelect.value;if(state.modelA===state.modelB){setMessage('The two models must be different result sources.');state.analyzed=false;}syncModelOptions();renderResults();};
+        $('#raAnalyze').onclick=()=>{state.analyzed=Boolean(state.modelA&&state.modelB&&state.modelA!==state.modelB);renderResults();setMessage(state.analyzed?'Differences between the two models have been analyzed.':'Select two different result sources.');};
+        const saveNote=document.createElement('button');saveNote.type='button';saveNote.className='ra-secondary-button';saveNote.textContent='Save NOTE';correctionResult.after(saveNote);
+        const confirmRedo=document.createElement('button');confirmRedo.type='button';confirmRedo.className='ra-secondary-button';confirmRedo.hidden=true;confirmRedo.textContent='Confirm redo result';saveNote.after(confirmRedo);
+        saveNote.onclick=async()=>{if(!state.task||!state.noteRow)return;const noteText=correctionPrompt.value.trim();if(!noteText){setMessage('Enter a NOTE explaining the error.');return;}await request(`/analysis/tasks/${state.task.id}/fields/${encodeURIComponent(key(state.noteRow))}`,{method:'PUT',json:{note:noteText,redoRunId:null,redoConfirmed:false}});await state.completionGuard?.refresh();setMessage('NOTE saved for the field.');};
+        confirmRedo.onclick=async()=>{if(!state.task||!state.noteRow||!state.redoRunId)return;await request(`/analysis/tasks/${state.task.id}/fields/${encodeURIComponent(key(state.noteRow))}`,{method:'PUT',json:{note:null,redoRunId:state.redoRunId,redoConfirmed:true}});confirmRedo.hidden=true;await state.completionGuard?.refresh();setMessage('Redo result confirmed.');};
         $('#raCloseNote').onclick=()=>{note.hidden=true;};
-        $('#raLogout').onclick=()=>AAIR.logout();
         $('#raRunCorrection').onclick=async()=>{
             if(!state.task||!correctionPrompt.value.trim())return;
-            const button=$('#raRunCorrection');button.disabled=true;correctionResult.textContent='Đang chạy lại AI…';
-            try{const selected=state.models.find(model=>model.key===state.modelA);const provider=selected?.provider||'Gemini';const response=await request(`/tasks/${state.task.id}/run-ai`,{method:'POST',json:{provider,prompt:correctionPrompt.value}});state.redoRunId=response?.runId||null;confirmRedo.hidden=!state.redoRunId;correctionResult.textContent=`AI đã chạy lại ${response?.labels?.length||0} chỉ tiêu bằng ${response?.provider||provider}. Hãy kiểm tra rồi xác nhận kết quả redo.`;}catch(error){correctionResult.textContent=error.message;}finally{button.disabled=false;}
+            const button=$('#raRunCorrection');button.disabled=true;correctionResult.textContent='Running AI again…';
+            try{const selected=state.models.find(model=>model.key===state.modelA);const provider=selected?.provider||'Gemini';const response=await request(`/tasks/${state.task.id}/run-ai`,{method:'POST',json:{provider,prompt:correctionPrompt.value}});state.redoRunId=response?.runId||null;confirmRedo.hidden=!state.redoRunId;correctionResult.textContent=`AI reran ${response?.labels?.length||0} indicators with ${response?.provider||provider}. Review and confirm the redo result.`;}catch(error){correctionResult.textContent=error.message;}finally{button.disabled=false;}
         };
-        $('#raImprovePrompt').onclick=()=>{originalPrompt.value=`${originalPrompt.value.trim()} Với mỗi chỉ tiêu, đối chiếu nhãn nguồn trong cùng ngữ cảnh; không suy diễn số liệu; bắt buộc trả về value, unit, source_page, source_label và confidence.`;};
-        window.addEventListener('pagehide',()=>{if(state.pdfUrl)URL.revokeObjectURL(state.pdfUrl);});
-        state.completionGuard=AAIR.SessionCompletion?.create({button:$('#raCompleteAnalysis'),loadStatus:()=>request(`/session-completion${state.task?.session_id?`?sessionId=${state.task.session_id}`:''}`),findItem:item=>$(`[data-task-id="${item.id}"]`,documents),blockedTitle:'Cần xử lý mọi khác biệt của tất cả tài liệu trước khi Complete Analysis'});
-        $('#raCompleteAnalysis').onclick=async()=>{if(state.completionGuard&&!await state.completionGuard.ensure('Chưa thể Complete Analysis'))return;await request('/analysis/complete',{method:'POST',json:{sessionId:state.task?.session_id||null}});await state.completionGuard?.refresh();setMessage('Đã hoàn tất phân tích session.');};
-        selectTask(initial.id);
+        $('#raImprovePrompt').onclick=()=>{originalPrompt.value=`${originalPrompt.value.trim()} For each indicator, compare the source label in the same context; do not infer values; always return value, unit, source_page, source_label, and confidence.`;};
+        window.addEventListener('pagehide',()=>{if(state.pdfUrl)URL.revokeObjectURL(state.pdfUrl);if(sessionTimerInterval)clearInterval(sessionTimerInterval);});
+        state.completionGuard=AAIR.SessionCompletion?.create({button:$('#raCompleteAnalysis'),loadStatus:()=>request(`/session-completion${state.task?.session_id?`?sessionId=${state.task.session_id}`:''}`),findItem:item=>$(`[data-task-id="${item.id}"]`,documents),blockedTitle:'Resolve all differences in all documents before completing the analysis'});
+        $('#raCompleteAnalysis').onclick=async()=>{if(state.completionGuard&&!await state.completionGuard.ensure('Analysis cannot be completed yet'))return;await request('/analysis/complete',{method:'POST',json:{sessionId:state.task?.session_id||null}});await state.completionGuard?.refresh();setMessage('The session analysis is complete.');};
+        syncModelOptions();selectTask(initial.id);
     }
     async function taskPage() {
         if(document.body.matches('.ai-task-page,.manual-task-page')){
@@ -1142,6 +1211,7 @@
                 b.replaceChildren();
                 const icon=document.createElement('span');icon.className='material-symbols-outlined text-[16px]';icon.textContent='picture_as_pdf';
                 const label=document.createElement('span');label.className='truncate';label.textContent=row.document_title;
+<<<<<<< HEAD
                 b.append(icon,label);b.title=row.document_title;b.setAttribute('aria-label',`Mở tài liệu ${row.document_title}`);
                 bind(b,()=>loadTask(row));documentButtons.set(row.id,b);entry.append(checkbox,b);container.append(entry);
             }
@@ -1151,60 +1221,80 @@
         const heading=$$('main h2,main h3').find(h=>text(h)==='Extracted Information');
         let panel=heading?.parentElement;
         while(panel && !$('label',panel))panel=panel.parentElement;
+=======
+                const status=document.createElement('span');status.className='document-status';
+                const statusIcon=document.createElement('span');statusIcon.className='material-symbols-outlined';
+                const states={PENDING:['schedule','Chưa làm'],IN_PROGRESS:['edit','Đang làm'],SUBMITTED:['check_circle','Hoàn thành'],APPROVED:['check_circle','Hoàn thành'],REJECTED:['error','Có lỗi']};
+                const [statusName,statusLabel]=states[row.status]||['schedule','Chưa làm'];
+                statusIcon.textContent=statusName;status.append(statusIcon);status.title=statusLabel;b.dataset.status=row.status||'PENDING';
+                b.append(icon,label,status);b.title=row.document_title;b.setAttribute('aria-label',`Mở tài liệu ${row.document_title} - ${statusLabel}`);
+                bind(b,()=>loadTask(row));documentButtons.set(row.id,b);container.append(b);
+            }
+        }
+        // Render each extracted field as a compact review card.
+        const heading=$$('main h2,main h3').find(h=>['Extracted Information','Thông tin trích xuất'].includes(text(h)));
+        let panel=$('[data-annotation-panel]')||heading?.parentElement;
+>>>>>>> c0400a00ec48da9a12cd8761452fdf2e1e35bbe8
         const reviewBodies=$$('main .overflow-y-auto').filter(el=>$('input[type="checkbox"]',el));
         if(!panel)panel=reviewBodies[0];
         if(!panel)throw new Error('Không tìm thấy vùng nhãn của tác vụ.');
         const labeler=['AI_LABELER','MANUAL_LABELER'].includes(user.role);
-        const termLabel=$$('label',panel).find(l=>text(l)==='Term');
-        let cardTemplate;
-        if(termLabel){
-            cardTemplate=termLabel.parentElement;
-            while(cardTemplate && !$$('label',cardTemplate).some(l=>text(l)==='Definition'))cardTemplate=cardTemplate.parentElement;
-            cardTemplate=cardTemplate.cloneNode(true);
-        }else cardTemplate=panel.firstElementChild.cloneNode(true);
         let readonly=!labeler;
         const cards=[];
         let pdfPageCount=null,queueAutoSave=()=>{},flushAutoSave=async()=>{};
         const clearCards=()=>{
             cards.length=0;
-            if(heading){const keep=[...panel.children].find(c=>c===heading||c.contains(heading));[...panel.children].filter(c=>c!==keep).forEach(c=>c.remove());}
+            if(heading){const keep=[...panel.children].filter(c=>c===heading||c.classList.contains('annotation-panel-save')||c.contains(heading)||$$('h2,h3',c).some(h=>['Document Information','Thông tin tài liệu'].includes(text(h))));[...panel.children].filter(c=>!keep.includes(c)).forEach(c=>c.remove());}
             else panel.replaceChildren();
         };
         function addLabel(row={labelName:'',labelValue:'',sourceLabel:'',sourcePage:null,confidence:null}){
-            const card=cardTemplate.cloneNode(true);
-            let nameNode, valueNode;
-            const labels=$$('label',card);
-            if(labels.length){nameNode=labels.find(l=>text(l)==='Term')?.nextElementSibling;valueNode=labels.find(l=>text(l)==='Definition')?.nextElementSibling;}
-            else{nameNode=$('span',card);valueNode=$('p',card);}
-            if(!nameNode||!valueNode)throw new Error('Thiếu vùng Term / Definition trong mẫu nhãn.');
-            $$('button,input',card).forEach(el=>el.remove());
+            const card=document.createElement('article');card.className='annotation-field-card annotation-field-card--legacy';
             const parts=splitLabelValue(row.labelValue,row.sourceLabel);
-            const termInput=document.createElement('input');termInput.type='text';termInput.value=row.labelName||'';termInput.maxLength=150;termInput.setAttribute('aria-label','Term');
-            termInput.className='annotation-term-input';termInput.disabled=readonly;nameNode.replaceWith(termInput);
-            const valueInput=document.createElement('textarea');valueInput.value=parts.editableValue;valueInput.maxLength=20000;valueInput.rows=4;valueInput.setAttribute('aria-label','Definition');
-            valueInput.className='annotation-definition-input';valueInput.disabled=readonly;valueNode.replaceWith(valueInput);
-            const source=document.createElement('div');source.className='annotation-source-label';
-            source.innerHTML='<span>Nhãn nguồn</span><p></p>';source.querySelector('p').textContent=parts.sourceLabel||'Chưa có nhãn nguồn từ AI';valueInput.after(source);
-            $$('span',card).filter(e=>/%$/.test(text(e))).forEach(e=>e.textContent=row.confidence==null?'—':`${Math.round(row.confidence*100)}%`);
-            const pageWrap=document.createElement('label');pageWrap.className='mt-3 flex items-center gap-3 border-t border-outline-variant pt-3 text-sm font-medium';
-            const pageText=document.createElement('span');pageText.textContent='Source Page';
-            const pageInput=document.createElement('input');pageInput.type='number';pageInput.min='1';pageInput.max=String(pdfPageCount||9999);pageInput.step='1';pageInput.required=true;
-            pageInput.value=row.sourcePage==null?'':String(row.sourcePage);pageInput.placeholder='Số trang';pageInput.setAttribute('aria-label','Source Page');
-            pageInput.className='ml-auto w-28 rounded-lg border border-outline-variant bg-white px-3 py-1.5 text-sm';pageInput.disabled=readonly;
+            const top=document.createElement('div');top.className='annotation-field-card__top';
+            const friendlyLabels={company_name:'Tên công ty',industry:'Ngành nghề',report_period:'Kỳ báo cáo',report_year:'Năm báo cáo',revenue:'Doanh thu',total_assets:'Tổng tài sản',equity:'Vốn chủ sở hữu',cfo:'Dòng tiền từ HĐKD',cfi:'Dòng tiền từ HĐĐT',cff:'Dòng tiền từ HĐTC',net_cash_flow:'Dòng tiền thuần'};
+            const key=String(row.labelName||'').trim().toLowerCase();
+            const labelBlock=document.createElement('span');labelBlock.className='annotation-field-name';
+            const friendly=document.createElement('strong');friendly.textContent=friendlyLabels[key]||row.labelName||'Field mới';
+            const technical=document.createElement('small');technical.textContent=row.labelName||'field_key';labelBlock.append(friendly,technical);
+            const termInput=document.createElement('input');termInput.type='text';termInput.value=row.labelName||'';termInput.maxLength=150;termInput.setAttribute('aria-label','Tên field');termInput.className='annotation-term-input';termInput.disabled=readonly;termInput.hidden=true;
+            const stateBadge=document.createElement('span');stateBadge.className='annotation-status';
+            const editButton=document.createElement('button');editButton.type='button';editButton.className='annotation-icon-button';editButton.title=readonly?'Bấm Mở khóa để chỉnh sửa':'Sửa field';editButton.disabled=readonly;editButton.innerHTML='<span class="material-symbols-outlined">edit</span>';
+            const confirmButton=document.createElement('button');confirmButton.type='button';confirmButton.className='annotation-icon-button annotation-icon-button--confirm';confirmButton.title='Xác nhận (Enter)';confirmButton.innerHTML='<span class="material-symbols-outlined">check</span>';
+            top.append(labelBlock,termInput,stateBadge,editButton,confirmButton);
+            const valueInput=document.createElement('textarea');valueInput.value=parts.editableValue;valueInput.placeholder='Nhập giá trị...';valueInput.maxLength=20000;valueInput.rows=4;valueInput.setAttribute('aria-label','Giá trị field');valueInput.className='annotation-definition-input';valueInput.disabled=readonly;
+            const meta=document.createElement('div');meta.className='annotation-field-card__meta';
+            const pageInput=document.createElement('input');pageInput.type='number';pageInput.min='1';pageInput.max=String(pdfPageCount||9999);pageInput.step='1';pageInput.required=true;pageInput.value=row.sourcePage==null?'':String(row.sourcePage);pageInput.setAttribute('aria-label','Trang nguồn');pageInput.className='annotation-page-input';pageInput.disabled=readonly;pageInput.hidden=true;
+            const pageButton=document.createElement('button');pageButton.type='button';pageButton.className='annotation-page-chip';pageButton.title='Đến trang nguồn trong PDF';
+            const confidence=document.createElement('span');confidence.className='annotation-confidence';const confidencePct=row.confidence==null?null:Math.round(row.confidence*100);confidence.textContent=`AI ${confidencePct==null?'—':`${confidencePct}%`}`;confidence.dataset.level=confidencePct==null?'unknown':confidencePct>=90?'high':confidencePct>=70?'medium':'low';
+            const currentValue=parts.editableValue.trim();const suspicious=(key==='report_period'&&currentValue&&/^fy$/i.test(currentValue))||(key==='report_year'&&currentValue&&!/^\d{4}$/.test(currentValue))||(key==='revenue'&&currentValue&&!/[\d]/.test(currentValue));
+            const warning=document.createElement('span');warning.className='annotation-warning';warning.hidden=!suspicious;warning.title='Giá trị cần kiểm tra lại với tài liệu nguồn.';warning.innerHTML='<span class="material-symbols-outlined">warning</span>';
+            const sourceToggle=document.createElement('button');sourceToggle.type='button';sourceToggle.className='annotation-source-toggle';sourceToggle.textContent='Xem nguồn';sourceToggle.disabled=!pageInput.value;sourceToggle.title=pageInput.value?'Xem nhãn nguồn':'Chưa có trang nguồn';
+            meta.append(pageButton,pageInput,confidence,warning,sourceToggle);
             const hasSavedValue=Boolean(row.labelName||row.labelValue||row.sourcePage);
-            const saveState=document.createElement('span');saveState.className='annotation-save-state';saveState.textContent=readonly?'Chỉ đọc':hasSavedValue?'Đã lưu':'Chưa nhập';
-            pageWrap.append(pageText,pageInput,saveState);card.append(pageWrap);
-            const cardState={termInput,valueInput,pageInput,sourceLabel:parts.sourceLabel,confidence:row.confidence,saveState,dirty:false,saved:hasSavedValue};
-            const changed=()=>{if(readonly)return;cardState.dirty=true;saveState.dataset.state='dirty';saveState.textContent='Chưa lưu';queueAutoSave(cardState);};
+            const saveState=document.createElement('span');saveState.className='annotation-save-state';
+            const cardState={termInput,valueInput,pageInput,sourceLabel:parts.sourceLabel,confidence:row.confidence,saveState,dirty:false,saved:hasSavedValue,confirmed:false};
+            const paintState=()=>{const state=readonly?'Chỉ xem':cardState.confirmed?'Đã duyệt':cardState.dirty?'Đã chỉnh sửa':hasSavedValue?'Chưa duyệt':'Chưa nhập';stateBadge.textContent=state;stateBadge.dataset.state=readonly?'readonly':cardState.confirmed?'confirmed':cardState.dirty?'edited':'pending';saveState.textContent=readonly?'Chỉ xem':cardState.dirty?'Chưa lưu':cardState.saved?'Đã lưu':'Chưa nhập';pageButton.textContent=pageInput.value?`Trang ${pageInput.value}`:'Chưa có trang';pageButton.disabled=!pageInput.value;sourceToggle.disabled=!pageInput.value;sourceToggle.title=pageInput.value?'Xem nguồn':'Chưa có trang nguồn';};
+            const changed=()=>{if(readonly)return;cardState.dirty=true;cardState.confirmed=false;saveState.dataset.state='dirty';paintState();queueAutoSave(cardState);};
+            const jumpToSource=()=>{const page=Number(pageInput.value);if(!Number.isInteger(page)||page<1)return;const iframe=$('#pdfViewer');const viewer=iframe?.contentWindow?.PDFViewerApplication?.pdfViewer;if(viewer){viewer.currentPageNumber=page;return;}if(iframe?.src)iframe.src=iframe.src.replace(/#.*/,'')+`#page=${page}&zoom=page-width`;};
+            const original={term:termInput.value,value:valueInput.value,page:pageInput.value};
+            editButton.onclick=()=>{if(card.classList.contains('is-editing')){termInput.value=original.term;valueInput.value=original.value;pageInput.value=original.page;valueInput.readOnly=true;pageInput.disabled=true;cardState.dirty=false;card.classList.remove('is-editing');labelBlock.hidden=false;termInput.hidden=true;pageInput.hidden=true;paintState();return;}card.classList.add('is-editing');labelBlock.hidden=true;termInput.hidden=false;termInput.disabled=readonly;valueInput.readOnly=false;pageInput.disabled=false;pageInput.hidden=false;termInput.focus();};
+            confirmButton.onclick=()=>{cardState.confirmed=true;changed();paintState();};
+            const definitionLabel=document.createElement('label');definitionLabel.className='annotation-legacy-label';definitionLabel.textContent='Definition';
+            const source=document.createElement('div');source.className='annotation-source-label';source.hidden=false;
+            const sourceTitle=document.createElement('strong');sourceTitle.textContent='NHÃN NGUỒN';
+            const sourceValue=document.createElement('span');sourceValue.textContent=parts.sourceLabel||'Chưa có nhãn nguồn từ AI';
+            source.append(sourceTitle,sourceValue);
+            sourceToggle.onclick=()=>{if(sourceToggle.disabled)return;source.hidden=!source.hidden;sourceToggle.textContent=source.hidden?'Xem nguồn':'Ẩn nguồn';};pageButton.onclick=jumpToSource;
             termInput.addEventListener('input',changed);valueInput.addEventListener('input',changed);pageInput.addEventListener('input',changed);
-            cards.push(cardState);panel.append(card);return termInput;
+            valueInput.addEventListener('keydown',event=>{if(event.key==='Escape'&&card.classList.contains('is-editing')){editButton.click();return;}if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();confirmButton.click();}if(event.key==='Tab'&&!event.shiftKey){const index=cards.indexOf(cardState);const next=cards[index+1];if(next){event.preventDefault();next.valueInput.focus();}}});
+            card.append(top,definitionLabel,valueInput,meta,source);paintState();cards.push(cardState);panel.append(card);return valueInput;
         }
         const editor={
             get value(){return JSON.stringify(cards.map(c=>{const editableValue=c.valueInput.value;return {labelName:c.termInput.value.trim(),labelValue:c.sourceLabel?`${editableValue}\nNhãn nguồn: ${c.sourceLabel}`:editableValue,sourcePage:c.pageInput.value?Number(c.pageInput.value):null,confidence:c.confidence};}).filter(c=>c.labelName||c.labelValue));},
-            set value(value){clearCards();const rows=JSON.parse(value);rows.forEach(addLabel);if(!rows.length&&labeler)addLabel();},
+            set value(value){clearCards();const rows=JSON.parse(value);rows.forEach(addLabel);if(!rows.length&&labeler)addLabel();const saveDock=panel.querySelector('.annotation-panel-save');if(saveDock)panel.append(saveDock);},
             get readOnly(){return readonly;},
-            set readOnly(value){readonly=value;cards.forEach(c=>{c.termInput.disabled=readonly;c.valueInput.disabled=readonly;c.pageInput.disabled=readonly;c.saveState.textContent=readonly?'Chỉ đọc':c.dirty?'Chưa lưu':c.saved?'Đã lưu':'Chưa nhập';});},
-            focus(){cards[0]?.termInput.focus();},
+            set readOnly(value){readonly=value;cards.forEach(c=>{c.termInput.disabled=readonly;c.valueInput.readOnly=readonly;c.pageInput.disabled=readonly;c.saveState.textContent=readonly?'Chỉ xem':c.dirty?'Chưa lưu':c.saved?'Đã lưu':'Chưa nhập';});},
+            focus(){cards[0]?.valueInput.focus();},
         };
         editor.value='[]';
         reviewBodies.slice(1).forEach(body=>body.replaceChildren());
@@ -1212,7 +1302,7 @@
         $$('main h2,main h3').filter(h=>['Extraction Status','Processing Details'].includes(text(h))).forEach(h=>{
             const section=h.parentElement;[...section.children].filter(c=>c!==h).forEach(c=>c.remove());const p=document.createElement('p');p.textContent='Chưa có dữ liệu xử lý AI.';section.append(p);
         });
-        $$('main h3').filter(h=>text(h)==='Document Information').forEach(h=>{while(h.nextSibling)h.nextSibling.remove();});
+        $$('main h3').filter(h=>['Document Information','Thông tin tài liệu'].includes(text(h))).forEach(h=>{while(h.nextSibling)h.nextSibling.remove();});
         // Result comparison has two extraction panels; no synthetic second result.
         $$('main h2,main h3').filter(h=>text(h)==='Extracted Information'&&h!==heading).forEach(h=>{
             while(h.nextSibling)h.nextSibling.remove();const p=document.createElement('p');p.textContent='Kết quả tác vụ được hiển thị trong vùng nhãn bên cạnh.';h.parentElement.append(p);
@@ -1239,7 +1329,7 @@
                 if([...modelSelect.options].some(option=>option.value===model))modelSelect.value=model;
                 updatePrompts();
                 promptSelect.value=String(row.id);
-                const runButton=buttons(/Run AI/)[0];
+                    const runButton=buttons(/Run AI|Chạy AI/)[0];
                 if(runButton){
                     runButton.disabled=false;
                     runButton.style.opacity='';
@@ -1249,15 +1339,16 @@
             modelSelect.addEventListener('change',()=>{updatePrompts();if(modelSelect.value)notice(`Đã chọn model ${modelSelect.value}.`);});
         }else if(modelSelect){options(modelSelect,[],true);modelSelect.disabled=true;}
         if(!initial){
-            buttons(/Save|Submit|Approve|Validate|^Edit$|Analyze/).forEach(b=>unavailable(b,'Chưa được phân công tác vụ.'));
+            buttons(/Save|Submit|Nộp bài|Approve|Analyze/).forEach(b=>unavailable(b,'Chưa được phân công tác vụ.'));
             notice(id?'Không tìm thấy tác vụ hoặc bạn không có quyền truy cập.':'Chưa có tác vụ được phân công.',Boolean(id));return;
         }
         let task, fileUrl, workTimer, completionGuard;
-        const title=$('header:nth-of-type(2) .truncate');
-        const type=$$('header:nth-of-type(2) .truncate')[1];
-        const docHeading=$$('main h3').find(h=>text(h)==='Document Information');
+        const title=$('#sessionTitle');
+        const type=null;
+        const docHeading=$$('main h3').find(h=>['Document Information','Thông tin tài liệu'].includes(text(h)));
         let docInfo;
-        if(docHeading){docInfo=document.createElement('p');docHeading.after(docInfo);}
+        if(docHeading){while(docHeading.nextSibling)docHeading.nextSibling.remove();docInfo=document.createElement('p');docHeading.after(docInfo);docHeading.textContent='Thông tin tài liệu';}
+        if(heading)heading.textContent='Thông tin trích xuất';
         const renderTask=()=>{
             editor.value=JSON.stringify(task.labels.map(l=>({labelName:l.label_name,labelValue:l.label_value,sourcePage:l.source_page,confidence:l.confidence})),null,2);
             editor.readOnly=!labeler||['SUBMITTED','APPROVED'].includes(task.status);
@@ -1286,14 +1377,23 @@
                 if(fileUrl)URL.revokeObjectURL(fileUrl);
                 fileUrl=URL.createObjectURL(blob);
                 if(iframe){
-                    const viewerUrl=`/resource/pdfjs/viewer.html?file=${encodeURIComponent(fileUrl)}&title=${encodeURIComponent(task.document_title)}#page=1&zoom=100`;
+                    const viewerUrl=`/resource/pdfjs/viewer.html?file=${encodeURIComponent(fileUrl)}&title=${encodeURIComponent(task.document_title)}#page=1&zoom=page-width`;
                     const openedTaskId=task.id;
                     iframe.onload=()=>{
+                        const addPdfControls=()=>{
+                            const documentInFrame=iframe.contentDocument;
+                            const toolbar=documentInFrame?.querySelector('#toolbarViewerRight');
+                            if(!toolbar||documentInFrame.querySelector('[data-aair-pdf-control]'))return;
+                            [['fit-width','↔','Vừa chiều rộng'],['fit-page','□','Vừa toàn trang'],['rotate','↻','Xoay trang']].forEach(([action,icon,title])=>{
+                                const button=documentInFrame.createElement('button');button.type='button';button.dataset.aairPdfControl=action;button.title=title;button.className='toolbarButton';button.textContent=icon;
+                                button.onclick=()=>{const viewer=iframe.contentWindow?.PDFViewerApplication?.pdfViewer;if(!viewer)return;if(action==='fit-width')viewer.currentScaleValue='page-width';if(action==='fit-page')viewer.currentScaleValue='page-fit';if(action==='rotate')viewer.pagesRotation=(viewer.pagesRotation+90)%360;};toolbar.append(button);
+                            });
+                        };
                         let attempts=0;
                         const syncPageCount=()=>{
                             if(task.id!==openedTaskId)return;
                             const count=Number(iframe.contentWindow?.PDFViewerApplication?.pdfDocument?.numPages||0);
-                            if(count>0){pdfPageCount=count;cards.forEach(card=>{card.pageInput.max=String(count);card.pageInput.title=`Trang hợp lệ: 1-${count}`;});return;}
+                            if(count>0){pdfPageCount=count;cards.forEach(card=>{card.pageInput.max=String(count);card.pageInput.title=`Trang hợp lệ: 1-${count}`;});addPdfControls();return;}
                             if(++attempts<30)setTimeout(syncPageCount,200);
                         };
                         syncPageCount();
@@ -1309,7 +1409,7 @@
             }
         }
         await loadTask(initial);
-        const submitTaskButton=buttons(/^Submit Task$/)[0];
+        const submitTaskButton=buttons(/^(Submit Task|Nộp bài)$/)[0];
         if(window.AAIR.SessionCompletion&&submitTaskButton){
             completionGuard=AAIR.SessionCompletion.create({
                 button:submitTaskButton,
@@ -1317,18 +1417,20 @@
                 findItem:documentStatus=>documentButtons.get(Number(documentStatus.id)),
                 blockedTitle:status=>`Còn ${(status.missingItems||[]).length} tài liệu chưa hoàn tất`,
                 onStatus:status=>{
-                    const total=(status.documents||[]).length,done=(status.documents||[]).filter(item=>item.status==='done').length;
+                    const reported=status.documents||[];
+                    const sessionTasks=reported.length?reported:tasks.filter(item=>String(item.session_id)===String(task?.session_id));
+                    const total=sessionTasks.length,done=sessionTasks.filter(item=>item.status==='done'||['SUBMITTED','APPROVED','COMPLETED'].includes(item.status)).length;
                     const percent=total?Math.round(done/total*100):0;
                     const progress=$('#sessionProgressTrack'),bar=$('#sessionProgressBar'),label=$('#sessionProgressText');
                     if(progress)progress.setAttribute('aria-valuenow',String(percent));
                     if(bar)bar.style.width=`${percent}%`;
-                    if(label)label.textContent=`${done}/${total} tài liệu`;
+                    if(label)label.textContent=`${done}/${total} tài liệu · ${percent}%`;
                 }
             });
             await completionGuard.refresh();
         }
         window.addEventListener('pagehide',()=>{if(fileUrl)URL.revokeObjectURL(fileUrl);});
-        const runAiButton=buttons(/Run AI/)[0];
+        const runAiButton=buttons(/Run AI|Chạy AI/)[0];
         if(runAiButton && ['AI_LABELER','MANUAL_LABELER'].includes(user.role)){
             const updateRunAiState=()=>{
                 const blocked=task?.task_type==='MANUAL'&&task?.assistance_mode==='NONE';
@@ -1354,9 +1456,10 @@
         }else if(runAiButton)unavailable(runAiButton,'Chỉ AI Labeler được chạy mô hình AI.');
         function labels(){
             let data;try{data=JSON.parse(editor.value);}catch{throw new Error('Nhãn phải là JSON hợp lệ.');}
-            if(!Array.isArray(data)||data.length>500||data.some(l=>!l||typeof l.labelName!=='string'||!l.labelName.trim()||l.labelName.length>150||!(l.labelValue==null||typeof l.labelValue==='string')||(l.labelValue?.length||0)>20000||!Number.isInteger(l.sourcePage)||l.sourcePage<1||(pdfPageCount&&l.sourcePage>pdfPageCount)||!(l.confidence==null||typeof l.confidence==='number'&&l.confidence>=0&&l.confidence<=1)))throw new Error(`Mỗi chỉ tiêu cần Term, Definition, Source Page từ 1${pdfPageCount?`-${pdfPageCount}`:''} và confidence từ 0 đến 1 (hoặc null); tối đa 500 chỉ tiêu.`);
+            if(!Array.isArray(data)||data.length>500||data.some(l=>!l||typeof l.labelName!=='string'||!l.labelName.trim()||l.labelName.length>150||!(l.labelValue==null||typeof l.labelValue==='string')||(l.labelValue?.length||0)>20000||!Number.isInteger(l.sourcePage)||l.sourcePage<1||(pdfPageCount&&l.sourcePage>pdfPageCount)||!(l.confidence==null||typeof l.confidence==='number'&&l.confidence>=0&&l.confidence<=1)))throw new Error(`Mỗi chỉ tiêu cần tên, giá trị, trang nguồn từ 1${pdfPageCount?`-${pdfPageCount}`:''} và confidence từ 0 đến 1 (hoặc null); tối đa 500 chỉ tiêu.`);
             return data;
         }
+        let manualSaveButton=null;
         const save=async(showNotice=true,track=true,refreshAfter=true)=>{
             const data=labels();
             if(['PENDING','REJECTED'].includes(task.status)){await request(`/tasks/${task.id}/start`,{method:'POST'});task.status='IN_PROGRESS';}
@@ -1365,6 +1468,12 @@
             if(track&&workTimer)await workTimer.stop('SAVE',true);
             if(showNotice)notice('Lưu dữ liệu thành công.');
         };
+        if(labeler && panel){
+            const saveWrap=document.createElement('div');saveWrap.className='annotation-panel-save';
+            manualSaveButton=document.createElement('button');manualSaveButton.type='button';manualSaveButton.textContent='Lưu';manualSaveButton.disabled=true;manualSaveButton.className='annotation-save-button';
+            saveWrap.append(manualSaveButton);panel.append(saveWrap);
+            manualSaveButton.onclick=async()=>{if(manualSaveButton.disabled)return;manualSaveButton.disabled=true;manualSaveButton.textContent='Đang lưu…';try{await save();cards.forEach(card=>{card.dirty=false;card.saved=true;card.saveState.dataset.state='saved';card.saveState.textContent='Đã lưu';});}catch(error){manualSaveButton.disabled=false;manualSaveButton.textContent='Lưu';throw error;}manualSaveButton.textContent='Lưu';};
+        }
         let autoSaveTimer=null,autoSavePromise=Promise.resolve();
         const setSaveState=(state,message)=>cards.filter(card=>card.dirty).forEach(card=>{card.saveState.dataset.state=state;card.saveState.textContent=message;});
         const performAutoSave=async()=>{
@@ -1382,15 +1491,15 @@
         };
         queueAutoSave=()=>{
             if(autoSaveTimer)clearTimeout(autoSaveTimer);
+            if(manualSaveButton){manualSaveButton.disabled=false;return;}
             autoSaveTimer=setTimeout(()=>{autoSaveTimer=null;autoSavePromise=autoSavePromise.then(performAutoSave,performAutoSave);},1000);
         };
         buttons(/^Save$/).forEach(button=>button.remove());
-        bindText(/^Submit Task$/,async()=>{if(!labels().length)throw new Error('Cần ít nhất một nhãn trước khi nộp.');await flushAutoSave();if(['PENDING','REJECTED'].includes(task.status))await save(false,false,false);if(completionGuard&&!await completionGuard.ensure('Chưa thể Submit Task'))return;await request(`/tasks/${task.id}/submit`,{method:'POST'});if(workTimer)await workTimer.stop('SUBMIT');await refresh();if(completionGuard)await completionGuard.refresh();notice('Submit task thành công.');});
-        bindText(/^Validate$/,()=>{labels();notice('Định dạng nhãn hợp lệ.');});
-        buttons(/^Edit$/).forEach(button=>{
-            button.innerHTML='<span class="material-symbols-outlined text-[16px]">add</span>Add Field';
-            bind(button,()=>{if(editor.readOnly)throw new Error('Tác vụ hiện chỉ được xem.');addLabel().focus();});
-        });
+        bindText(/^(Submit Task|Nộp bài)$/,async()=>{if(!labels().length)throw new Error('Cần ít nhất một nhãn trước khi nộp.');await flushAutoSave();if(['PENDING','REJECTED'].includes(task.status))await save(false,false,false);if(completionGuard&&!await completionGuard.ensure('Chưa thể Submit Task'))return;await request(`/tasks/${task.id}/submit`,{method:'POST'});if(workTimer)await workTimer.stop('SUBMIT');await refresh();if(completionGuard)await completionGuard.refresh();notice('Submit task thành công.');});
+        if(labeler){
+            const saveDock=panel.querySelector('.annotation-panel-save');
+            if(saveDock) panel.append(saveDock);
+        }
         if(aiContent){
             const topHeader=$$('header')[1];
             buttons(/^Edit$/,topHeader).forEach(button=>button.remove());
@@ -1419,7 +1528,6 @@
             await request(`/tasks/${task.id}/review`,{method:'POST',json:{decision,feedback}});await refresh();notice(`Đã lưu kết quả: ${decision}.`);
         });
         bindText(/^Analyze$/,()=>{exportJson({taskId:task.id,status:task.status,labels:task.labels,reviews:task.reviews},`task-${task.id}-analysis.json`);notice(`Đã xuất ${task.labels.length} nhãn và ${task.reviews.length} quyết định kiểm duyệt.`);});
-        if(!labeler)buttons(/^Edit$|^edit$|^Validate$/).forEach(b=>unavailable(b,'Vai trò này chỉ xem nhãn.'));
         notice(`${task.document_title} — ${task.status}`);
     }
     async function logsPage() {
@@ -1543,6 +1651,7 @@
         }
         const data=await request('/dashboard');
         const role=user.role;
+        const greeting=$$('header h2').find(h=>/^Good (Morning|Afternoon|Evening)/.test(text(h)));if(greeting){const currentGreeting=window.AAIRGreeting?.getGreeting?.(new Date())||'Good Morning,';greeting.textContent=`${currentGreeting} ${user.username}`;}
         const rows=await request(role==='ADMIN'?'/audit-logs':role==='TERMINOLOGY'?'/terms':'/tasks');
         if(document.body.classList.contains('manual-labeling-dashboard')){
             const total=rows.length;
@@ -1665,26 +1774,15 @@
         const main=$('main');if(main)main.style.visibility='hidden';
         // Clear sample rows immediately so network failures never look like real data.
         $$('tbody').forEach(body=>{const el=body.closest('table');tableStyles.set(el,$$('tr:first-child td',body).map(c=>c.className));const columns=$$('thead th',el).length;body.replaceChildren();const td=body.insertRow().insertCell();td.colSpan=columns||1;td.className='p-4';td.textContent='Đang tải dữ liệu…';});
-        user=await AAIR.guard();if(!user)return;
-        if(['RESULT_ANALYST','REVIEWER'].includes(user.role) && !window.AAIRGuidelineModal && !document.querySelector('a[href$="aair-labeling-guidelines.pdf"]')){
-            const nav=document.querySelector('header nav');
-            if(nav){
-                const guide=document.createElement('a');
-                guide.href='/resource/guidelines/aair-labeling-guidelines.pdf';guide.target='_blank';guide.rel='noopener';
-                guide.className='flex items-center gap-2 px-4 h-full text-on-surface-variant hover:text-text-hover hover:bg-button-hover transition-colors duration-200';
-                guide.innerHTML='<span class="material-symbols-outlined">menu_book</span><span class="font-body-md text-[12px]">Hướng dẫn</span>';
-                nav.append(guide);
-            }
-        }
+        user=await AAIR.guard();if(!user)return;window.AAIRGuidelineModal?.init();
         const profile=$('header .hidden.md\\:block');
-        if(profile){const ps=$$('p',profile);if(ps[0])ps[0].textContent=user.username;if(ps[1])ps[1].textContent=user.role;
+        if(profile){const ps=$$('p',profile);if(ps[0])ps[0].textContent=user.username;if(ps[1])ps[1].textContent=user.role==='RESULT_ANALYST'?'Analyst':user.role;
             const avatar=profile.previousElementSibling;if(avatar){avatar.replaceChildren();const node=avatarNode(user,'w-full h-full');avatar.append(node);}
             const logout=document.createElement('button');
-            logout.type='button';logout.setAttribute('aria-label','Đăng xuất');logout.title='Đăng xuất khỏi hệ thống';
+            logout.type='button';logout.setAttribute('aria-label','Log out');logout.title='Log out of the system';
             logout.className='ml-2 inline-flex min-h-9 items-center gap-2 rounded-lg border border-white/40 bg-white/15 px-3 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-white/70';
-            const icon=document.createElement('span');icon.className='material-symbols-outlined text-[18px]';icon.textContent='logout';
-            const label=document.createElement('span');label.textContent='Đăng xuất';
-            logout.append(icon,label);bind(logout,()=>{if(confirm('Bạn có chắc muốn đăng xuất?'))AAIR.logout();});
+            const label=document.createElement('span');label.textContent='Log out';
+            logout.append(label);bind(logout,()=>{if(confirm('Are you sure you want to log out?'))AAIR.logout();});
             profile.parentElement.append(logout);
         }
         if(page==='BaseManagement.html')await termsPage();
@@ -1697,6 +1795,7 @@
         else if(page==='Task.html')await taskPage();
         else if(page==='LogView.html')await logsPage();
         else if(page==='PermissionManagement.html')await permissionsPage();
+        else if(page==='Dashboard.html'&&user.role==='RESULT_ANALYST'&&window.AAIRResultAnalysisDashboard)await window.AAIRResultAnalysisDashboard({request,user,notice,go});
         else if(page==='Dashboard.html')await dashboardPage();
         else if(page==='Statistics.html')await statisticsPage();
         else if(page==='SystemMonitoring.html')await monitoringPage();

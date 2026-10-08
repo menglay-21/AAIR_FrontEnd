@@ -35,6 +35,9 @@ public class User {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
+    @Column(nullable = false, length = 20)
+    private String status;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -51,6 +54,9 @@ public class User {
         }
         if (createdBy == null || createdBy.isBlank()) {
             createdBy = "SYSTEM";
+        }
+        if (status == null || status.isBlank()) {
+            status = "AVAILABLE";
         }
     }
 
@@ -100,6 +106,14 @@ public class User {
 
     public void setIsActive(Boolean active) {
         isActive = active;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public LocalDateTime getCreatedAt() {

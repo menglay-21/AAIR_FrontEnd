@@ -3,7 +3,7 @@ window.AAIRGuidelineModal = (() => {
     function init() {
         if (document.querySelector('[data-guideline-trigger]')) return;
         document.querySelectorAll('a[href*="aair-labeling-guidelines.pdf"]').forEach(link => link.remove());
-        const account = document.querySelector('.review-account, .ra-account');
+        const account = document.querySelector('.review-account, .ra-account, .aa-account, header:first-of-type > div:last-child');
         if (!account) return;
         const button = document.createElement('button');
         button.type = 'button'; button.dataset.guidelineTrigger = '';

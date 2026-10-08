@@ -709,7 +709,9 @@ CREATE TABLE public.users (
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     created_by character varying(50) DEFAULT 'SYSTEM'::character varying NOT NULL,
     email character varying(254),
-    CONSTRAINT ck_users_role CHECK (((role)::text = ANY ((ARRAY['ADMIN'::character varying, 'MANAGER'::character varying, 'AI_LABELER'::character varying, 'MANUAL_LABELER'::character varying, 'REVIEWER'::character varying, 'RESULT_ANALYST'::character varying, 'TERMINOLOGY'::character varying])::text[])))
+    status character varying(20) DEFAULT 'AVAILABLE'::character varying NOT NULL,
+    CONSTRAINT ck_users_role CHECK (((role)::text = ANY ((ARRAY['ADMIN'::character varying, 'MANAGER'::character varying, 'AI_LABELER'::character varying, 'MANUAL_LABELER'::character varying, 'REVIEWER'::character varying, 'RESULT_ANALYST'::character varying, 'TERMINOLOGY'::character varying])::text[])),
+    CONSTRAINT ck_users_status CHECK (((status)::text = ANY ((ARRAY['AVAILABLE'::character varying, 'BUSY'::character varying])::text[])))
 );
 
 

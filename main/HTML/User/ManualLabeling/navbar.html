@@ -1,0 +1,27 @@
+<header class="manual-navbar" data-manual-navbar>
+  <a class="manual-navbar__brand" href="Dashboard.html" aria-label="AAIR Lab - Dashboard">
+    <img src="/resource/icon/logo_remove_BG.png" alt="">
+    <strong>AAIR Lab</strong>
+  </a>
+  <nav class="manual-navbar__nav" aria-label="Điều hướng chính">
+    <a href="Dashboard.html" data-page="Dashboard.html"><span class="material-symbols-outlined">dashboard</span><span>Dashboard</span></a>
+    <a href="ViewAll.html" data-page="ViewAll.html"><span class="material-symbols-outlined">list_alt</span><span>View ALL</span></a>
+    <a href="Task.html" data-page="Task.html"><span class="material-symbols-outlined">edit_note</span><span>Session</span></a>
+  </nav>
+  <div class="manual-navbar__account">
+    <span class="manual-navbar__avatar" data-manual-avatar>MA</span>
+    <span class="manual-navbar__identity"><b data-manual-username>manual_labeler01</b><small data-manual-role>MANUAL LABELER</small></span>
+    <button class="manual-navbar__logout" type="button" data-manual-logout title="Log out of the system">Log out</button>
+  </div>
+</header>
+<style>
+  .manual-navbar{height:58px!important;min-height:58px!important;background:#079bc5!important;color:#fff!important}
+  .manual-navbar__brand{width:155px!important;flex:0 0 155px;gap:8px;padding:0 18px;border-right:1px solid #63c3dd;color:#fff!important}
+  .manual-navbar__brand img{filter:brightness(0) invert(1)}
+  .manual-navbar__nav a{gap:0!important;padding:0 18px;color:#eaf9fd!important;border-right:1px solid #63c3dd}
+  .manual-navbar__nav a.is-active{color:#fff!important;background:#087da7!important;box-shadow:inset 0 -3px 0 #fff}
+  .manual-navbar__nav a>.material-symbols-outlined{display:none!important}
+  .manual-navbar__avatar{color:#fff!important;background:#167ea5!important}
+  .manual-navbar__identity b,.manual-navbar__identity small{color:#fff!important}
+  .manual-navbar__logout{margin-left:4px;color:#fff!important;background:rgba(0,90,128,.18)!important;border-color:rgba(255,255,255,.75)!important}
+</style>

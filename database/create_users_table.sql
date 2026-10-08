@@ -39,6 +39,11 @@ ALTER TABLE users ADD CONSTRAINT ck_users_role CHECK (
              'REVIEWER', 'RESULT_ANALYST', 'TERMINOLOGY')
 );
 
+ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'AVAILABLE';
+ALTER TABLE users DROP CONSTRAINT IF EXISTS ck_users_status;
+ALTER TABLE users ADD CONSTRAINT ck_users_status CHECK (status IN ('AVAILABLE', 'BUSY'));
+CREATE INDEX IF NOT EXISTS idx_users_status_active_role ON users(status, is_active, role);
+
 SELECT id AS stt, username AS ten_dang_nhap, role AS vai_tro,
        created_at AS ngay_tao, created_by AS nguoi_tao, is_active AS trang_thai_hoat_dong
 FROM users

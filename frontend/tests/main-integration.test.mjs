@@ -591,3 +591,199 @@ test('empty datasets initialize without mock table records',async()=>{
     assert.deepEqual(c.errors(),[]);c.dom.window.close()
   }
 })
+
+test('manager session workflow populates assignees from /api/assignees and refreshes upon session creation',async()=>{
+  const customAssignees = [
+    {id: 101, username: 'ml_user1', role: 'MANUAL_LABELER'},
+    {id: 102, username: 'ml_user2', role: 'MANUAL_LABELER'},
+    {id: 201, username: 'rev_user', role: 'REVIEWER'}
+  ]
+  const c=await setup('MANAGER','Session.html',{'/assignees':customAssignees})
+  try {
+    const m1Select=c.w.document.querySelector('#manualLabeler1')
+    const revSelect=c.w.document.querySelector('#manualReviewer')
+
+    // Verify select options populated directly from /api/assignees
+    const m1Options=[...m1Select.options].map(o=>o.value).filter(Boolean)
+    const revOptions=[...revSelect.options].map(o=>o.value).filter(Boolean)
+    assert.deepEqual(m1Options,['101','102'],'Manual labelers must come from /api/assignees')
+    assert.deepEqual(revOptions,['201'],'Reviewers must come from /api/assignees')
+
+    // Submit a valid session creation
+    c.w.document.querySelector('input[placeholder^="e.g."]').value='Refresh Test Session'
+    c.w.document.querySelector('input[name="documents"]').checked=true
+    c.w.document.querySelector('[aria-label="Session due date"]').value='31/12/2099'
+    m1Select.value='101'
+    m1Select.dispatchEvent(new c.w.Event('change'))
+    revSelect.value='201'
+    revSelect.dispatchEvent(new c.w.Event('change'))
+
+    const initialAssigneeFetchCount=c.calls.filter(x=>x.path==='/assignees'&&!x.method).length
+    c.button('Create Session').click();await c.settle()
+    assert.deepEqual(c.errors(),[])
+
+    // Verify /api/assignees was reloaded after session creation
+    const postAssigneeFetchCount=c.calls.filter(x=>x.path==='/assignees'&&!x.method).length
+    assert.ok(postAssigneeFetchCount>initialAssigneeFetchCount,'/api/assignees must be refreshed after successful session creation')
+  } finally {c.dom.window.close()}
+})
+
+test('closing an active session triggers /api/assignees refresh to reload newly available users',async()=>{
+  const c=await setup('MANAGER','Session.html',{
+    '/sessions': [
+      { id: 22, name: 'Active Session 22', description: '', session_type: 'MANUAL', status: 'ACTIVE', members: [{id:4,username:'manual_labeler01'}] }
+    ]
+  })
+  try {
+    const closeBtn=[...c.w.document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Close')
+    assert.ok(closeBtn,'Close action button must exist for ACTIVE session')
+
+    const initialAssigneeFetchCount=c.calls.filter(x=>x.path==='/assignees'&&!x.method).length
+    closeBtn.click();await c.settle()
+    assert.deepEqual(c.errors(),[])
+
+    // Verify PATCH /sessions/22/status sent with CLOSED
+    const closeCall=c.calls.find(x=>x.path==='/sessions/22/status'&&x.method==='PATCH')
+    assert.ok(closeCall,'Must call PATCH /sessions/22/status')
+    assert.deepEqual(JSON.parse(JSON.stringify(closeCall.json)),{status:'CLOSED'})
+
+    // Verify /api/assignees was reloaded after closing the session
+    const postAssigneeFetchCount=c.calls.filter(x=>x.path==='/assignees'&&!x.method).length
+    assert.ok(postAssigneeFetchCount>initialAssigneeFetchCount,'/api/assignees must be refreshed after closing a session')
+  } finally {c.dom.window.close()}
+})
+
+test('user management status distinguishes account status INACTIVE from workload status AVAILABLE/BUSY',async()=>{
+  const users = [
+    { id: 11, username: 'user_available', email: 'avail@example.com', role: 'MANUAL_LABELER', is_active: true, status: 'AVAILABLE' },
+    { id: 12, username: 'user_busy', email: 'busy@example.com', role: 'MANUAL_LABELER', is_active: true, status: 'BUSY' },
+    { id: 13, username: 'user_locked', email: 'locked@example.com', role: 'MANUAL_LABELER', is_active: false, status: 'BUSY' }
+  ]
+  const c=await setup('MANAGER','UserManagement.html',{'/users':users})
+  try {
+    const rows=[...c.w.document.querySelectorAll('tbody tr')]
+    assert.equal(rows.length,3)
+
+    // Cell index 4 corresponds to Status column
+    const statusColValues=rows.map(r=>r.querySelectorAll('td')[4]?.textContent.trim())
+    assert.equal(statusColValues[0],'AVAILABLE','Active available user shows AVAILABLE workload status')
+    assert.equal(statusColValues[1],'BUSY','Active busy user shows BUSY workload status')
+    assert.equal(statusColValues[2],'INACTIVE','Locked user (is_active: false) shows INACTIVE account status')
+  } finally {c.dom.window.close()}
+})
+
+test('create session dropdowns display user status correctly (CASES 1-5)', async () => {
+  const customAssignees = [
+    { id: 1, username: 'manual_labeler', role: 'MANUAL_LABELER', is_active: true, status: 'AVAILABLE' },
+    { id: 4, username: 'manual_labeler04', role: 'MANUAL_LABELER', is_active: true, status: 'BUSY' },
+    { id: 5, username: 'manual_labeler05', role: 'MANUAL_LABELER', is_active: false, status: 'AVAILABLE' },
+    { id: 6, username: 'manual_labeler06', role: 'MANUAL_LABELER', is_active: false, status: 'BUSY' },
+    { id: 7, username: 'reviewer01', role: 'REVIEWER', is_active: true, status: 'AVAILABLE' },
+    { id: 8, username: 'reviewer02', role: 'REVIEWER', is_active: false, status: 'AVAILABLE' },
+    { id: 9, username: 'ai_labeler01', role: 'AI_LABELER', is_active: true, status: 'BUSY' },
+    { id: 10, username: 'ai_labeler02', role: 'AI_LABELER', is_active: false, status: 'BUSY' },
+    { id: 11, username: 'manual_labeler_unknown', role: 'MANUAL_LABELER', is_active: true, status: null }
+  ]
+  const c = await setup('MANAGER', 'Session.html', { '/assignees': customAssignees })
+  try {
+    const m1Select = c.w.document.querySelector('#manualLabeler1')
+    const m2Select = c.w.document.querySelector('#manualLabeler2')
+    const revSelect = c.w.document.querySelector('#manualReviewer')
+    const aiLabelerSelect = c.w.document.querySelector('#aiLabeler')
+    const aiRevSelect = c.w.document.querySelector('#aiReviewer')
+
+    // CASE 1: username=manual_labeler, is_active=true, status=AVAILABLE => manual_labeler — AVAILABLE
+    const opt1 = [...m1Select.options].find(o => o.value === '1')
+    assert.ok(opt1, 'Option for manual_labeler must exist')
+    assert.equal(opt1.textContent, 'manual_labeler — AVAILABLE')
+
+    // CASE 2: username=manual_labeler04, is_active=true, status=BUSY => manual_labeler04 — BUSY
+    const opt4 = [...m1Select.options].find(o => o.value === '4')
+    assert.ok(opt4, 'Option for manual_labeler04 must exist')
+    assert.equal(opt4.textContent, 'manual_labeler04 — BUSY')
+
+    // CASE 3: username=manual_labeler05, is_active=false, status=AVAILABLE => manual_labeler05 — INACTIVE
+    const opt5 = [...m1Select.options].find(o => o.value === '5')
+    assert.ok(opt5, 'Option for manual_labeler05 must exist')
+    assert.equal(opt5.textContent, 'manual_labeler05 — INACTIVE')
+
+    // CASE 4: username=manual_labeler06, is_active=false, status=BUSY => manual_labeler06 — INACTIVE
+    const opt6 = [...m1Select.options].find(o => o.value === '6')
+    assert.ok(opt6, 'Option for manual_labeler06 must exist')
+    assert.equal(opt6.textContent, 'manual_labeler06 — INACTIVE')
+
+    // CASE 5: option.value still equals String(user.id)
+    assert.equal(opt1.value, '1')
+    assert.equal(opt4.value, '4')
+    assert.equal(opt5.value, '5')
+    assert.equal(opt6.value, '6')
+
+    // Fallback: null/undefined status with is_active=true => UNKNOWN
+    const optUnknown = [...m1Select.options].find(o => o.value === '11')
+    assert.ok(optUnknown)
+    assert.equal(optUnknown.textContent, 'manual_labeler_unknown — UNKNOWN')
+
+    // Manual Labeler 2 has same formatted labels
+    assert.equal([...m2Select.options].find(o => o.value === '1')?.textContent, 'manual_labeler — AVAILABLE')
+    assert.equal([...m2Select.options].find(o => o.value === '5')?.textContent, 'manual_labeler05 — INACTIVE')
+
+    // Reviewer dropdown (manual mode)
+    assert.equal([...revSelect.options].find(o => o.value === '7')?.textContent, 'reviewer01 — AVAILABLE')
+    assert.equal([...revSelect.options].find(o => o.value === '8')?.textContent, 'reviewer02 — INACTIVE')
+
+    // AI Mode dropdowns
+    assert.equal([...aiLabelerSelect.options].find(o => o.value === '9')?.textContent, 'ai_labeler01 — BUSY')
+    assert.equal([...aiLabelerSelect.options].find(o => o.value === '10')?.textContent, 'ai_labeler02 — INACTIVE')
+    assert.equal([...aiRevSelect.options].find(o => o.value === '7')?.textContent, 'reviewer01 — AVAILABLE')
+    assert.equal([...aiRevSelect.options].find(o => o.value === '8')?.textContent, 'reviewer02 — INACTIVE')
+
+    // Form submission still submits numeric id
+    c.w.document.querySelector('input[placeholder^="e.g."]').value = 'Status Test Session'
+    c.w.document.querySelector('input[name="documents"]').checked = true
+    c.w.document.querySelector('[aria-label="Session due date"]').value = '31/12/2099'
+    m1Select.value = '1'
+    m1Select.dispatchEvent(new c.w.Event('change'))
+    revSelect.value = '7'
+    revSelect.dispatchEvent(new c.w.Event('change'))
+
+    // Verify option disabled text preserves format with (Selected)
+    const m2Opt1 = [...m2Select.options].find(o => o.value === '1')
+    assert.ok(m2Opt1.disabled)
+    assert.equal(m2Opt1.textContent, 'manual_labeler — AVAILABLE (Selected)')
+
+    c.button('Create Session').click(); await c.settle()
+    assert.deepEqual(c.errors(), [])
+    const postCall = c.calls.find(x => x.path === '/sessions' && x.method === 'POST')
+    assert.ok(postCall)
+    assert.deepEqual(JSON.parse(JSON.stringify(postCall.json.manualLabelerIds)), [1])
+    assert.equal(postCall.json.reviewerId, 7)
+  } finally {
+    c.dom.window.close()
+  }
+})
+
+test('renderAssignmentDropdowns updates dropdowns dynamically with new user statuses', async () => {
+  const initialAssignees = [
+    { id: 1, username: 'manual_labeler', role: 'MANUAL_LABELER', is_active: true, status: 'AVAILABLE' },
+    { id: 7, username: 'reviewer01', role: 'REVIEWER', is_active: true, status: 'AVAILABLE' }
+  ]
+  const c = await setup('MANAGER', 'Session.html', { '/assignees': initialAssignees })
+  try {
+    const m1Select = c.w.document.querySelector('#manualLabeler1')
+    assert.equal([...m1Select.options].find(o => o.value === '1')?.textContent, 'manual_labeler — AVAILABLE')
+
+    // Simulate user becoming BUSY after assignment
+    const updatedAssignees = [
+      { id: 1, username: 'manual_labeler', role: 'MANUAL_LABELER', is_active: true, status: 'BUSY' },
+      { id: 7, username: 'reviewer01', role: 'REVIEWER', is_active: true, status: 'BUSY' }
+    ]
+    c.w.renderAssignmentDropdowns(updatedAssignees)
+
+    assert.equal([...m1Select.options].find(o => o.value === '1')?.textContent, 'manual_labeler — BUSY')
+    const revSelect = c.w.document.querySelector('#manualReviewer')
+    assert.equal([...revSelect.options].find(o => o.value === '7')?.textContent, 'reviewer01 — BUSY')
+  } finally {
+    c.dom.window.close()
+  }
+})
+
