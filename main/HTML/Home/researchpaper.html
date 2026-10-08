@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" data-stitch-anim-opacity="true" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Research Publications | AAIR Lab</title> <!-- Google Fonts -->
+     <link rel="icon" type="image/png" href="../../../resource/icon/logo_remove_BG.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+        
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script> 
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../Style/home.css">
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden">
+    <nav class="fixed top-0 w-full z-50 transition-all duration-300 bg-transparent py-4" id="top-nav">
+        <div class="max-w-container-max mx-auto px-gutter py-4 flex justify-between items-center">
+            
+            <div class="flex items-center gap-sm"> 
+                <img alt="AAIR Lab Logo" class="h-8 w-auto object-contain"
+                    src="../../../resource/icon/logo_remove_BG.png"> 
+                <span class="font-headline-md text-headline-md font-bold text-on-surface">AAIR Lab</span> 
+            </div>
+
+            <div class="hidden md:flex items-center gap-xl">
+                 <!-- <a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
+                    href="#about">About</a> <a
+                    class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
+                    href="#features">Features</a> -->
+                <div class="flex items-center gap-md ml-lg"> <a
+                        class="px-lg py-sm rounded-lg font-label-md text-label-md bg-primary text-white shadow-sm hover:shadow-md transition-all"
+                        href="../../../main/HTML/Home/signIn.html">Get Started</a> 
+                </div>
+            </div> 
+            <button class="md:hidden text-on-surface"> <span class="material-symbols-outlined">menu</span> </button>
+        </div>
+    </nav>
+
+    <main class="w-full pt-20 flex-grow bg-surface">
+        <div class="flex flex-col w-full">
+            <!-- Section 1: Academic Hero Header -->
+            <section class="relative w-full bg-surface-container-lowest py-2xl overflow-hidden shadow-sm">
+                <div
+                    class="absolute -top-24 right-0 w-96 h-96 bg-secondary-fixed/30 rounded-full blur-3xl pointer-events-none">
+                </div>
+                <div
+                    class="absolute bottom-0 left-1/4 w-80 h-80 bg-primary-fixed/20 rounded-full blur-2xl pointer-events-none">
+                </div>
+                <div class="max-w-[1440px] mx-auto px-4 md:px-2xl relative z-10">
+                    <div class="flex flex-col max-w-4xl">
+                        <div
+                            class="inline-flex items-center gap-sm px-md py-xs rounded-full bg-surface-container-high w-fit mb-md">
+                            <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+                            <span
+                                class="font-code text-code-sm text-primary font-semibold tracking-wider uppercase">AAIR
+                                Research</span>
+                        </div>
+                        <h1 class="font-display-lg text-display-lg text-on-surface tracking-tight mb-md leading-tight">
+                            Research &amp; Publications
+                        </h1>
+                        <p
+                            class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed mb-lg max-w-3xl">
+                            Explore the research areas, projects, and publications developed by the Applied AI Research
+                            Laboratory. Our work focuses on applying artificial intelligence to real-world and
+                            domain-specific challenges with mathematical and empirical rigor.
+                        </p>
+                        <!-- Quick Domain Tags -->
+                        <div class="flex flex-wrap items-center gap-sm pt-xs">
+                            <span
+                                class="font-code text-code-sm text-on-surface-variant uppercase tracking-wider mr-xs">Focus
+                                Tracks:</span>
+                            <span
+                                class="px-md py-xs rounded-full bg-surface-container text-primary font-code text-code-sm font-medium hover:bg-surface-container-high transition-colors cursor-pointer">Artificial
+                                Intelligence</span>
+                            <span
+                                class="px-md py-xs rounded-full bg-surface-container text-primary font-code text-code-sm font-medium hover:bg-surface-container-high transition-colors cursor-pointer">Computer
+                                Vision</span>
+                            <span
+                                class="px-md py-xs rounded-full bg-surface-container text-primary font-code text-code-sm font-medium hover:bg-surface-container-high transition-colors cursor-pointer">Natural
+                                Language Processing</span>
+                            <span
+                                class="px-md py-xs rounded-full bg-surface-container text-primary font-code text-code-sm font-medium hover:bg-surface-container-high transition-colors cursor-pointer">Document
+                                Intelligence</span>
+                            <span
+                                class="px-md py-xs rounded-full bg-surface-container text-primary font-code text-code-sm font-medium hover:bg-surface-container-high transition-colors cursor-pointer">Domain-Specific
+                                AI</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Section 2: Research Areas (6 Grid Cards) -->
+            <section class="w-full bg-surface py-2xl">
+                <div class="max-w-[1440px] mx-auto px-4 md:px-2xl">
+                    <div class="flex flex-col md:flex-row md:items-end justify-between mb-2xl gap-md">
+                        <div>
+                            <span
+                                class="font-code text-code-sm text-secondary font-semibold uppercase tracking-wider block mb-xs">Scientific
+                                Taxonomy</span>
+                            <h2 class="font-headline-lg text-headline-lg text-on-surface">Research Areas</h2>
+                            <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Core scientific
+                                directions guiding our laboratory investigation and prototype deployments.</p>
+                        </div>
+                        <div
+                            class="hidden md:flex items-center gap-xs font-code text-code-sm text-on-surface-variant bg-surface-container-low px-md py-sm rounded-lg">
+                            <span class="material-symbols-outlined text-[18px] text-primary">science</span>
+                            <span>6 Active Research Laboratories</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
+                        <!-- Area 1 -->
+                        <div
+                            class="bg-surface-container-lowest p-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
+                            <div>
+                                <div
+                                    class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-container mb-md group-hover:scale-105 transition-transform">
+                                    <span class="material-symbols-outlined text-[26px]">psychology</span>
+                                </div>
+                                <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Artificial
+                                    Intelligence</h3>
+                                <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                                    Researching intelligent systems, robust decision architectures, and applied AI
+                                    methodologies for complex non-deterministic environments.
+                                </p>
+                            </div>
+                            <div class="pt-md mt-md flex items-center justify-between">
+                                <span
+                                    class="font-code text-code-sm text-primary font-semibold group-hover:text-primary-container inline-flex items-center gap-1">
+                                    Explore Domain <span
+                                        class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                                </span>
+                                <span class="font-code text-code-sm text-outline">SYS-01</span>
+                            </div>
+                        </div>
+                        <!-- Area 2 -->
+                        <div
+                            class="bg-surface-container-lowest p-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
+                            <div>
+                                <div
+                                    class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-container mb-md group-hover:scale-105 transition-transform">
+                                    <span class="material-symbols-outlined text-[26px]">visibility</span>
+                                </div>
+                                <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Computer
+                                    Vision</h3>
+                                <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                                    Exploring visual recognition, spatial-temporal understanding, kinematic tracking,
+                                    and intelligent real-time vision pipelines on edge hardware.
+                                </p>
+                            </div>
+                            <div class="pt-md mt-md flex items-center justify-between">
+                                <span
+                                    class="font-code text-code-sm text-primary font-semibold group-hover:text-primary-container inline-flex items-center gap-1">
+                                    Explore Domain <span
+                                        class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                                </span>
+                                <span class="font-code text-code-sm text-outline">SYS-02</span>
+                            </div>
+                        </div>
+                        <!-- Area 3 -->
+                        <div
+                            class="bg-surface-container-lowest p-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
+                            <div>
+                                <div
+                                    class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-container mb-md group-hover:scale-105 transition-transform">
+                                    <span class="material-symbols-outlined text-[26px]">translate</span>
+                                </div>
+                                <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Natural
+                                    Language Processing</h3>
+                                <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                                    Developing AI methods for understanding and processing complex human language,
+                                    contextual embeddings, and semantic knowledge retrieval.
+                                </p>
+                            </div>
+                            <div class="pt-md mt-md flex items-center justify-between">
+                                <span
+                                    class="font-code text-code-sm text-primary font-semibold group-hover:text-primary-container inline-flex items-center gap-1">
+                                    Explore Domain <span
+                                        class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                                </span>
+                                <span class="font-code text-code-sm text-outline">SYS-03</span>
+                            </div>
+                        </div>
+                        <!-- Area 4 -->
+                        <div
+                            class="bg-surface-container-lowest p-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
+                            <div>
+                                <div
+                                    class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-container mb-md group-hover:scale-105 transition-transform">
+                                    <span class="material-symbols-outlined text-[26px]">description</span>
+                                </div>
+                                <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Document
+                                    Intelligence</h3>
+                                <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                                    Applying AI to extract and synthesize complex multi-modal documents, non-standard
+                                    financial filings, and cross-domain knowledge graphs.
+                                </p>
+                            </div>
+                            <div class="pt-md mt-md flex items-center justify-between">
+                                <span
+                                    class="font-code text-code-sm text-primary font-semibold group-hover:text-primary-container inline-flex items-center gap-1">
+                                    Explore Domain <span
+                                        class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                                </span>
+                                <span class="font-code text-code-sm text-outline">SYS-04</span>
+                            </div>
+                        </div>
+                        <!-- Area 5 -->
+                        <div
+                            class="bg-surface-container-lowest p-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
+                            <div>
+                                <div
+                                    class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-container mb-md group-hover:scale-105 transition-transform">
+                                    <span class="material-symbols-outlined text-[26px]">model_training</span>
+                                </div>
+                                <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Machine
+                                    Learning</h3>
+                                <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                                    Developing and evaluating verifiable machine learning methods, parameter-efficient
+                                    adaptations, and specialized foundation architectures.
+                                </p>
+                            </div>
+                            <div class="pt-md mt-md flex items-center justify-between">
+                                <span
+                                    class="font-code text-code-sm text-primary font-semibold group-hover:text-primary-container inline-flex items-center gap-1">
+                                    Explore Domain <span
+                                        class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                                </span>
+                                <span class="font-code text-code-sm text-outline">SYS-05</span>
+                            </div>
+                        </div>
+                        <!-- Area 6 -->
+                        <div
+                            class="bg-surface-container-lowest p-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
+                            <div>
+                                <div
+                                    class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-container mb-md group-hover:scale-105 transition-transform">
+                                    <span class="material-symbols-outlined text-[26px]">accessibility_new</span>
+                                </div>
+                                <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Human-AI
+                                    Interaction</h3>
+                                <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                                    Exploring how intelligent systems can effectively support human decision-making,
+                                    assistive communication, and accessible interfaces.
+                                </p>
+                            </div>
+                            <div class="pt-md mt-md flex items-center justify-between">
+                                <span
+                                    class="font-code text-code-sm text-primary font-semibold group-hover:text-primary-container inline-flex items-center gap-1">
+                                    Explore Domain <span
+                                        class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                                </span>
+                                <span class="font-code text-code-sm text-outline">SYS-06</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Section 3: Featured Research Papers (3 High-Impact Cards) -->
+            <section class="w-full bg-surface-container-low py-2xl">
+                <div class="max-w-[1440px] mx-auto px-4 md:px-2xl">
+                    <div class="mb-lg">
+                        <span
+                            class="font-code text-code-sm text-primary font-semibold uppercase tracking-wider">Peer-Reviewed
+                            Breakthroughs</span>
+                        <h2 class="font-headline-lg text-headline-lg text-on-surface mt-xs">Featured Research</h2>
+                        <p class="font-body-md text-body-md text-on-surface-variant">Top laboratory publications
+                            showcased at leading international computing conferences.</p>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+                        <!-- Featured Card 1 -->
+                        <div
+                            class="bg-surface-container-lowest rounded-xl p-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+                            <div>
+                                <div class="flex items-center justify-between gap-sm mb-md">
+                                    <span
+                                        class="px-sm py-xs bg-inverse-surface text-inverse-on-surface font-code text-code-sm font-semibold rounded uppercase tracking-wider">CVPR-W
+                                        2026</span>
+                                    <span class="font-code text-code-sm text-on-surface-variant">Computer Vision ·
+                                        2026</span>
+                                </div>
+                                <h3 class="font-headline-sm text-headline-sm text-on-surface mb-sm leading-snug">
+                                    Real-Time Isolated Sign Language Recognition Using Transformer-Based Models
+                                </h3>
+                                <p class="font-code text-code-sm text-primary mb-md">
+                                    AAIR Research Team · CVPR-W 2026
+                                </p>
+                                <p
+                                    class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mb-lg">
+                                    Research exploring pose-based spatial-temporal modeling approaches for real-time
+                                    isolated sign language recognition with sub-20ms edge latency.
+                                </p>
+                            </div>
+                            <div>
+                                <div class="flex flex-wrap gap-xs mb-lg">
+                                    <span
+                                        class="bg-surface-container px-sm py-0.5 rounded font-code text-code-sm text-on-surface-variant">Sign
+                                        Language</span>
+                                    <span
+                                        class="bg-surface-container px-sm py-0.5 rounded font-code text-code-sm text-on-surface-variant">RTMPose</span>
+                                    <span
+                                        class="bg-surface-container px-sm py-0.5 rounded font-code text-code-sm text-on-surface-variant">ST-GCN</span>
+                                    <span
+                                        class="bg-surface-container px-sm py-0.5 rounded font-code text-code-sm text-on-surface-variant">Transformer</span>
+                                </div>
+                                <a class="inline-flex items-center justify-center w-full py-sm px-md rounded bg-primary text-on-primary font-body-sm text-body-sm font-medium hover:bg-primary-container transition-colors gap-2"
+                                    href="#spotlight">
+                                    Read Paper <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                                </a>
+                            </div>
+                        </div>
+                        <!-- Featured Card 2 -->
+                        <div
+                            class="bg-surface-container-lowest rounded-xl p-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+                            <div>
+                                <div class="flex items-center justify-between gap-sm mb-md">
+                                    <span
+                                        class="px-sm py-xs bg-inverse-surface text-inverse-on-surface font-code text-code-sm font-semibold rounded uppercase tracking-wider">ICLR
+                                        Oral 2026</span>
+                                    <span class="font-code text-code-sm text-on-surface-variant">Document Intel ·
+                                        2026</span>
+                                </div>
+                                <h3 class="font-headline-sm text-headline-sm text-on-surface mb-sm leading-snug">
+                                    Financial Document Intelligence Using AI
+                                </h3>
+                                <p class="font-code text-code-sm text-primary mb-md">
+                                    AAIR Research Team · ICLR Oral 2026
+                                </p>
+                                <p
+                                    class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mb-lg">
+                                    Research on applying artificial intelligence to the automated extraction, table
+                                    disentanglement, and contextual reasoning of economic filings.
+                                </p>
+                            </div>
+                            <div>
+                                <div class="flex flex-wrap gap-xs mb-lg">
+                                    <span
+                                        class="bg-surface-container px-sm py-0.5 rounded font-code text-code-sm text-on-surface-variant">DocAI</span>
+                                    <span
+                                        class="bg-surface-container px-sm py-0.5 rounded font-code text-code-sm text-on-surface-variant">NLP</span>
+                                    <span
+                                        class="bg-surface-container px-sm py-0.5 rounded font-code text-code-sm text-on-surface-variant">LayoutLM</span>
+                                    <span
+                                        class="bg-surface-container px-sm py-0.5 rounded font-code text-code-sm text-on-surface-variant">Finance</span>
+                                </div>
+                                <button
+                                    class="inline-flex items-center justify-center w-full py-sm px-md rounded bg-primary text-on-primary font-body-sm text-body-sm font-medium hover:bg-primary-container transition-colors gap-2">
+                                    Read Paper <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Featured Card 3 -->
+                        <div
+                            class="bg-surface-container-lowest rounded-xl p-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+                            <div>
+                                <div class="flex items-center justify-between gap-sm mb-md">
+                                    <span
+                                        class="px-sm py-xs bg-inverse-surface text-inverse-on-surface font-code text-code-sm font-semibold rounded uppercase tracking-wider">NeurIPS
+                                        2025</span>
+                                    <span class="font-code text-code-sm text-on-surface-variant">Artificial
+                                        Intelligence · 2025</span>
+                                </div>
+                                <h3 class="font-headline-sm text-headline-sm text-on-surface mb-sm leading-snug">
+                                    Domain-Specific Artificial Intelligence
+                                </h3>
+                                <p class="font-code text-code-sm text-primary mb-md">
+                                    AAIR Research Team · NeurIPS 2025
+                                </p>
+                                <p
+                                    class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mb-lg">
+                                    Exploring foundational architectures for transforming specialized domain knowledge
+                                    into verifiable, reliable computational systems.
+                                </p>
+                            </div>
+                            <div>
+                                <div class="flex flex-wrap gap-xs mb-lg">
+                                    <span
+                                        class="bg-surface-container px-sm py-0.5 rounded font-code text-code-sm text-on-surface-variant">Domain-AI</span>
+                                    <span
+                                        class="bg-surface-container px-sm py-0.5 rounded font-code text-code-sm text-on-surface-variant">Machine
+                                        Learning</span>
+                                    <span
+                                        class="bg-surface-container px-sm py-0.5 rounded font-code text-code-sm text-on-surface-variant">Graph
+                                        Networks</span>
+                                </div>
+                                <button
+                                    class="inline-flex items-center justify-center w-full py-sm px-md rounded bg-primary text-on-primary font-body-sm text-body-sm font-medium hover:bg-primary-container transition-colors gap-2">
+                                    Read Paper <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Section 4: Interactive Showcase Spotlight & Methodology Flow -->
+            <section class="w-full bg-surface py-2xl" id="spotlight">
+                <div class="max-w-[1440px] mx-auto px-4 md:px-2xl">
+                    <div
+                        class="bg-surface-container-lowest rounded-xl shadow-md p-lg md:p-2xl overflow-hidden relative">
+                        <div
+                            class="absolute top-0 right-0 h-2 w-full bg-gradient-to-r from-primary via-secondary to-tertiary-fixed-dim">
+                        </div>
+                        <!-- Header Info -->
+                        <div class="flex flex-wrap items-center justify-between gap-sm pb-md mb-lg">
+                            <div class="flex items-center gap-sm">
+                                <span
+                                    class="px-sm py-0.5 rounded font-code text-code-sm font-semibold bg-primary-fixed text-on-primary-fixed uppercase tracking-wider">Spotlight
+                                    Paper Detail</span>
+                                <span class="font-code text-code-sm text-on-surface-variant">Selected
+                                    Methodology</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-secondary"></span>
+                                <span
+                                    class="font-code text-code-sm text-primary font-semibold uppercase tracking-wider">Active
+                                    Showcase: Real-Time Sign Language Recognition</span>
+                            </div>
+                        </div>
+                        <!-- Title & Meta Data Matrix -->
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-lg mb-lg">
+                            <div class="lg:col-span-8">
+                                <h2
+                                    class="font-headline-lg text-headline-lg text-on-surface tracking-tight mb-sm">
+                                    Real-Time Isolated Sign Language Recognition Using Transformer-Based Models
+                                </h2>
+                                <div
+                                    class="flex flex-wrap items-center gap-y-2 gap-x-4 font-code text-code-sm text-on-surface-variant mb-md">
+                                    <span class="text-primary font-medium">Authors: AAIR Research Team</span>
+                                    <span>•</span>
+                                    <span>Year: 2026</span>
+                                    <span>•</span>
+                                    <span>Track: Computer Vision</span>
+                                    <span>•</span>
+                                    <span class="text-on-surface font-semibold">IEEE / CVF CVPRW</span>
+                                </div>
+                                <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                                    Isolated Sign Language Recognition across vast vocabularies demands nuanced
+                                    spatial-temporal alignment capable of capturing rapid micro-finger articulations
+                                    under unconstrained consumer camera angles. We present a novel unified framework
+                                    that fuses 2D/3D joint coordinates via RTMPose with Spatial-Temporal Graph
+                                    Convolutional Networks (ST-GCN) cascaded into a temporal Transformer Encoder,
+                                    achieving <strong class="text-on-surface font-semibold">92.4% Top-1
+                                        accuracy</strong> with edge inference latency under <strong
+                                        class="text-on-surface font-semibold">18.5ms</strong>.
+                                </p>
+                            </div>
+                            <!-- Technical Metrics Card -->
+                            <div
+                                class="lg:col-span-4 bg-surface-container-low p-md rounded-lg flex flex-col justify-between">
+                                <div
+                                    class="font-code text-code-sm text-on-surface font-semibold mb-sm flex items-center justify-between">
+                                    <span>EMPIRICAL BENCHMARKS</span>
+                                    <span class="text-secondary">v2.4</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-sm">
+                                    <div class="bg-surface-container-lowest p-sm rounded">
+                                        <span class="font-code text-code-sm text-outline block">TOP-1 ACC</span>
+                                        <span
+                                            class="font-headline-md text-headline-md text-primary font-bold">92.4%</span>
+                                    </div>
+                                    <div class="bg-surface-container-lowest p-sm rounded">
+                                        <span class="font-code text-code-sm text-outline block">LATENCY</span>
+                                        <span
+                                            class="font-headline-md text-headline-md text-secondary font-bold">18.5ms</span>
+                                    </div>
+                                    <div class="bg-surface-container-lowest p-sm rounded">
+                                        <span class="font-code text-code-sm text-outline block">KEYPOINTS</span>
+                                        <span class="font-headline-md text-headline-md text-on-surface font-bold">133
+                                            3D</span>
+                                    </div>
+                                    <div class="bg-surface-container-lowest p-sm rounded">
+                                        <span class="font-code text-code-sm text-outline block">WEIGHTS</span>
+                                        <span
+                                            class="font-headline-md text-headline-md text-primary font-bold">14.2MB</span>
+                                    </div>
+                                </div>
+                                <div
+                                    class="mt-sm pt-xs font-code text-code-sm text-on-surface-variant flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[16px] text-primary">verified</span>
+                                    Tested on Jetson Orin Nano &amp; Apple M-Series
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Research Approach Pipeline Visual Flow -->
+                        <div class="my-lg pt-md">
+                            <div class="flex items-center justify-between mb-sm">
+                                <span
+                                    class="font-code text-code-sm text-on-surface font-semibold tracking-wider uppercase">Inference
+                                    &amp; Architecture Pipeline Flow</span>
+                                <span class="font-code text-code-sm text-outline">Feedforward Latency:
+                                    ~18.5ms</span>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-xs relative">
+                                <!-- Step 1 -->
+                                <div
+                                    class="bg-surface-container-low p-sm rounded-lg flex flex-col items-center text-center relative group hover:bg-surface-container-high transition-colors">
+                                    <span
+                                        class="material-symbols-outlined text-[20px] text-primary mb-1">videocam</span>
+                                    <span class="font-code text-code-sm font-semibold text-on-surface">Video
+                                        Input</span>
+                                    <span class="font-code-sm text-code-sm text-on-surface-variant">60 FPS RGB</span>
+                                </div>
+                                <!-- Step 2 -->
+                                <div
+                                    class="bg-surface-container-low p-sm rounded-lg flex flex-col items-center text-center relative group hover:bg-surface-container-high transition-colors">
+                                    <span
+                                        class="material-symbols-outlined text-[20px] text-primary mb-1">filter_frames</span>
+                                    <span class="font-code text-code-sm font-semibold text-on-surface">Frame
+                                        Extract</span>
+                                    <span class="font-code-sm text-code-sm text-on-surface-variant">Temporal
+                                        sampling</span>
+                                </div>
+                                <!-- Step 3 -->
+                                <div
+                                    class="bg-surface-container-low p-sm rounded-lg flex flex-col items-center text-center relative group hover:bg-surface-container-high transition-colors">
+                                    <span
+                                        class="material-symbols-outlined text-[20px] text-primary mb-1">scatter_plot</span>
+                                    <span
+                                        class="font-code text-code-sm font-semibold text-on-surface">RTMPose</span>
+                                    <span class="font-code-sm text-code-sm text-on-surface-variant">133 2D/3D
+                                        joints</span>
+                                </div>
+                                <!-- Step 4 -->
+                                <div
+                                    class="bg-surface-container-low p-sm rounded-lg flex flex-col items-center text-center relative group hover:bg-surface-container-high transition-colors">
+                                    <span
+                                        class="material-symbols-outlined text-[20px] text-primary mb-1">timeline</span>
+                                    <span class="font-code text-code-sm font-semibold text-on-surface">Skeleton
+                                        Seq</span>
+                                    <span class="font-code-sm text-code-sm text-on-surface-variant">Trajectory
+                                        tensor</span>
+                                </div>
+                                <!-- Step 5 -->
+                                <div
+                                    class="bg-surface-container-low p-sm rounded-lg flex flex-col items-center text-center relative group hover:bg-surface-container-high transition-colors">
+                                    <span class="material-symbols-outlined text-[20px] text-secondary mb-1">hub</span>
+                                    <span
+                                        class="font-code text-code-sm font-semibold text-on-surface">ST-GCN</span>
+                                    <span class="font-code-sm text-code-sm text-on-surface-variant">Spatial
+                                        topology</span>
+                                </div>
+                                <!-- Step 6 -->
+                                <div
+                                    class="bg-surface-container-low p-sm rounded-lg flex flex-col items-center text-center relative group hover:bg-surface-container-high transition-colors">
+                                    <span
+                                        class="material-symbols-outlined text-[20px] text-secondary mb-1">psychology</span>
+                                    <span
+                                        class="font-code text-code-sm font-semibold text-on-surface">Transformer</span>
+                                    <span
+                                        class="font-code-sm text-code-sm text-on-surface-variant">Self-attention</span>
+                                </div>
+                                <!-- Step 7 -->
+                                <div
+                                    class="bg-primary text-on-primary p-sm rounded-lg flex flex-col items-center text-center relative shadow-sm">
+                                    <span
+                                        class="material-symbols-outlined text-[20px] text-on-primary mb-1">spellcheck</span>
+                                    <span
+                                        class="font-code text-code-sm font-semibold text-on-primary">Classification</span>
+                                    <span class="font-code-sm text-code-sm text-primary-fixed">Target Gloss</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Action Row -->
+                        <div
+                            class="flex flex-wrap items-center justify-between gap-md pt-lg bg-surface-container-low/40 p-md rounded-lg">
+                            <div class="flex flex-wrap items-center gap-sm">
+                                <button
+                                    class="px-md py-sm rounded bg-gradient-to-r from-primary to-secondary text-on-primary font-body-sm text-body-sm font-medium hover:brightness-105 shadow-sm transition-all flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px]">article</span>
+                                    Read Full Paper
+                                </button>
+                                <button
+                                    class="px-md py-sm rounded bg-surface-container-lowest text-on-surface font-body-sm text-body-sm font-medium hover:bg-surface-container transition-colors shadow-sm flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px] text-primary">download</span>
+                                    Download PDF (3.8MB)
+                                </button>
+                                <button
+                                    class="px-md py-sm rounded bg-surface-container-lowest text-on-surface font-code text-code-sm font-medium hover:bg-surface-container transition-colors shadow-sm flex items-center gap-2"
+                                    onclick="document.getElementById('bibtex-drawer').classList.toggle('hidden')">
+                                    <span class="material-symbols-outlined text-[16px] text-secondary">code</span>
+                                    Cite Paper (BibTeX)
+                                </button>
+                            </div>
+                            <span class="font-code text-code-sm text-outline">DOI: 10.1109/CVPRW.2026.892401</span>
+                        </div>
+                        <!-- Collapsible BibTeX Drawer -->
+                        <div class="hidden mt-md p-md bg-inverse-surface rounded-lg text-inverse-on-surface font-code text-code-sm relative"
+                            id="bibtex-drawer">
+                            <div class="flex items-center justify-between mb-xs text-outline-variant">
+                                <span>bibtex citation</span>
+                                <button
+                                    class="text-secondary-fixed hover:text-on-primary text-code-sm flex items-center gap-1"
+                                    onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.innerText); alert('BibTeX copied to clipboard');">
+                                    <span class="material-symbols-outlined text-[14px]">content_copy</span> Copy
+                                </button>
+                            </div>
+                            <pre class="overflow-x-auto text-primary-fixed-dim leading-relaxed">@inproceedings{aair2026signlanguage,
+  author    = {AAIR Research Team},
+  title     = {Real-Time Isolated Sign Language Recognition Using Transformer-Based Models},
+  booktitle = {IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW)},
+  year      = {2026},
+  pages     = {1042--1051}
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Section 5: All Publications Matrix with Search and Filter -->
+            <section class="w-full bg-surface-container-low py-2xl">
+                <div class="max-w-[1440px] mx-auto px-4 md:px-2xl">
+                    <!-- Section Title & Counter -->
+                    <div class="flex flex-col md:flex-row md:items-end justify-between mb-lg gap-sm">
+                        <div>
+                            <span
+                                class="font-code text-code-sm text-secondary font-semibold uppercase tracking-wider">Repository
+                                Index</span>
+                            <h2 class="font-headline-lg text-headline-lg text-on-surface">All Publications</h2>
+                        </div>
+                        <span
+                            class="font-code text-code-sm text-on-surface-variant bg-surface-container-lowest px-md py-xs rounded-full shadow-sm">
+                            Showing <strong class="text-primary font-semibold">18</strong> scholarly publications
+                        </span>
+                    </div>
+                    <!-- Search & Filter Controls -->
+                    <div
+                        class="bg-surface-container-lowest p-md rounded-xl shadow-sm mb-lg flex flex-col lg:flex-row items-center gap-md justify-between">
+                        <!-- Search Bar -->
+                        <div class="relative w-full lg:w-96">
+                            <span
+                                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+                            <input
+                                class="w-full pl-10 pr-12 py-sm bg-surface-container-low rounded font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-high transition-colors"
+                                placeholder="Search research papers, DOIs, authors..." type="text" />
+                            <span
+                                class="absolute right-3 top-1/2 -translate-y-1/2 font-code text-code-sm text-outline bg-surface-container px-1.5 py-0.5 rounded">⌘K</span>
+                        </div>
+                        <!-- Filter Chips -->
+                        <div class="flex flex-wrap items-center gap-xs w-full lg:w-auto">
+                            <button
+                                class="px-md py-xs rounded-full font-code text-code-sm font-semibold bg-primary text-on-primary">All</button>
+                            <button
+                                class="px-md py-xs rounded-full font-code text-code-sm text-on-surface-variant hover:bg-surface-container-high transition-colors">Artificial
+                                Intelligence</button>
+                            <button
+                                class="px-md py-xs rounded-full font-code text-code-sm text-on-surface-variant hover:bg-surface-container-high transition-colors">Computer
+                                Vision</button>
+                            <button
+                                class="px-md py-xs rounded-full font-code text-code-sm text-on-surface-variant hover:bg-surface-container-high transition-colors">NLP</button>
+                            <button
+                                class="px-md py-xs rounded-full font-code text-code-sm text-on-surface-variant hover:bg-surface-container-high transition-colors">Document
+                                Intelligence</button>
+                            <button
+                                class="px-md py-xs rounded-full font-code text-code-sm text-on-surface-variant hover:bg-surface-container-high transition-colors">Machine
+                                Learning</button>
+                        </div>
+                        <!-- Year Select -->
+                        <div class="shrink-0 w-full lg:w-auto">
+                            <select
+                                class="w-full lg:w-auto px-md py-sm bg-surface-container-low rounded font-code text-code-sm text-on-surface focus:outline-none">
+                                <option>All Years</option>
+                                <option>2026</option>
+                                <option>2025</option>
+                                <option>2024</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Publication List Items -->
+                    <div class="flex flex-col gap-md">
+                        <!-- Item 1 -->
+                        <div
+                            class="bg-surface-container-lowest p-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col lg:flex-row lg:items-start justify-between gap-lg">
+                            <div class="max-w-4xl">
+                                <div class="flex flex-wrap items-center gap-sm mb-xs">
+                                    <span class="font-code text-code-sm text-secondary font-semibold">Computer
+                                        Vision · 2026</span>
+                                    <span class="text-outline">•</span>
+                                    <span class="font-code text-code-sm text-outline">Conference Paper</span>
+                                </div>
+                                <h3
+                                    class="font-headline-sm text-headline-sm text-on-surface font-semibold mb-xs hover:text-primary transition-colors cursor-pointer">
+                                    Transformer-Based Approaches for Isolated Sign Language Recognition
+                                </h3>
+                                <p class="font-code text-code-sm text-on-surface-variant mb-sm">
+                                    Authors: <span class="text-primary font-medium">AAIR Research Team (Thorne, A.,
+                                        Vance, K., Al-Mansoor, M.)</span>
+                                </p>
+                                <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
+                                    Benchmarking spatial graph attention mechanisms against dense optical flow for edge
+                                    gesture understanding with reduced parameter footprints across public datasets.
+                                </p>
+                            </div>
+                            <div
+                                class="flex lg:flex-col items-center lg:items-end justify-between shrink-0 gap-sm">
+                                <a class="font-code text-code-sm text-primary font-semibold hover:text-primary-container inline-flex items-center gap-1"
+                                    href="#">
+                                    Read Paper <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+                                </a>
+                                <div class="flex items-center gap-xs font-code text-code-sm">
+                                    <span
+                                        class="px-xs py-0.5 bg-surface-container rounded text-on-surface-variant hover:text-primary cursor-pointer">[PDF]</span>
+                                    <span
+                                        class="px-xs py-0.5 bg-surface-container rounded text-on-surface-variant hover:text-primary cursor-pointer">[BibTeX]</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Item 2 -->
+                        <div
+                            class="bg-surface-container-lowest p-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col lg:flex-row lg:items-start justify-between gap-lg">
+                            <div class="max-w-4xl">
+                                <div class="flex flex-wrap items-center gap-sm mb-xs">
+                                    <span class="font-code text-code-sm text-secondary font-semibold">Document
+                                        Intelligence · 2026</span>
+                                    <span class="text-outline">•</span>
+                                    <span class="font-code text-code-sm text-outline">ICLR Oral Candidate</span>
+                                </div>
+                                <h3
+                                    class="font-headline-sm text-headline-sm text-on-surface font-semibold mb-xs hover:text-primary transition-colors cursor-pointer">
+                                    Intelligent Analysis of Economic Documents: Hierarchical Layout Models
+                                </h3>
+                                <p class="font-code text-code-sm text-on-surface-variant mb-sm">
+                                    Authors: <span class="text-primary font-medium">AAIR Research Team (Thorne, A.,
+                                        Vance, K.)</span>
+                                </p>
+                                <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
+                                    Multi-scale attention networks tailored to high-density tabular financial
+                                    disclosures and balance sheet normalization under multi-page layout shifts.
+                                </p>
+                            </div>
+                            <div
+                                class="flex lg:flex-col items-center lg:items-end justify-between shrink-0 gap-sm">
+                                <a class="font-code text-code-sm text-primary font-semibold hover:text-primary-container inline-flex items-center gap-1"
+                                    href="#">
+                                    Read Paper <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+                                </a>
+                                <div class="flex items-center gap-xs font-code text-code-sm">
+                                    <span
+                                        class="px-xs py-0.5 bg-surface-container rounded text-on-surface-variant hover:text-primary cursor-pointer">[PDF]</span>
+                                    <span
+                                        class="px-xs py-0.5 bg-surface-container rounded text-on-surface-variant hover:text-primary cursor-pointer">[BibTeX]</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Item 3 -->
+                        <div
+                            class="bg-surface-container-lowest p-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col lg:flex-row lg:items-start justify-between gap-lg">
+                            <div class="max-w-4xl">
+                                <div class="flex flex-wrap items-center gap-sm mb-xs">
+                                    <span class="font-code text-code-sm text-secondary font-semibold">Machine
+                                        Learning · 2025</span>
+                                    <span class="text-outline">•</span>
+                                    <span class="font-code text-code-sm text-outline">Technical Report</span>
+                                </div>
+                                <h3
+                                    class="font-headline-sm text-headline-sm text-on-surface font-semibold mb-xs hover:text-primary transition-colors cursor-pointer">
+                                    Applied Machine Learning for Domain-Specific Problems
+                                </h3>
+                                <p class="font-code text-code-sm text-on-surface-variant mb-sm">
+                                    Authors: <span class="text-primary font-medium">AAIR Research Team</span>
+                                </p>
+                                <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
+                                    Formulating verifiable constraints for generative neural networks deployed in
+                                    high-consequence enterprise environments with empirical bound guarantees.
+                                </p>
+                            </div>
+                            <div
+                                class="flex lg:flex-col items-center lg:items-end justify-between shrink-0 gap-sm">
+                                <a class="font-code text-code-sm text-primary font-semibold hover:text-primary-container inline-flex items-center gap-1"
+                                    href="#">
+                                    Read Paper <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+                                </a>
+                                <div class="flex items-center gap-xs font-code text-code-sm">
+                                    <span
+                                        class="px-xs py-0.5 bg-surface-container rounded text-on-surface-variant hover:text-primary cursor-pointer">[PDF]</span>
+                                    <span
+                                        class="px-xs py-0.5 bg-surface-container rounded text-on-surface-variant hover:text-primary cursor-pointer">[BibTeX]</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Item 4 -->
+                        <div
+                            class="bg-surface-container-lowest p-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col lg:flex-row lg:items-start justify-between gap-lg">
+                            <div class="max-w-4xl">
+                                <div class="flex flex-wrap items-center gap-sm mb-xs">
+                                    <span class="font-code text-code-sm text-secondary font-semibold">Computer
+                                        Vision · 2025</span>
+                                    <span class="text-outline">•</span>
+                                    <span class="font-code text-code-sm text-outline">Workshop Presentation</span>
+                                </div>
+                                <h3
+                                    class="font-headline-sm text-headline-sm text-on-surface font-semibold mb-xs hover:text-primary transition-colors cursor-pointer">
+                                    Zero-Shot Gesture Parsing with Latent Structural Kinematic Priors
+                                </h3>
+                                <p class="font-code text-code-sm text-on-surface-variant mb-sm">
+                                    Authors: <span class="text-primary font-medium">AAIR Motion Study Group</span>
+                                </p>
+                                <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
+                                    Eliminating non-anatomical finger distortions through structural kinematic bounding
+                                    during continuous pose tracking across monocular RGB feeds.
+                                </p>
+                            </div>
+                            <div
+                                class="flex lg:flex-col items-center lg:items-end justify-between shrink-0 gap-sm">
+                                <a class="font-code text-code-sm text-primary font-semibold hover:text-primary-container inline-flex items-center gap-1"
+                                    href="#">
+                                    Read Paper <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+                                </a>
+                                <div class="flex items-center gap-xs font-code text-code-sm">
+                                    <span
+                                        class="px-xs py-0.5 bg-surface-container rounded text-on-surface-variant hover:text-primary cursor-pointer">[PDF]</span>
+                                    <span
+                                        class="px-xs py-0.5 bg-surface-container rounded text-on-surface-variant hover:text-primary cursor-pointer">[BibTeX]</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Load More Action -->
+                    <div class="mt-2xl flex justify-center">
+                        <button
+                            class="px-2xl py-sm rounded bg-surface-container-lowest text-on-surface hover:bg-surface-container-high transition-colors font-body-sm text-body-sm font-semibold shadow-sm inline-flex items-center gap-2">
+                            View More Publications <span
+                                class="material-symbols-outlined text-[18px]">expand_more</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+            <!-- Section 6: Research Impact: Why Our Research Matters -->
+            <section class="w-full bg-surface py-2xl">
+                <div class="max-w-[1440px] mx-auto px-4 md:px-2xl">
+                    <div class="text-center max-w-2xl mx-auto mb-2xl">
+                        <span
+                            class="font-code text-code-sm text-primary font-semibold uppercase tracking-wider">Mission
+                            &amp; Philosophy</span>
+                        <h2 class="font-headline-lg text-headline-lg text-on-surface mt-xs">Why Our Research
+                            Matters</h2>
+                        <p class="font-body-md text-body-md text-on-surface-variant mt-xs">
+                            At AAIR, we translate theoretical machine learning foundations into verifiable, high-impact
+                            societal solutions.
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+                        <!-- Benefit 1 -->
+                        <div class="bg-surface-container-low p-lg rounded-xl relative overflow-hidden">
+                            <div
+                                class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary mb-md">
+                                <span class="material-symbols-outlined text-[20px]">precision_manufacturing</span>
+                            </div>
+                            <span
+                                class="font-code text-code-sm text-primary font-semibold uppercase tracking-wider block mb-xs">Pillar
+                                01</span>
+                            <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Applied</h3>
+                            <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                                Research focused on solving practical and domain-specific problems with verifiable
+                                reliability, sub-millisecond edge requirements, and empirical safety bounds.
+                            </p>
+                        </div>
+                        <!-- Benefit 2 -->
+                        <div class="bg-surface-container-low p-lg rounded-xl relative overflow-hidden">
+                            <div
+                                class="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-on-primary mb-md">
+                                <span class="material-symbols-outlined text-[20px]">lightbulb</span>
+                            </div>
+                            <span
+                                class="font-code text-code-sm text-secondary font-semibold uppercase tracking-wider block mb-xs">Pillar
+                                02</span>
+                            <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Innovative</h3>
+                            <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                                Exploring cutting-edge AI architectures, foundation models, spatial-temporal graph
+                                encodings, and emerging multi-modal representations for unconstrained inputs.
+                            </p>
+                        </div>
+                        <!-- Benefit 3 -->
+                        <div class="bg-surface-container-low p-lg rounded-xl relative overflow-hidden">
+                            <div
+                                class="w-10 h-10 rounded-full bg-tertiary flex items-center justify-center text-on-primary mb-md">
+                                <span class="material-symbols-outlined text-[20px]">handshake</span>
+                            </div>
+                            <span
+                                class="font-code text-code-sm text-tertiary font-semibold uppercase tracking-wider block mb-xs">Pillar
+                                03</span>
+                            <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Collaborative</h3>
+                            <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                                Bridging elite academic rigor with open-source toolkits, community benchmarks, and
+                                institutional partnerships across academic and industrial ecosystems.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Section 7: Compact Research CTA -->
+            <section class="w-full bg-surface py-lg">
+                <div class="max-w-[1440px] mx-auto px-4 md:px-2xl">
+                    <div
+                        class="w-full rounded-2xl bg-gradient-to-r from-primary to-secondary p-lg md:p-2xl text-on-primary shadow-lg relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-lg">
+                        <div class="relative z-10 max-w-2xl text-center md:text-left">
+                            <span
+                                class="font-code text-code-sm text-primary-fixed uppercase tracking-wider block mb-xs">Transforming
+                                Domain Knowledge</span>
+                            <h2 class="font-headline-lg text-headline-lg text-on-primary tracking-tight mb-xs">
+                                Explore Our Research
+                            </h2>
+                            <p class="font-body-md text-body-md text-on-primary/90 leading-relaxed">
+                                Discover how AAIR transforms domain knowledge into intelligent solutions through
+                                rigorous applied research, open tooling, and published models.
+                            </p>
+                        </div>
+                        <div class="relative z-10 flex flex-wrap items-center gap-md shrink-0">
+                            <a class="px-lg py-sm bg-surface-container-lowest text-primary hover:bg-surface-bright rounded font-body-sm text-body-sm font-semibold transition-colors shadow-sm inline-flex items-center gap-2"
+                                href="#">
+                                Explore Research <span
+                                    class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                            </a>
+                            <a class="px-lg py-sm bg-primary/20 hover:bg-primary/40 text-on-primary rounded font-body-sm text-body-sm font-semibold transition-colors inline-flex items-center gap-2"
+                                data-path="contact" href="#">
+                                Contact AAIR
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+<footer class="bg-surface-dim pt-3xl pb-xl border-t border-outline-variant">
+        <div class="max-w-container-max mx-auto px-gutter">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2xl mb-2xl">
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-sm mb-lg"> 
+                        <img alt="AAIR Lab" class="h-8"
+                            src="../../../resource/icon/logo_remove_BG.png"> <span
+                            class="font-headline-md text-headline-md font-bold text-on-surface">AAIR Lab</span> </div>
+                    
+                            <p class="font-body-md text-body-md text-on-surface-variant max-w-sm mb-lg">Defining the future of
+                            specialized intelligent systems through expert-in-the-loop innovation. Scaling domain expertise
+                            with AI.</p>
+
+                    <div class="flex gap-md"> 
+                        <a class="w-10 h-10 rounded-full bg-white border border-outline-variant flex items-center justify-center text-on-surface hover:text-primary transition-all hover:shadow-sm"
+                            href="#"><span class="material-symbols-outlined">share</span></a> 
+                        <a class="w-10 h-10 rounded-full bg-white border border-outline-variant flex items-center justify-center text-on-surface hover:text-primary transition-all hover:shadow-sm"
+                            href="#"><span class="material-symbols-outlined">alternate_email</span></a> 
+                        <a class="w-10 h-10 rounded-full bg-white border border-outline-variant flex items-center justify-center text-on-surface hover:text-primary transition-all hover:shadow-sm"
+                            href="#"><span class="material-symbols-outlined">language</span></a> 
+                    </div>
+                </div>
+
+                <!-- <div>
+                    <h4 class="font-label-md text-label-md font-bold mb-lg text-on-surface">Navigation</h4>
+                    <ul class="space-y-sm">
+                        <li class=""><a class="text-on-surface-variant hover:text-primary transition-colors"
+                                href="#about">About AAIR</a></li>
+                        <li class=""><a class="text-on-surface-variant hover:text-primary transition-colors"
+                                href="#features">Core Features</a></li>
+                    </ul>
+                </div> -->
+                <div class="ml-auto">
+                    <h4 class="font-label-md text-label-md font-bold mb-lg text-on-surface">Company</h4>
+                    <ul class="space-y-sm">
+                        <li class=""><a class="text-on-surface-variant hover:text-primary transition-colors"
+                                href="../Home/researchpaper.html">Research Papers</a></li>
+                        <li class=""><a class="text-on-surface-variant hover:text-primary transition-colors"
+                                href="../Home/privacy.html">Privacy Policy</a></li>
+                        <li class=""><a class="text-on-surface-variant hover:text-primary transition-colors"
+                                href="../Home/service.html">Terms of Service</a></li>
+                        <li class=""><a class="text-on-surface-variant hover:text-primary transition-colors"
+                                href="../Home/contactus.html">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div
+                class="pt-xl border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-md">
+                <p class="font-body-sm text-body-sm text-on-surface-variant">© 2024 Applied AI Research Laboratory (AAIR
+                    Lab). All rights reserved.</p>
+                <div class="flex gap-md text-on-surface-variant items-center"> 
+                    <span class="material-symbols-outlined text-sm">language</span> 
+                    <span class="font-body-sm text-body-sm">English (Global)</span> 
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+</body>
+
+<script src="../../JavaScript/home.js"></script>
+<script src="../../JavaScript/tailwind.js"></script>
+</html>
