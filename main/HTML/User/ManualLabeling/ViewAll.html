@@ -6,9 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>View ALL</title>
-
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="icon" type="image/png" href="/resource/icon/logo_remove_BG.png">
 
     <!-- Google Fonts: Inter & JetBrains Mono -->
     <link rel="stylesheet"
@@ -120,7 +118,7 @@
                 search
             </span>
 
-            <input type="text" placeholder="Search ..." class="w-full h-8
+            <input id="taskSearch" type="search" placeholder="Search ..." class="w-full h-8
                    pl-10 pr-4
                    rounded-lg
                    border border-slate-300
@@ -135,24 +133,19 @@
         <!-- Buttons -->
         <div class="ml-auto flex items-center gap-2">
 
-            <!-- Priority -->
             <div class="flex items-center gap-2">
-                <label class="text-label-md text-on-surface-variant">Priority:</label>
-                <select
+                <label for="taskSessionFilter" class="text-label-md text-on-surface-variant">Session:</label>
+                <select id="taskSessionFilter"
                     class="bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-body-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary">
-                    <option>All</option>
-                    <option>High</option>
-                    <option>Low</option>
+                    <option value="">All</option>
                 </select>
             </div>
 
             <div class="flex items-center gap-2">
-                <label class="text-label-md text-on-surface-variant">Status:</label>
-                <select
+                <label for="taskStatusFilter" class="text-label-md text-on-surface-variant">Status:</label>
+                <select id="taskStatusFilter"
                     class="bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-body-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary">
-                    <option>All</option>
-                    <option>Active</option>
-                    <option>Disabled</option>
+                    <option value="">All</option>
                 </select>
             </div>
 
@@ -181,7 +174,7 @@
                 <!-- Table -->
                 <div class="overflow-x-auto">
 
-                    <table class="w-full text-sm">
+                    <table id="taskTable" class="w-full text-sm">
 
                         <!-- Table Header -->
                         <thead class="bg-text-active
@@ -193,14 +186,14 @@
                                            text-left
                                            font-semibold
                                            text-slate-600">
-                                    Session
+                                    Document
                                 </th>
 
                                 <th class="px-6 py-4
                                            text-left
                                            font-semibold
                                            text-slate-600">
-                                    Dataset
+                                    Session
                                 </th>
 
                                 <th class="px-6 py-4
@@ -208,7 +201,14 @@
                                            font-semibold
                                            text-slate-600
                                            min-w-[180px]">
-                                    Progress
+                                    Annotator
+                                </th>
+
+                                <th class="px-6 py-4
+                                           text-left
+                                           font-semibold
+                                           text-slate-600">
+                                    Type
                                 </th>
 
                                 <th class="px-6 py-4
@@ -216,13 +216,6 @@
                                            font-semibold
                                            text-slate-600">
                                     Status
-                                </th>
-
-                                <th class="px-6 py-4
-                                           text-left
-                                           font-semibold
-                                           text-slate-600">
-                                    Priority
                                 </th>
 
                                 <th class="px-6 py-4
@@ -245,576 +238,8 @@
 
 
                         <!-- Table Body -->
-                        <tbody class="divide-y divide-slate-100">
-
-
-                            <!-- ================================= -->
-                            <!-- SESSION 1 -->
-                            <!-- ================================= -->
-
-                            <tr class="hover:bg-slate-50 transition">
-
-                                <td class="px-6 py-4">
-
-                                    <div>
-                                        <p class="font-semibold text-slate-900">
-                                            Financial Report 2026
-                                        </p>
-
-                                        <p class="text-xs text-slate-500 mt-1">
-                                            Session #001
-                                        </p>
-                                    </div>
-
-                                </td>
-
-
-                                <td class="px-6 py-4 text-slate-600">
-                                    Annual Report Dataset
-                                </td>
-
-
-                                <td class="px-6 py-4">
-
-                                    <div class="flex items-center gap-3">
-
-                                        <div class="w-28 h-2
-                                                    bg-slate-100
-                                                    rounded-full
-                                                    overflow-hidden">
-
-                                            <div class="h-full
-                                                        bg-gradient-to-r
-                                                        from-blue-500
-                                                        to-emerald-400
-                                                        rounded-full" style="width: 75%">
-                                            </div>
-
-                                        </div>
-
-                                        <span class="text-xs font-medium">
-                                            75%
-                                        </span>
-
-                                    </div>
-
-                                </td>
-
-
-                                <td class="px-6 py-4">
-
-                                    <span class="inline-flex
-                                                 items-center
-                                                 px-2.5 py-1
-                                                 rounded-full
-                                                 text-xs font-medium
-                                                 bg-blue-50
-                                                 text-blue-700">
-
-                                        In Progress
-
-                                    </span>
-
-                                </td>
-
-
-                                <td class="px-6 py-4">
-
-                                    <span class="inline-flex
-                                                 items-center
-                                                 gap-1.5
-                                                 text-xs
-                                                 font-medium
-                                                 text-orange-600">
-
-                                        <span class="w-2 h-2
-                                                     rounded-full
-                                                     bg-orange-500">
-                                        </span>
-
-                                        High
-
-                                    </span>
-
-                                </td>
-
-
-                                <td class="px-6 py-4 text-slate-600">
-                                    Aug 15, 2026
-                                </td>
-
-
-                                <td class="px-6 py-4 text-right">
-
-                                    <button class="inline-flex
-                                               items-center
-                                               gap-1
-                                               px-3 py-2
-                                               rounded-lg
-                                               text-sm font-medium
-                                               text-blue-600
-                                               hover:bg-blue-50">
-
-                                        Open
-
-                                        <span class="material-symbols-outlined text-[18px]">
-                                            arrow_forward
-                                        </span>
-
-                                    </button>
-
-                                </td>
-
-                            </tr>
-
-
-                            <!-- ================================= -->
-                            <!-- SESSION 2 -->
-                            <!-- ================================= -->
-
-                            <tr class="hover:bg-slate-50 transition">
-
-                                <td class="px-6 py-4">
-
-                                    <div>
-                                        <p class="font-semibold text-slate-900">
-                                            Banking Terminology
-                                        </p>
-
-                                        <p class="text-xs text-slate-500 mt-1">
-                                            Session #002
-                                        </p>
-                                    </div>
-
-                                </td>
-
-                                <td class="px-6 py-4 text-slate-600">
-                                    Banking Documents
-                                </td>
-
-                                <td class="px-6 py-4">
-
-                                    <div class="flex items-center gap-3">
-
-                                        <div class="w-28 h-2
-                                                    bg-slate-100
-                                                    rounded-full">
-
-                                            <div class="h-full
-                                                        bg-gradient-to-r
-                                                        from-blue-500
-                                                        to-emerald-400
-                                                        rounded-full" style="width: 45%">
-                                            </div>
-
-                                        </div>
-
-                                        <span class="text-xs font-medium">
-                                            45%
-                                        </span>
-
-                                    </div>
-
-                                </td>
-
-                                <td class="px-6 py-4">
-
-                                    <span class="inline-flex
-                                                 px-2.5 py-1
-                                                 rounded-full
-                                                 text-xs font-medium
-                                                 bg-amber-50
-                                                 text-amber-700">
-
-                                        Pending
-
-                                    </span>
-
-                                </td>
-
-                                <td class="px-6 py-4">
-
-                                    <span class="inline-flex
-                                                 items-center
-                                                 gap-1.5
-                                                 text-xs
-                                                 font-medium
-                                                 text-slate-600">
-
-                                        <span class="w-2 h-2
-                                                     rounded-full
-                                                     bg-slate-400">
-                                        </span>
-
-                                        Medium
-
-                                    </span>
-
-                                </td>
-
-                                <td class="px-6 py-4 text-slate-600">
-                                    Aug 20, 2026
-                                </td>
-
-                                <td class="px-6 py-4 text-right">
-
-                                    <button class="inline-flex
-                                               items-center
-                                               gap-1
-                                               px-3 py-2
-                                               rounded-lg
-                                               text-sm font-medium
-                                               text-blue-600
-                                               hover:bg-blue-50">
-
-                                        Open
-
-                                        <span class="material-symbols-outlined text-[18px]">
-                                            arrow_forward
-                                        </span>
-
-                                    </button>
-
-                                </td>
-
-                            </tr>
-
-
-                            <!-- ================================= -->
-                            <!-- SESSION 3 -->
-                            <!-- ================================= -->
-
-                            <tr class="hover:bg-slate-50 transition">
-
-                                <td class="px-6 py-4">
-
-                                    <div>
-                                        <p class="font-semibold text-slate-900">
-                                            Market Analysis
-                                        </p>
-
-                                        <p class="text-xs text-slate-500 mt-1">
-                                            Session #003
-                                        </p>
-                                    </div>
-
-                                </td>
-
-                                <td class="px-6 py-4 text-slate-600">
-                                    Market Dataset
-                                </td>
-
-                                <td class="px-6 py-4">
-
-                                    <div class="flex items-center gap-3">
-
-                                        <div class="w-28 h-2
-                                                    bg-slate-100
-                                                    rounded-full">
-
-                                            <div class="h-full
-                                                        bg-gradient-to-r
-                                                        from-blue-500
-                                                        to-emerald-400
-                                                        rounded-full" style="width: 100%">
-                                            </div>
-
-                                        </div>
-
-                                        <span class="text-xs font-medium">
-                                            100%
-                                        </span>
-
-                                    </div>
-
-                                </td>
-
-                                <td class="px-6 py-4">
-
-                                    <span class="inline-flex
-                                                 px-2.5 py-1
-                                                 rounded-full
-                                                 text-xs font-medium
-                                                 bg-emerald-50
-                                                 text-emerald-700">
-
-                                        Completed
-
-                                    </span>
-
-                                </td>
-
-                                <td class="px-6 py-4">
-
-                                    <span class="inline-flex
-                                                 items-center
-                                                 gap-1.5
-                                                 text-xs
-                                                 font-medium
-                                                 text-slate-600">
-
-                                        <span class="w-2 h-2
-                                                     rounded-full
-                                                     bg-slate-400">
-                                        </span>
-
-                                        Low
-
-                                    </span>
-
-                                </td>
-
-                                <td class="px-6 py-4 text-slate-600">
-                                    Aug 10, 2026
-                                </td>
-
-                                <td class="px-6 py-4 text-right">
-
-                                    <button class="inline-flex
-                                               items-center
-                                               gap-1
-                                               px-3 py-2
-                                               rounded-lg
-                                               text-sm font-medium
-                                               text-blue-600
-                                               hover:bg-blue-50">
-
-                                        View
-
-                                        <span class="material-symbols-outlined text-[18px]">
-                                            arrow_forward
-                                        </span>
-
-                                    </button>
-
-                                </td>
-
-                            </tr>
-
-
-                            <!-- ================================= -->
-                            <!-- SESSION 4 -->
-                            <!-- ================================= -->
-
-                            <tr class="hover:bg-slate-50 transition">
-
-                                <td class="px-6 py-4">
-
-                                    <div>
-                                        <p class="font-semibold text-slate-900">
-                                            Corporate Documents
-                                        </p>
-
-                                        <p class="text-xs text-slate-500 mt-1">
-                                            Session #004
-                                        </p>
-                                    </div>
-
-                                </td>
-
-                                <td class="px-6 py-4 text-slate-600">
-                                    Corporate Dataset
-                                </td>
-
-                                <td class="px-6 py-4">
-
-                                    <div class="flex items-center gap-3">
-
-                                        <div class="w-28 h-2
-                                                    bg-slate-100
-                                                    rounded-full">
-
-                                            <div class="h-full
-                                                        bg-gradient-to-r
-                                                        from-blue-500
-                                                        to-emerald-400
-                                                        rounded-full" style="width: 20%">
-                                            </div>
-
-                                        </div>
-
-                                        <span class="text-xs font-medium">
-                                            20%
-                                        </span>
-
-                                    </div>
-
-                                </td>
-
-                                <td class="px-6 py-4">
-
-                                    <span class="inline-flex
-                                                 px-2.5 py-1
-                                                 rounded-full
-                                                 text-xs font-medium
-                                                 bg-blue-50
-                                                 text-blue-700">
-
-                                        In Progress
-
-                                    </span>
-
-                                </td>
-
-                                <td class="px-6 py-4">
-
-                                    <span class="inline-flex
-                                                 items-center
-                                                 gap-1.5
-                                                 text-xs
-                                                 font-medium
-                                                 text-red-600">
-
-                                        <span class="w-2 h-2
-                                                     rounded-full
-                                                     bg-red-500">
-                                        </span>
-
-                                        Urgent
-
-                                    </span>
-
-                                </td>
-
-                                <td class="px-6 py-4 text-slate-600">
-                                    Aug 12, 2026
-                                </td>
-
-                                <td class="px-6 py-4 text-right">
-
-                                    <button class="inline-flex
-                                               items-center
-                                               gap-1
-                                               px-3 py-2
-                                               rounded-lg
-                                               text-sm font-medium
-                                               text-blue-600
-                                               hover:bg-blue-50">
-
-                                        Open
-
-                                        <span class="material-symbols-outlined text-[18px]">
-                                            arrow_forward
-                                        </span>
-
-                                    </button>
-
-                                </td>
-
-                            </tr>
-
-
-                            <!-- ================================= -->
-                            <!-- SESSION 5 -->
-                            <!-- ================================= -->
-
-                            <tr class="hover:bg-slate-50 transition">
-
-                                <td class="px-6 py-4">
-
-                                    <div>
-                                        <p class="font-semibold text-slate-900">
-                                            Economic Indicators
-                                        </p>
-
-                                        <p class="text-xs text-slate-500 mt-1">
-                                            Session #005
-                                        </p>
-                                    </div>
-
-                                </td>
-
-                                <td class="px-6 py-4 text-slate-600">
-                                    Economic Dataset
-                                </td>
-
-                                <td class="px-6 py-4">
-
-                                    <div class="flex items-center gap-3">
-
-                                        <div class="w-28 h-2
-                                                    bg-slate-100
-                                                    rounded-full">
-
-                                            <div class="h-full
-                                                        bg-gradient-to-r
-                                                        from-blue-500
-                                                        to-emerald-400
-                                                        rounded-full" style="width: 60%">
-                                            </div>
-
-                                        </div>
-
-                                        <span class="text-xs font-medium">
-                                            60%
-                                        </span>
-
-                                    </div>
-
-                                </td>
-
-                                <td class="px-6 py-4">
-
-                                    <span class="inline-flex
-                                                 px-2.5 py-1
-                                                 rounded-full
-                                                 text-xs font-medium
-                                                 bg-blue-50
-                                                 text-blue-700">
-
-                                        In Progress
-
-                                    </span>
-
-                                </td>
-
-                                <td class="px-6 py-4">
-
-                                    <span class="inline-flex
-                                                 items-center
-                                                 gap-1.5
-                                                 text-xs
-                                                 font-medium
-                                                 text-slate-600">
-
-                                        <span class="w-2 h-2
-                                                     rounded-full
-                                                     bg-slate-400">
-                                        </span>
-
-                                        Medium
-
-                                    </span>
-
-                                </td>
-
-                                <td class="px-6 py-4 text-slate-600">
-                                    Aug 18, 2026
-                                </td>
-
-                                <td class="px-6 py-4 text-right">
-
-                                    <button class="inline-flex
-                                               items-center
-                                               gap-1
-                                               px-3 py-2
-                                               rounded-lg
-                                               text-sm font-medium
-                                               text-blue-600
-                                               hover:bg-blue-50">
-
-                                        Open
-
-                                        <span class="material-symbols-outlined text-[18px]">
-                                            arrow_forward
-                                        </span>
-
-                                    </button>
-
-                                </td>
-
-                            </tr>
-
+                        <tbody id="taskRows" class="divide-y divide-slate-100">
+                            <tr hidden aria-hidden="true"><td class="px-6 py-4"></td><td class="px-6 py-4"></td><td class="px-6 py-4"></td><td class="px-6 py-4"></td><td class="px-6 py-4"></td><td class="px-6 py-4"></td><td class="px-6 py-4"></td></tr>
                         </tbody>
 
                     </table>
@@ -834,7 +259,7 @@
 
 
                     <!-- Pagination -->
-                    <div class="flex items-center gap-6">
+                    <div id="taskPagination" class="flex items-center gap-6">
 
                         <!-- Previous -->
                         <button class="w-9 h-9

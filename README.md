@@ -17,7 +17,7 @@ Giao diện sử dụng trực tiếp các trang HTML/CSS hiện có trong `main
 1. Mở pgAdmin 4 và kết nối PostgreSQL server.
 2. Chọn database `postgres`, mở **Query Tool**, chạy `database/create_database.sql` một lần để tạo `aair_db`.
 3. Refresh mục **Databases**, chọn `aair_db` rồi mở **Query Tool**.
-4. Chạy `database/create_users_table.sql`.
+4. Chạy `database/create_users_table.sql`. chạy hết SQL file cái đã
 5. Tạo tài khoản quản trị đầu tiên bằng quy trình triển khai an toàn của môi trường.
 
 Backend kết nối tới PostgreSQL server; pgAdmin 4 chỉ là giao diện để quản trị server đó.

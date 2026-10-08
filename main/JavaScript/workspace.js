@@ -288,9 +288,9 @@
         return {toggle,render,get width(){return width;}};
     }
     // Keep the existing table and its cell styles; replace only its records.
-    function table(el, columns, rows, actions) {
+    function table(el, columns, rows, actions, bodyTarget) {
         if (!el) return;
-        const head = $('thead tr', el), body = $('tbody', el) || el.createTBody();
+        const head = $('thead tr', el), body = bodyTarget || $('tbody', el) || el.createTBody();
         const oldCells = $$('tr:first-child td', body);
         const styles = tableStyles.get(el) || oldCells.map(c => c.className);
         const headStyle = $('th', el)?.className || 'px-4 py-3 text-left';
@@ -317,9 +317,9 @@
         }
     }
     function listTable(rows, columns, actions, filterFields = [], config = {}) {
-        const el = $('table');
-        const search = $('input[placeholder^="Search"]:not(#modalContent input)');
-        const selects = $$('header select');
+        const el = config.table || $('table');
+        const search = config.search || $('input[placeholder^="Search"]:not(#modalContent input)');
+        const selects = config.selects || $$('header select');
         const filterValue = (spec, row) => {
             const field = Array.isArray(spec) ? spec[0] : spec;
             return typeof field === 'function' ? field(row) : row[field];
@@ -333,7 +333,7 @@
             if (field) options(select, filterOptions(field), true);
             else { options(select, [], true); select.disabled = true; }
         });
-        const pagers = buttons(/^(chevron_left|chevron_right|[1-6])$/);
+        const pagers = config.pagers || buttons(/^(chevron_left|chevron_right|[1-6])$/);
         const render = () => {
             if(page==='Session.html'){
                 const metrics=[['Total Sessions',rows.length],['Active Sessions',rows.filter(r=>r.status==='ACTIVE').length],['Draft Sessions',rows.filter(r=>r.status==='DRAFT').length],['Closed Sessions',rows.filter(r=>r.status==='CLOSED').length]];
@@ -365,7 +365,7 @@
             }
             const pages = Math.max(1, Math.ceil(filtered.length / 10)); current = Math.min(current, pages - 1);
             const visible=filtered.slice(current * 10, current * 10 + 10).map((row,index)=>config.numbered?{...row,__rowNumber:current*10+index+1}:row);
-            table(el, columns, visible, actions);
+            table(el, columns, visible, actions, config.body);
             if(config.sortable)$$('thead th',el).forEach((th,index)=>{
                 if(!config.sortKeys?.[index])return;
                 th.style.cursor='pointer';th.title='Sắp xếp cột này';th.setAttribute('aria-sort',sortIndex===index?(sortDirection===1?'ascending':'descending'):'none');
@@ -928,9 +928,17 @@
     }
     async function taskList() {
         const rows=await request('/tasks');
+        const tableTarget=$('#taskTable');
+        const pageTargets=tableTarget?{
+            table:tableTarget,
+            body:$('#taskRows'),
+            search:$('#taskSearch'),
+            selects:[$('#taskSessionFilter'),$('#taskStatusFilter')],
+            pagers:$$('button',$('#taskPagination')),
+        }:{};
         listTable(rows,[['Document','document_title'],['Session','session_name'],['Annotator','assignee'],['Type','task_type'],['Status','status'],['Due',r=>date(r.due_at)],['Action','$actions']],row=>[
             action('Open',()=>go(`Task.html?id=${row.id}`)),
-        ],['session_name','status']);
+        ],['session_name','status'],pageTargets);
     }
     async function legacyResultAnalysisPage() {
         setupDocumentSidebar({
@@ -1107,19 +1115,38 @@
         ]);
         const id=new URLSearchParams(location.search).get('id');
         const initial=id?tasks.find(t=>String(t.id)===id):tasks.find(t=>user.role==='REVIEWER'?t.status==='SUBMITTED':!['APPROVED','SUBMITTED'].includes(t.status))||tasks[0];
-        const item=$('.document-item'), container=item?.parentElement, template=item?.cloneNode(true);
+        const item=$('.document-item'), container=$('#documentList')||item?.parentElement, template=item?.cloneNode(true);
         const documentButtons=new Map();
+        const selectAll=$('#selectAll'), selectedCounter=$('#selectedCounter'), selectedCount=$('#selectedCount');
+        let selectionMode=false;
+        const documentCheckboxes=()=>container?$$('.document-checkbox',container):[];
+        const updateSelection=()=>{
+            const checkboxes=documentCheckboxes(), count=checkboxes.filter(checkbox=>checkbox.checked).length;
+            if(selectAll){selectAll.checked=checkboxes.length>0&&count===checkboxes.length;selectAll.indeterminate=count>0&&count<checkboxes.length;}
+            selectedCounter?.classList.toggle('hidden',!selectionMode);
+            if(selectedCount)selectedCount.textContent=`${count} document${count!==1?'s':''}`;
+        };
+        selectAll?.addEventListener('change',()=>{
+            selectionMode=selectAll.checked;selectAll.indeterminate=false;
+            documentCheckboxes().forEach(checkbox=>{checkbox.classList.toggle('hidden',!selectionMode);checkbox.checked=selectionMode;});
+            updateSelection();
+        });
         if(container){
             container.replaceChildren();
             for(const row of tasks){
+                const entry=document.createElement('div');entry.className='flex w-full items-center gap-2 px-2';
+                const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.className='document-checkbox hidden h-4 w-4 shrink-0 rounded border-outline-variant text-primary focus:ring-primary';
+                checkbox.setAttribute('aria-label',`Select ${row.document_title||'document'}`);checkbox.addEventListener('change',updateSelection);
                 const b=template.cloneNode(true);b.removeAttribute('data-pdf');b.removeAttribute('onclick');
+                b.classList.add('flex-1','min-w-0');
                 b.replaceChildren();
                 const icon=document.createElement('span');icon.className='material-symbols-outlined text-[16px]';icon.textContent='picture_as_pdf';
                 const label=document.createElement('span');label.className='truncate';label.textContent=row.document_title;
                 b.append(icon,label);b.title=row.document_title;b.setAttribute('aria-label',`Mở tài liệu ${row.document_title}`);
-                bind(b,()=>loadTask(row));documentButtons.set(row.id,b);container.append(b);
+                bind(b,()=>loadTask(row));documentButtons.set(row.id,b);entry.append(checkbox,b);container.append(entry);
             }
         }
+        updateSelection();
         // Reuse the original Term / Definition cards as editable annotation fields.
         const heading=$$('main h2,main h3').find(h=>text(h)==='Extracted Information');
         let panel=heading?.parentElement;
@@ -1511,9 +1538,27 @@
         await selectRole(selectedRole);
     }
     async function dashboardPage() {
+        if (user.role === 'TERMINOLOGY' && window.AAIRTerminologyDashboardPage) {
+            return window.AAIRTerminologyDashboardPage({request});
+        }
         const data=await request('/dashboard');
         const role=user.role;
         const rows=await request(role==='ADMIN'?'/audit-logs':role==='TERMINOLOGY'?'/terms':'/tasks');
+        if(document.body.classList.contains('manual-labeling-dashboard')){
+            const total=rows.length;
+            const pending=rows.filter(row=>['PENDING','IN_PROGRESS'].includes(row.status)).length;
+            const completed=rows.filter(row=>row.status==='APPROVED').length;
+            const assignedSessions=new Set(rows.map(row=>row.session_id).filter(value=>value!=null)).size;
+            const percent=total?Math.round(completed/total*100):0;
+            $('#assignedSessionsValue').textContent=String(assignedSessions);
+            $('#pendingTasksValue').textContent=String(pending);
+            $('#completedTasksValue').textContent=String(completed);
+            $('#overallProgressValue').textContent=`${percent}%`;
+            $('#overallProgressRing')?.style.setProperty('--dashboard-progress',`${percent}%`);
+            bind($('#continueLastSession'),()=>go(rows[0]?`Task.html?id=${rows[0].id}`:'ViewAll.html'));
+            bind($('#refreshDashboard'),()=>location.reload());
+            return;
+        }
         // All dashboard designs have their KPI cards in the first grid.
         const grid=$('main .grid');
         if(grid){

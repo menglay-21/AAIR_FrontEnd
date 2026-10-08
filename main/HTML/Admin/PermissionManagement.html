@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Permission Management</title>
+    <link rel="icon" type="image/png" href="../../../resource/icon/logo_remove_BG.png">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -23,7 +24,7 @@
     <script src="../../JavaScript/tailwind.js"></script>
 
     <!-- Page-specific CSS -->
-    <link href="../../Style/basic.css" rel="stylesheet"/>
+    <link href="../../Style/basic.css" rel="stylesheet" />
 </head>/
 
 
@@ -166,8 +167,30 @@
                 Good Morning,
             </h2>
         </div>
+
         <!-- Buttons -->
         <div class="ml-auto flex items-center gap-2">
+
+            <button id="permissionRoleTab" class="px-4 py-2
+                       rounded-lg
+                       text-[12px]
+                       bg-button-active
+                       text-text-active
+                       hover:opacity-85
+                       transition-opacity
+                       flex items-center gap-2 shadow-sm/" role="tab">
+                Theo role
+            </button>
+            <button id="permissionUserTab" class="px-4 py-2
+                       rounded-lg
+                       text-[12px]
+                       bg-button-active
+                       text-text-active
+                       hover:opacity-85
+                       transition-opacity
+                       flex items-center gap-2 shadow-sm" role="tab">
+                Theo user
+            </button>
 
             <button class="px-4 py-2
                        rounded-lg
@@ -176,7 +199,7 @@
                        text-text-active
                        hover:opacity-85
                        transition-opacity
-                       flex items-center gap-2 shadow-sm" onclick="saveChanges()">
+                       flex items-center gap-2 shadow-sm disabled:cursor-not-allowed disabled:opacity-50" id="permissionSave">
 
                 <span class="material-symbols-outlined text-[12px]">
                     save
