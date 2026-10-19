@@ -1,14 +1,18 @@
 <!doctype html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Review | AAIR Lab</title>
-    <link rel="icon" type="image/png" href="/resource/icon/logo_remove_BG.png">
+  <link rel="icon" type="image/png" href="/resource/icon/logo_remove_BG.png">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0"
+    rel="stylesheet" />
   <link href="../../../Style/basic.css" rel="stylesheet" />
   <link href="../../../Style/manualReview.css" rel="stylesheet" />
   <link href="../../../Style/manualReviewOverrides.css" rel="stylesheet" />
@@ -17,32 +21,243 @@
   <link href="../../../Style/manualReviewFeatures.css" rel="stylesheet" />
   <link href="../../../Style/sessionCompletion.css" rel="stylesheet" />
   <style>
-    .review-topbar{height:58px!important;background:#079bc5!important;border-bottom:1px solid #63c3dd!important}
-    .review-brand{width:155px;flex:0 0 155px;gap:8px;padding:0 18px;color:#fff!important;border-right:1px solid #63c3dd}
-    .review-brand img{filter:brightness(0) invert(1)}
-    .review-nav a{gap:0;padding:0 18px;color:#eaf9fd;border-right:1px solid #63c3dd}
-    .review-nav a.is-active{color:#fff;background:#087da7;box-shadow:inset 0 -3px 0 #fff}
-    .review-nav a>.material-symbols-outlined,.review-account .outline-button>.material-symbols-outlined{display:none}
-    .review-avatar{color:#fff;background:#167ea5}
-    .review-account b,.review-account small{color:#fff}
-    .review-account .outline-button{margin-left:4px;color:#fff;background:rgba(0,90,128,.18);border-color:rgba(255,255,255,.75)}
-    .review-files{top:58px}
-    .review-workspace{top:113px}
+    .review-topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      height: 58px !important;
+      min-height: 58px;
+      background: #079bc5 !important;
+      border-bottom: 1px solid #63c3dd !important
+    }
+
+    .review-sessionbar {
+      position: sticky;
+      top: 58px;
+      z-index: 55
+    }
+
+    .review-page .review-workspace {
+      position: fixed;
+      top: 113px;
+      right: 0;
+      bottom: 0;
+      left: var(--review-sidebar-width, 176px);
+      margin: 0;
+      min-height: 0;
+      height: auto;
+      overflow: hidden
+    }
+
+    .review-workspace>.pdf-panel,
+    .review-workspace>.comparison-panel {
+      min-height: 0;
+      overflow: hidden
+    }
+
+    .review-workspace .pdf-canvas,
+    .review-workspace .comparison-table-wrap {
+      min-height: 0;
+      overflow-y: scroll;
+      scrollbar-gutter: stable
+    }
+
+    .review-workspace .pdf-canvas {
+      overflow-x: auto
+    }
+
+    .review-workspace .pdf-canvas,
+    .review-workspace .comparison-table-wrap {
+      scrollbar-width: auto;
+      scrollbar-color: #718694 #dce5ea
+    }
+
+    .review-workspace .pdf-canvas::-webkit-scrollbar,
+    .review-workspace .comparison-table-wrap::-webkit-scrollbar {
+      width: 12px;
+      height: 12px
+    }
+
+    .review-workspace .pdf-canvas::-webkit-scrollbar-track,
+    .review-workspace .comparison-table-wrap::-webkit-scrollbar-track {
+      border: 1px solid #c6d0d6;
+      border-radius: 8px;
+      background: #dce5ea
+    }
+
+    .review-workspace .pdf-canvas::-webkit-scrollbar-thumb,
+    .review-workspace .comparison-table-wrap::-webkit-scrollbar-thumb {
+      min-width: 120px;
+      min-height: 72px;
+      border: 2px solid #dce5ea;
+      border-radius: 8px;
+      background: #718694
+    }
+
+    .review-workspace .pdf-canvas::-webkit-scrollbar-thumb:hover,
+    .review-workspace .comparison-table-wrap::-webkit-scrollbar-thumb:hover {
+      background-color: #607582
+    }
+
+    .review-workspace .comparison-table-wrap {
+      flex: 1
+    }
+
+    .review-workspace .panel-head,
+    .review-workspace .comparison-head {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      flex: 0 0 auto
+    }
+
+    .review-workspace .comparison-row--header {
+      top: 0
+    }
+
+    .review-brand {
+      width: 155px;
+      flex: 0 0 155px;
+      gap: 8px;
+      padding: 0 18px;
+      color: #fff !important;
+      border-right: 1px solid #63c3dd
+    }
+
+    .review-brand img {
+      filter: brightness(0) invert(1)
+    }
+
+    .review-nav a {
+      gap: 0;
+      padding: 0 18px;
+      color: #eaf9fd;
+      border-right: 1px solid #63c3dd
+    }
+
+    .review-nav a.is-active {
+      color: #fff;
+      background: #087da7;
+      box-shadow: inset 0 -3px 0 #fff
+    }
+
+    .review-nav a>.material-symbols-outlined,
+    .review-account .outline-button>.material-symbols-outlined {
+      display: none
+    }
+
+    .review-avatar {
+      color: #fff;
+      background: #167ea5
+    }
+
+    .review-account b,
+    .review-account small {
+      color: #fff
+    }
+
+    .review-account .outline-button {
+      margin-left: 4px;
+      color: #fff;
+      background: rgba(0, 90, 128, .18);
+      border-color: rgba(255, 255, 255, .75)
+    }
+
+    .review-files {
+      top: 58px
+    }
+
+    .review-workspace {
+      top: 113px
+    }
   </style>
 </head>
+
 <body class="review-page">
   <header class="review-topbar">
-    <a class="review-brand" href="Dashboard.html"><img src="/resource/icon/logo_remove_BG.png" alt="AAIR Lab" /><strong>AAIR Lab</strong></a>
-    <nav class="review-nav" aria-label="Điều hướng"><a href="Dashboard.html"><span class="material-symbols-outlined">grid_view</span>Dashboard</a><a href="ViewAll.html"><span class="material-symbols-outlined">list_alt</span>View ALL</a><a class="is-active" href="Task.html"><span class="material-symbols-outlined">fact_check</span>Review</a></nav>
-    <div class="review-account"><span class="review-avatar">RE</span><span><b id="reviewerName">reviewer01</b><small>Reviewer</small></span><button id="logoutButton" class="outline-button" type="button" aria-label="Log out">Log out</button></div>
+    <a class="review-brand" href="Dashboard.html"><img src="/resource/icon/logo_remove_BG.png"
+        alt="AAIR Lab" /><strong>AAIR Lab</strong></a>
+    <nav class="review-nav" aria-label="Điều hướng"><a href="Dashboard.html"><span
+          class="material-symbols-outlined">grid_view</span>Dashboard</a><a href="ViewAll.html"><span
+          class="material-symbols-outlined">list_alt</span>View ALL</a><a class="is-active" href="Task.html"><span
+          class="material-symbols-outlined">fact_check</span>Review</a></nav>
+    <div class="review-account"><button type="button" data-guideline-trigger class="guideline-icon-button"
+        title="Open labeling guidelines" aria-label="Open labeling guidelines"><span
+          class="material-symbols-outlined">menu_book</span></button><span class="review-avatar">RE</span><span><b
+          id="reviewerName">reviewer01</b><small>Reviewer</small></span><button id="logoutButton" class="outline-button"
+        type="button" aria-label="Log out">Log out</button></div>
   </header>
-  <section class="review-sessionbar"><div class="session-title"><strong id="taskTitle">Task ID #001</strong><span class="status-pill">PENDING</span></div><div class="session-meta"><span>TIME SPENT</span><b id="timeSpent">00:14:22</b><span class="progress-copy" id="progressCopy">2/5 tiêu chí đã chốt · 3 khác nhau chưa xử lý</span><span class="progress-track" aria-label="Tiến độ chốt"><span id="progressBar"></span></span><button id="approveButton" class="approve-button" type="button" disabled title="Hãy chốt tất cả tiêu chí khác nhau trước khi duyệt"><span class="material-symbols-outlined">task_alt</span>Approve Review</button></div></section>
-  <aside class="review-files" aria-label="Danh sách tài liệu"><div class="files-heading"><span class="material-symbols-outlined">folder_open</span><span class="files-heading__label">TÀI LIỆU TASK</span><button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="Thu gọn danh sách tài liệu" aria-expanded="true" title="Thu gọn danh sách tài liệu"><span class="material-symbols-outlined">chevron_left</span></button></div><div id="fileList"></div></aside>
+  <section class="review-sessionbar">
+    <div class="session-title"><strong id="taskTitle">Đang tải review…</strong><span class="status-pill">—</span></div>
+    <div class="session-meta"><span>TIME SPENT</span><b id="timeSpent">00:00:00</b><span class="progress-copy"
+        id="progressCopy">Đang tải review case…</span><span class="progress-track" aria-label="Tiến độ chốt"><span
+          id="progressBar"></span></span><button id="approveButton" class="approve-button" type="button" disabled
+        title="Hãy chốt tất cả tiêu chí khác nhau trước khi duyệt"><span
+          class="material-symbols-outlined">task_alt</span>Approve Review</button></div>
+  </section>
+  <aside class="review-files" aria-label="Danh sách tài liệu">
+    <div class="files-heading"><span class="material-symbols-outlined">folder_open</span><span
+        class="files-heading__label">TÀI LIỆU TASK</span><button id="sidebarToggle" class="sidebar-toggle" type="button"
+        aria-label="Thu gọn danh sách tài liệu" aria-expanded="true" title="Thu gọn danh sách tài liệu"><span
+          class="material-symbols-outlined">chevron_left</span></button></div>
+    <div id="fileList"></div>
+  </aside>
   <main class="review-workspace">
-    <section class="pdf-panel"><div class="panel-head"><div><span class="material-symbols-outlined">picture_as_pdf</span><strong id="pdfTitle">AG1_2022_CN.pdf</strong></div><span id="pageLabel">Trang 1 / 35</span></div><div class="pdf-shell"><div class="pdf-toolbar"><span class="material-symbols-outlined">menu</span><b>AG1_2022_CN.pdf</b><span class="toolbar-spacer"></span><button type="button" data-pdf-action="prev" title="Trang trước"><span class="material-symbols-outlined">chevron_left</span></button><span id="pageNumber">1</span><span>/ 35</span><button type="button" data-pdf-action="next" title="Trang sau"><span class="material-symbols-outlined">chevron_right</span></button><i></i><span id="zoomLabel">Fit width</span><button type="button" data-pdf-action="zoom-in" title="Phóng to"><span class="material-symbols-outlined">add</span></button><button type="button" data-pdf-action="zoom-out" title="Thu nhỏ"><span class="material-symbols-outlined">remove</span></button></div><div id="pdfCanvas" class="pdf-canvas"><div id="pdfViewer" class="pdf-viewer" aria-label="PDF viewer"></div><div id="pdfEmpty" class="pdf-empty" hidden><span class="material-symbols-outlined">picture_as_pdf</span><b>Chưa tải được PDF</b><span>Kiểm tra kết nối máy chủ để xem tài liệu.</span></div></div></div><div class="source-note"><span class="material-symbols-outlined">location_on</span><span id="sourceNote">Chọn một giá trị để nhảy tới trang nguồn và vùng highlight.</span></div></section>
-    <section class="comparison-panel"><div class="comparison-head"><label class="diff-toggle"><input id="differencesOnly" type="checkbox" /> Chỉ hiện khác nhau</label></div><div class="comparison-table-wrap"><div class="comparison-table" role="table" aria-label="Bảng so sánh kết quả gán nhãn"><div class="comparison-row comparison-row--header" role="row"><div>TIÊU CHÍ</div><div><span class="eyebrow-dot dot-a"></span><strong>NGƯỜI A</strong><small id="reviewerAName">Đang tải...</small></div><div><span class="eyebrow-dot dot-b"></span><strong>NGƯỜI B</strong><small id="reviewerBName">Đang tải...</small></div><div>KẾT QUẢ CHỐT</div></div><div id="comparisonRows"><div class="table-state table-state--loading"><span class="state-spinner"></span>Đang tải kết quả gán nhãn…</div></div></div></div><div class="table-footer"><span><span class="material-symbols-outlined">keyboard</span>↑ ↓ di chuyển · A/B chọn · Enter chốt · N khác nhau kế tiếp</span><span id="rowCount">Đang tải…</span></div></section>
+    <section class="pdf-panel">
+      <div class="panel-head">
+        <div><span class="material-symbols-outlined">picture_as_pdf</span><strong id="pdfTitle">Chưa có tài
+            liệu</strong></div><span id="pageLabel">—</span>
+      </div>
+      <div class="pdf-shell">
+        <div class="pdf-toolbar" hidden><span class="material-symbols-outlined">menu</span><b></b><span
+            class="toolbar-spacer"></span><button type="button" data-pdf-action="prev" title="Trang trước"><span
+              class="material-symbols-outlined">chevron_left</span></button><span id="pageNumber">—</span><span
+            id="pageTotal"></span><button type="button" data-pdf-action="next" title="Trang sau"><span
+              class="material-symbols-outlined">chevron_right</span></button><i></i><span id="zoomLabel">Fit
+            width</span><button type="button" data-pdf-action="zoom-in" title="Phóng to"><span
+              class="material-symbols-outlined">add</span></button><button type="button" data-pdf-action="zoom-out"
+            title="Thu nhỏ"><span class="material-symbols-outlined">remove</span></button></div>
+        <div id="pdfCanvas" class="pdf-canvas">
+          <div id="pdfViewer" class="pdf-viewer" aria-label="PDF viewer"></div>
+          <div id="pdfEmpty" class="pdf-empty"><span class="material-symbols-outlined">picture_as_pdf</span><b>Chưa có
+              review case</b><span>Khi review case được giao, tài liệu sẽ hiển thị ở đây.</span></div>
+        </div>
+      </div>
+      <div class="source-note"><span class="material-symbols-outlined">location_on</span><span id="sourceNote">Chọn một
+          giá trị để nhảy tới trang nguồn và vùng highlight.</span></div>
+    </section>
+    <section class="comparison-panel">
+      <div class="comparison-head"><label class="diff-toggle"><input id="differencesOnly" type="checkbox" /> Chỉ hiện
+          khác nhau</label></div>
+      <div class="comparison-table-wrap">
+        <div class="comparison-table" role="table" aria-label="Bảng so sánh kết quả gán nhãn">
+          <div class="comparison-row comparison-row--header" role="row">
+            <div>TIÊU CHÍ</div>
+            <div><span class="eyebrow-dot dot-a"></span><strong>NGƯỜI A</strong><small id="reviewerAName">Đang
+                tải...</small></div>
+            <div><span class="eyebrow-dot dot-b"></span><strong>NGƯỜI B</strong><small id="reviewerBName">Đang
+                tải...</small></div>
+            <div>KẾT QUẢ CHỐT</div>
+          </div>
+          <div id="comparisonRows">
+            <div class="table-state table-state--loading"><span class="state-spinner"></span>Đang tải kết quả gán nhãn…
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="table-footer"><span><span class="material-symbols-outlined">keyboard</span>↑ ↓ di chuyển · A/B chọn ·
+          Enter chốt · N khác nhau kế tiếp</span><span id="rowCount">Đang tải…</span></div>
+    </section>
   </main>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script src="../../../JavaScript/api.js"></script><script src="../../../JavaScript/guidelineModal.js"></script><script src="../../../JavaScript/timeTracking.js"></script><script src="../../../JavaScript/reviewComparison.js"></script><script src="../../../JavaScript/sessionCompletion.js"></script><script src="../../../JavaScript/manualReview.js"></script>
+  <script src="../../../JavaScript/api.js"></script>
+  <script src="../../../JavaScript/guidelineModal.js"></script>
+  <script src="../../../JavaScript/timeTracking.js"></script>
+  <script src="../../../JavaScript/reviewComparison.js"></script>
+  <script src="../../../JavaScript/sessionCompletion.js"></script>
+  <script src="../../../JavaScript/manualReview.js"></script>
 </body>
+
 </html>

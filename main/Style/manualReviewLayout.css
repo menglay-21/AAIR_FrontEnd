@@ -3,7 +3,7 @@
 .review-page{--review-sidebar-width:176px}
 .review-page .review-files{width:var(--review-sidebar-width);min-width:0;overflow:hidden}
 .review-page .review-sessionbar{margin-left:var(--review-sidebar-width)}
-.review-page .review-workspace{left:var(--review-sidebar-width)}
+.review-page .review-workspace{left:auto}
 .review-page.review-sidebar-collapsed .review-files{width:0;border-right-color:transparent;pointer-events:none}
 .review-page.review-sidebar-collapsed .review-sessionbar{margin-left:0}
 .review-page.review-sidebar-collapsed .review-workspace{left:0}

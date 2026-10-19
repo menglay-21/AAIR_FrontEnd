@@ -5,12 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<<<<<<< HEAD
     <title>View All Session</title>
     <link rel="icon" type="image/png" href="/resource/icon/logo_remove_BG.png">
-=======
-    <title>AAIR Lab - View ALL</title>
->>>>>>> c0400a00ec48da9a12cd8761452fdf2e1e35bbe8
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -34,7 +30,8 @@
 
 </head>
 
-<body class="aa-shared-page bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+<body
+    class="aa-shared-page bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
 
     <div data-aair-navbar-mount></div>
 
@@ -42,10 +39,10 @@
     <header class="w-full h-12
            flex items-center gap-2 px-lg
            bg-text-active border-b border-outline-variant
-           shadow-sm sticky top-0 z-30 mb-6">
+           shadow-sm sticky top-[60px] z-30 mb-6">
 
         <!-- Search Box - Left -->
-                <div class="relative w-[280px]">
+        <div class="relative w-[280px]">
 
             <span class="material-symbols-outlined
                      absolute left-3 top-1/2
@@ -54,7 +51,7 @@
                 search
             </span>
 
-                <input id="taskSearch" type="text" placeholder="Tìm kiếm..." class="w-full h-8
+            <input id="taskSearch" type="text" placeholder="Tìm kiếm..." class="w-full h-8
                    pl-10 pr-4
                    rounded-lg
                    border border-slate-300
@@ -71,7 +68,7 @@
 
             <div class="flex items-center gap-2">
                 <label class="text-label-md text-on-surface-variant">Phiên:</label>
-                    <select id="sessionFilter"
+                <select id="sessionFilter"
                     class="w-[80px] bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-body-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary">
                     <option value="">Tất cả</option>
                     <option>001</option>
@@ -81,7 +78,7 @@
 
             <div class="flex items-center gap-2">
                 <label class="text-label-md text-on-surface-variant">Trạng thái:</label>
-                    <select id="statusFilter"
+                <select id="statusFilter"
                     class="bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-body-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary">
                     <option value="">Tất cả</option>
                     <option>Active</option>
@@ -97,13 +94,13 @@
      MAIN CONTENT — VIEW ALL DOCUMENTS
 ========================================================= -->
 
-    <main class="w-full min-h-[calc(100vh-98px)] overflow-y-auto overflow-x-hidden pt-4">
+    <main class="w-full min-h-[calc(100vh-98px)] overflow-y-auto overflow-x-hidden p-5">
 
         <!-- ===================================================== -->
         <!-- PAGE CONTENT -->
         <!-- ===================================================== -->
 
-        <section class="p-8">
+        <section class="">
 
             <!-- ================================================= -->
             <!-- DOCUMENT TABLE -->

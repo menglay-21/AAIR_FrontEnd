@@ -10,6 +10,7 @@
   --aair-nav-border: #63c3dd;
 }
 
+[data-aair-navbar-mount] { position:sticky; top:0; z-index:50; }
 .aair-navbar { display:flex; align-items:center; min-height:var(--aair-nav-height); height:var(--aair-nav-height); background:var(--aair-nav-primary); color:#fff; font-family:Inter,Arial,sans-serif; position:relative; z-index:50; }
 .aair-navbar *, .aair-navbar *::before, .aair-navbar *::after { box-sizing:border-box; }
 .aair-navbar__brand { display:flex; align-items:center; align-self:stretch; gap:var(--aair-nav-gap); padding:0 var(--aair-nav-padding-x); border-right:1px solid var(--aair-nav-border); color:#fff; text-decoration:none; font-size:15px; font-weight:700; white-space:nowrap; }

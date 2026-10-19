@@ -182,24 +182,6 @@
                 Last 30 Days
             </button>
 
-            <button type="butotn"
-                    class="px-4 py-2
-                       rounded-lg
-                       text-[12px]
-                       bg-button-active
-                       text-text-active
-                       hover:opacity-85
-                       transition-opacity
-                       flex items-center gap-2 shadow-sm"
-                    onclick="location.reload()">
-
-                <span class="material-symbols-outlined text-[12px]">
-                    refresh
-                </span>
-
-                Refresh
-            </button>
-
         </div>
 
     </header>
@@ -302,12 +284,12 @@
                     </div>
 
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-surface-container-low border-b border-outline-variant">
-                                <tr class="">
+                        <table class="w-full border-collapse">
+                            <thead class="bg-text-active border-b border-outline-variant text-center">
+                                <tr>
                                     <th
                                         class="px-6 py-3 text-[12px] font-bold text-on-surface-variant uppercase tracking-wider">
-                                        Time&nbsp;<br></th>
+                                        Time<br></th>
                                     <th
                                         class="px-6 py-3 text-[12px] font-bold text-on-surface-variant uppercase tracking-wider">
                                         Name</th>
@@ -322,53 +304,8 @@
                                         action</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-outline-variant">
-                                <tr class="hover:bg-surface-container-low transition-colors group">
-                                    <td class="px-6 py-4 font-code text-on-surface">14:37</td>
-                                    <td class="px-6 py-4 font-medium text-on-surface">Emily Wong</td>
-                                    <td class="px-6 py-4 text-on-surface-variant">Manager</td>
-                                    <td class="px-6 py-4 text-on-surface-variant">26 Jul 2026</td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-2"><span
-                                                class="w-2 h-2 rounded-full bg-outline"></span><span
-                                                class="text-body-sm">Logged out of the system</span></div>
-                                    </td>
-                                </tr>
-                                <tr
-                                    class="bg-surface-container-low/30 hover:bg-surface-container-low transition-colors group">
-                                    <td class="px-6 py-4 font-code text-on-surface">13:05</td>
-                                    <td class="px-6 py-4 font-medium text-on-surface">David Chen</td>
-                                    <td class="px-6 py-4 text-on-surface-variant">Manager</td>
-                                    <td class="px-6 py-4 text-on-surface-variant">26 Jul 2026</td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-2"><span
-                                                class="w-2 h-2 rounded-full bg-tertiary"></span><span
-                                                class="text-body-sm">Logged into the system</span></div>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-surface-container-low transition-colors group">
-                                    <td class="px-6 py-4 font-code text-on-surface">11:42</td>
-                                    <td class="px-6 py-4 font-medium text-on-surface">Sarah Lee</td>
-                                    <td class="px-6 py-4 text-on-surface-variant">Manager</td>
-                                    <td class="px-6 py-4 text-on-surface-variant">26 Jul 2026</td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-2"><span
-                                                class="w-2 h-2 rounded-full bg-outline"></span><span
-                                                class="text-body-sm">Logged out of the system</span></div>
-                                    </td>
-                                </tr>
-                                <tr
-                                    class="bg-surface-container-low/30 hover:bg-surface-container-low transition-colors group">
-                                    <td class="px-6 py-4 font-code text-on-surface">09:15</td>
-                                    <td class="px-6 py-4 font-medium text-on-surface">John Smith</td>
-                                    <td class="px-6 py-4 text-on-surface-variant">Manager</td>
-                                    <td class="px-6 py-4 text-on-surface-variant">26 Jul 2026</td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-2"><span
-                                                class="w-2 h-2 rounded-full bg-tertiary"></span><span
-                                                class="text-body-sm">Logged into the system</span></div>
-                                    </td>
-                                </tr>
+                            <tbody class="divide-y divide-outline-variant text-center">
+                                
                             </tbody>
                         </table>
                     </div>

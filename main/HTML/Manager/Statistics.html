@@ -162,56 +162,30 @@
     <header class="w-full h-12
            flex items-center px-lg
            bg-text-active border-b border-outline-variant
-           shadow-sm sticky top-[58px] z-30 mb-6">
+           shadow-sm sticky top-[58px] z-30 mb-12">
 
         <div class="flex items-center">
-            <h2 class="text-lg font-bold text-on-surface" data-greeting>
-                Good Morning, 
-            </h2>
+            <h2 class="text-lg font-bold text-on-surface">Tiến độ gán nhãn và kiểm duyệt</h2>
         </div>
         <!-- Buttons -->
         <div class="ml-auto flex items-center gap-2">
 
-            <button class="px-4 py-2
-                       rounded-lg
-                       text-[12px]
-                       bg-button-active
-                       text-text-active
-                       hover:opacity-85
-                       transition-opacity
-                       flex items-center gap-2 shadow-sm">
+            <select id="statsSession" aria-label="Lọc theo session" class="h-9 w-40 px-3 rounded-lg text-[12px] bg-button-active text-text-active hover:opacity-85 transition-opacity shadow-sm">
+                <option value="">Tất cả session</option>
+            </select>
 
-                <span class="material-symbols-outlined text-[12px]">
-                    calendar_today
-                </span>
-
-                Last 30 Days
-            </button>
-
-            <button type="butotn"
-                    class="px-4 py-2
-                       rounded-lg
-                       text-[12px]
-                       bg-button-active
-                       text-text-active
-                       hover:opacity-85
-                       transition-opacity
-                       flex items-center gap-2 shadow-sm"
-                    onclick="location.reload()">
-
-                <span class="material-symbols-outlined text-[12px]">
-                    refresh
-                </span>
-
-                Refresh
-            </button>
+            <select id="statsMode" aria-label="Lọc theo chế độ hỗ trợ" class="h-9 w-40 px-3 rounded-lg text-[12px] bg-button-active text-text-active hover:opacity-85 transition-opacity shadow-sm">
+                <option value="">Tất cả chế độ</option>
+                <option value="NONE">NONE</option>
+                <option value="AI_ASSISTED">AI_ASSISTED</option>
+            </select>
 
         </div>
 
     </header>
 
   <!-- Main Content Area -->
-  <main class="w-full min-h-[calc(100vh-106px)] bg-surface pt-6">
+  <main class="w-full min-h-[calc(100vh-106px)] bg-surface pt-12">
     <!-- Header Section -->
     <div class="w-full px-6 py-6">
 

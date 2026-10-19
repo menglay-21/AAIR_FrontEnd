@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< HEAD
 
     <title>Base Management</title>
     <link rel="icon" type="image/png" href="/resource/icon/logo_remove_BG.png">
@@ -19,18 +18,11 @@
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
 
-=======
-    <title>AAIR Lab - Terminology Base</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
->>>>>>> c0400a00ec48da9a12cd8761452fdf2e1e35bbe8
     <script src="../../../JavaScript/tailwind.js"></script>
     <link href="../../../Style/basic.css" rel="stylesheet">
     <link href="../../../Style/navbar.css" rel="stylesheet">
 </head>
 <body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
-<<<<<<< HEAD
 
     <!-- Fixed Header -->
     <header
@@ -114,50 +106,7 @@
     <header class="w-full h-12
            flex items-center gap-2 px-lg
            bg-text-active border-b border-outline-variant
-           shadow-sm sticky top-[50px] z-50 mb-4">
-
-        <div class="relative flex-1 W-[240px] ">
-            <span
-                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">filter_list</span>
-            <input id="termSearch" type="search" aria-label="Search terminology" placeholder="Tìm thuật ngữ, viết tắt hoặc từ đồng nghĩa" class="w-[500px] bg-white border border-outline-variant/60 rounded-lg
-                          py-2 pl-10 pr-4 text-body-sm
-                          focus:outline-none focus:ring-0 
-                          focus:border-outline-variant/60
-                          transition-colors">
-        </div>
-
-        <div class="flex items-center gap-4">
-            <label for="termCategoryFilter" class="text-label-md text-on-surface-variant">Category:</label>
-            <select id="termCategoryFilter"
-                class="w-[150px] bg-surface border border-outline-variant rounded-lg px-3 py-1.5 text-body-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary">
-                <option value="">Tất cả category</option>
-            </select>
-
-            <!-- Buttons -->
-            <div class="ml-auto flex items-center gap-2">
-
-                <!-- Hidden CSV File Input -->
-                <input type="file" id="csvFileInput" accept=".csv,text/csv" class="hidden">
-
-                <!-- Import CSV Button -->
-                <button type="button" onclick="document.getElementById('csvFileInput').click()" class="px-4 py-2
-                            rounded-lg
-                            text-[12px]
-                            bg-button-active
-                            text-text-active
-                            hover:opacity-85
-                            transition-opacity
-                            flex items-center gap-2
-                            shadow-sm">
-
-                    <span class="material-symbols-outlined text-[14px]">
-                        upload_file
-                    </span>
-
-                    Import CSV
-                </button>
-
-            </div>
+           shadow-sm sticky top-[50px] z-50 mb-12">
 
     </header>
 
@@ -355,20 +304,6 @@
 
     <!-- javascript -->
     <script></script>
-=======
-    <div data-aair-navbar-mount></div>
-    <main aria-live="polite"></main>
-
-    <script>
-        window.AAIRNavbarConfig = {
-            brandHref: 'Dashboard.html',
-            tabs: [
-                { label: 'Dashboard', icon: 'dashboard', href: 'Dashboard.html' },
-                { label: 'Terminology Base', icon: 'dictionary', href: 'BaseManagement.html' }
-            ]
-        };
-    </script>
->>>>>>> c0400a00ec48da9a12cd8761452fdf2e1e35bbe8
     <script src="../../../JavaScript/api.js"></script>
     <script src="../../../JavaScript/terminologyManagement.js"></script>
     <script src="../../../JavaScript/navbar.js"></script>
