@@ -13,7 +13,7 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/aair_db}
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:tuananh31}
+    password: ${DB_PASSWORD:menglay21}
     driver-class-name: org.postgresql.Driver
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
